@@ -1,0 +1,42 @@
+using CryptoExchange.Net.Objects;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Options for getting trades for a spot order
+    /// </summary>
+    public class GetSpotOrderTradesOptions : CapabilityOptions<GetOrderTradesRequest, IGetSpotOrderTrades>
+    {
+        /// <inheritdoc />
+        public override string Description => "Retrieve trades for a spot order";
+
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetOrderTradesRequest>.Required(x => x.Symbol, "The symbol of the order to retrieve trades for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetOrderTradesRequest>.Required(x => x.OrderId, "The id of the order to retrieve trades for", "123"),
+        };
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetSpotOrderTradesOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotOrderTrades.GetSpotOrderTradesAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
+        {
+        }
+
+        /// <inheritdoc />
+        public override Error? ValidateRequest(GetOrderTradesRequest request, IGetSpotOrderTrades client)
+        {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
+            if (request.Symbol!.TradingMode != TradingMode.Spot)
+                return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
+
+            return null;
+        }
+    }
+}

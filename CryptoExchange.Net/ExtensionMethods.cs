@@ -4,6 +4,7 @@ using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -395,7 +396,6 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IBookTickerRestClient)client(x)!);
             if (typeof(ITransferRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ITransferRestClient)client(x)!);
-
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
             if (typeof(ISpotSymbolRestClient).IsAssignableFrom(typeof(T)))
@@ -470,6 +470,120 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IPositionSocketClient)client(x)!);
             if (typeof(IFuturesOrderManagementSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFuturesOrderManagementSocketClient)client(x)!);
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers a strict Shared API aggregate and all capability interfaces implemented by it.
+        /// </summary>
+        public static IServiceCollection RegisterSharedApi<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+#endif
+        TSharedApi>(
+            this IServiceCollection services,
+            Func<IServiceProvider, TSharedApi> factory)
+            where TSharedApi : class, ISharedApi
+        {
+            services.AddTransient<TSharedApi>(factory);
+
+            var allInterfaces = typeof(TSharedApi).GetInterfaces();
+
+            var transportCapabilityInterfaces = allInterfaces
+                .Where(x =>
+                    typeof(ISharedApiCapability).IsAssignableFrom(x)
+                    && (typeof(ISharedRest).IsAssignableFrom(x)
+                        || typeof(ISharedSocket).IsAssignableFrom(x))
+                    && x != typeof(ISharedRest)
+                    && x != typeof(ISharedSocket)
+                    && x != typeof(ISharedSubscription))
+                .Distinct()
+                .ToArray();
+
+            var baseCapabilityInterfaces = allInterfaces
+                .Where(x =>
+                    x != typeof(ISharedApiCapability)
+                    && typeof(ISharedApiCapability).IsAssignableFrom(x)
+                    && !typeof(ISharedRest).IsAssignableFrom(x)
+                    && !typeof(ISharedSocket).IsAssignableFrom(x))
+                .Distinct()
+                .ToArray();
+
+            services.AddSingleton(new SharedApiRegistrationInfo(
+                typeof(TSharedApi),
+                baseCapabilityInterfaces));
+
+            foreach (var capabilityInterface in transportCapabilityInterfaces)
+            {
+                services.AddTransient(
+                    capabilityInterface,
+                    serviceProvider =>
+                        serviceProvider.GetRequiredService<TSharedApi>());
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers transport-agnostic Shared API capabilities through the
+        /// exchange-specific Shared API aggregate client.
+        /// </summary>
+        public static IServiceCollection RegisterSharedApiClientCapabilities<
+#if NET5_0_OR_GREATER
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+            TSharedApiClient>(
+            this IServiceCollection services)
+            where TSharedApiClient : class, ISharedApiClientBase
+        {
+            services.AddTransient<ISharedApiClientBase>(serviceProvider =>
+                serviceProvider.GetRequiredService<TSharedApiClient>());
+
+            var sharedApiTypes = new HashSet<Type>(
+                typeof(TSharedApiClient)
+                    .GetProperties()
+                    .Where(property =>
+                        typeof(ISharedApi).IsAssignableFrom(
+                            property.PropertyType))
+                    .Select(property => property.PropertyType));
+
+            var capabilityInterfaces = services
+                .Where(descriptor =>
+                    descriptor.ImplementationInstance
+                        is SharedApiRegistrationInfo)
+                .Select(descriptor =>
+                    (SharedApiRegistrationInfo)descriptor.ImplementationInstance!)
+                .Where(registration =>
+                    sharedApiTypes.Contains(registration.SharedApiType))
+                .SelectMany(registration =>
+                    registration.BaseCapabilityTypes)
+                .Distinct()
+                .ToArray();
+
+            foreach (var capabilityInterface in capabilityInterfaces)
+            {
+                services.AddTransient(
+                    capabilityInterface,
+                    serviceProvider =>
+                    {
+                        var sharedApiClient = serviceProvider
+                            .GetRequiredService<TSharedApiClient>();
+
+                        if (sharedApiClient is not ISharedApiClientResolver resolver)
+                        {
+                            throw new InvalidOperationException(
+                                $"{typeof(TSharedApiClient).Name} should derive from " +
+                                $"{nameof(SharedApiClientBase)}");
+                        }
+
+                        return resolver.GetCapability(capabilityInterface)
+                            ?? throw new InvalidOperationException(
+                                $"No implementation of " +
+                                $"{capabilityInterface.Name} is available");
+                    });
+            }
 
             return services;
         }

@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public class UserSpotDataTracker : UserDataTracker, IUserSpotDataTracker
     {
-        private readonly ISpotSymbolRestClient _symbolClient;
+        private readonly IGetSpotSymbolsRest _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
 
         /// <inheritdoc />
@@ -34,12 +34,18 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserSpotDataTracker(
             ILogger logger,
-            ISpotSymbolRestClient symbolRestClient,
-            IBalanceRestClient balanceRestClient,
-            IBalanceSocketClient? balanceSocketClient,
-            ISpotOrderRestClient spotOrderRestClient,
-            ISpotOrderSocketClient? spotOrderSocketClient,
-            IUserTradeSocketClient? userTradeSocketClient,
+            IGetSpotSymbolsRest symbolRestClient,
+
+            IGetBalancesRest balanceRestClient,
+            ISubscribeBalancesSocket? balanceSocketClient,
+
+            IGetOpenSpotOrdersRest openOrderRestClient,
+            IGetClosedSpotOrdersRest closedOrderRestClient,
+            ISubscribeSpotOrdersSocket? subscribeSpotOrdersOperation,
+
+            IGetSpotUserTradeHistoryRest? getSpotUserTradeHistoryRestClient,
+            ISubscribeUserTradesSocket? userTradeSocketClient,
+
             string? userIdentifier,
             SpotUserDataTrackerConfig config,
             ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
@@ -54,13 +60,16 @@ namespace CryptoExchange.Net.Trackers.UserData
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, spotOrderRestClient, spotOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, openOrderRestClient, closedOrderRestClient, subscribeSpotOrdersOperation, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, spotOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                if (getSpotUserTradeHistoryRestClient == null)
+                    throw new ArgumentException("Trade tracking is enabled, but no user trade API client is available");
+
+                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, getSpotUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

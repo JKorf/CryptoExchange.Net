@@ -1,0 +1,82 @@
+using CryptoExchange.Net.Objects;
+using System;
+using System.Linq;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Options for subscribing to kline/candlestick updates
+    /// </summary>
+    public class SubscribeKlineOptions : CapabilityOptions<SubscribeKlineRequest, ISubscribeKlinesSocket>
+    {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to candlestick updates for a symbol";
+
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribeKlineRequest>.Optional(x => x.Symbol, "The symbol to subscribe to", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<SubscribeKlineRequest>.Optional(x => x.Symbols, "The symbols to subscribe to", new[] { new SharedSymbol(TradingMode.Spot, "ETH", "USDT") }),
+            RequestParameterRule<SubscribeKlineRequest>.Required(x => x.Interval, "The kline interval", SharedKlineInterval.OneMinute),
+        };
+
+        /// <summary>
+        /// Kline intervals supported for updates
+        /// </summary>
+        public SharedKlineInterval[] SupportIntervals { get; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync), _defaultParameterRules)
+        {
+            SupportIntervals = new[]
+            {
+                SharedKlineInterval.OneMinute,
+                SharedKlineInterval.ThreeMinutes,
+                SharedKlineInterval.FiveMinutes,
+                SharedKlineInterval.FifteenMinutes,
+                SharedKlineInterval.ThirtyMinutes,
+                SharedKlineInterval.OneHour,
+                SharedKlineInterval.TwoHours,
+                SharedKlineInterval.FourHours,
+                SharedKlineInterval.SixHours,
+                SharedKlineInterval.EightHours,
+                SharedKlineInterval.TwelveHours,
+                SharedKlineInterval.OneDay,
+                SharedKlineInterval.OneWeek,
+                SharedKlineInterval.OneMonth
+            };
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication, params SharedKlineInterval[] intervals) 
+            : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync), _defaultParameterRules)
+        {
+            SupportIntervals = intervals;
+        }
+
+        /// <summary>
+        /// Check whether a specific interval is supported
+        /// </summary>
+        /// <param name="interval">Interval</param>
+        /// <returns></returns>
+        public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
+
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        public override Error? ValidateRequest(SubscribeKlineRequest request, ISubscribeKlinesSocket client)
+        {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
+            if (!IsSupported(request.Interval))
+                return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
+
+            return null;
+        }
+    }
+}

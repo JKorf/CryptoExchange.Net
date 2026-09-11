@@ -1,0 +1,55 @@
+﻿using System;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Request to retrieve the account ledger of the user
+    /// </summary>
+    public record GetLedgerRequest : SharedRequest
+    {
+        /// <summary>
+        /// Filter by asset
+        /// </summary>
+        public string? Asset { get; set; }
+        /// <summary>
+        /// Filter by start time
+        /// </summary>
+        public DateTime? StartTime { get; }
+        /// <summary>
+        /// Filter by end time
+        /// </summary>
+        public DateTime? EndTime { get; }
+        /// <summary>
+        /// Max number of results
+        /// </summary>
+        public int? Limit { get; }
+        /// <summary>
+        /// Data direction
+        /// </summary>
+        public DataDirection? Direction { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="asset">Filter by asset</param>
+        /// <param name="startTime">Filter by start time</param>
+        /// <param name="endTime">Filter by end time</param>
+        /// <param name="limit">Max number of results</param>
+        /// <param name="direction">Data direction</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public GetLedgerRequest(
+            string? asset = null,
+            DateTime? startTime = null,
+            DateTime? endTime = null,
+            int? limit = null,
+            DataDirection? direction = null,
+            ExchangeParameters? exchangeParameters = null) : base(null, exchangeParameters)
+        {
+            Asset = asset;
+            StartTime = startTime;
+            EndTime = endTime;
+            Limit = limit;
+            Direction = direction;
+        }
+    }
+}

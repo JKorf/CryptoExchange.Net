@@ -1,0 +1,231 @@
+﻿using CryptoExchange.Net.Objects;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Globalization;
+using System.Linq;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Exchange parameters
+    /// </summary>
+    public class ExchangeParameters
+    {
+        private readonly static Dictionary<string, Parameters> _staticProcessParameters = new Dictionary<string, Parameters>();
+        private readonly Dictionary<string, Parameters> _processParameters;
+
+        /// <summary>
+        /// Create a new ExchangeParameters instance with the provided parameters set
+        /// </summary>
+        /// <param name="parameters">Exchange parameters</param>
+        public ExchangeParameters(params ExchangeParameter[] parameters)
+        {
+            _processParameters = new Dictionary<string, Parameters>();
+
+            foreach (var parameter in parameters)
+                AddValue(parameter.Exchange, parameter.Name, parameter.Value);
+        }
+
+        /// <summary>
+        /// Add a process parameter. Process parameters are used to determine the correct logic to execute, but are not necessarily passed to the API.<br />
+        /// To directly add or override parameters which are passed to the API, use AddRawParameter or AddRawValue instead.
+        /// </summary>
+        /// <param name="exchangeParameter">The exchange parameter to add</param>
+        public void AddValue(ExchangeParameter exchangeParameter)
+        {
+            AddValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
+        }
+
+        /// <summary>
+        /// Add a process parameter. Process parameters are used to determine the correct logic to execute, but are not necessarily passed to the API.<br />
+        /// To directly add or override parameters which are passed to the API, use AddRawParameter or AddRawValue instead.
+        /// </summary>
+        /// <param name="exchange">Exchange to apply the parameter for</param>
+        /// <param name="key">Parameter name</param>
+        /// <param name="value">Parameter value</param>
+        public void AddValue(string exchange, string key, object value)
+        {
+            if (!_processParameters.TryGetValue(exchange, out var exchangeParameters))
+            {
+                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
+                _processParameters[exchange] = exchangeParameters;
+            }
+
+            exchangeParameters.AddRaw(key, value);
+        }
+
+        /// <summary>
+        /// Check whether a specific parameter is provided in this specific instance
+        /// </summary>
+        /// <param name="exchange">The exchange name</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="type">Type of the parameter value</param>
+        /// <returns></returns>
+        public bool HasValue(string exchange, string name, Type type)
+        {
+            var val = TryGetValue(_processParameters, exchange, name);
+            val ??= TryGetValue(_staticProcessParameters, exchange, name);
+
+            if (val == null)
+                return false;
+
+            return TryConvertValue(val, type, out _);
+        }
+
+        /// <summary>
+        /// Check whether a specific process parameter is provided in the default parameters or the provided instance
+        /// </summary>
+        /// <param name="exchangeParameters">The provided exchange parameter in the request</param>
+        /// <param name="exchange">The exchange name</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="type">Type of the parameter value</param>
+        /// <returns></returns>
+        public static bool HasValue(ExchangeParameters? exchangeParameters, string exchange, string name, Type type)
+        {
+            var provided = exchangeParameters?.HasValue(exchange, name, type);
+            if (provided == true)
+                return true;
+
+            var val = TryGetValue(_staticProcessParameters, exchange, name);
+            if (val == null)
+                return false;
+
+            return TryConvertValue(val, type, out _);
+        }
+
+        /// <summary>
+        /// Get the value of a parameter from this instance
+        /// </summary>
+        /// <typeparam name="T">Type of the parameter value</typeparam>
+        /// <param name="exchange">Exchange name</param>
+        /// <param name="name">Parameter name</param>
+        public T? GetValue<T>(string exchange, string name)
+        {
+            var val = TryGetValue(_processParameters, exchange, name);
+            val ??= TryGetValue(_staticProcessParameters, exchange, name);
+            if (val == null)
+                return default;
+
+            if (!TryConvertValue(val, typeof(T), out var convertedValue))
+            {
+                throw new ArgumentException(
+                    $"Incorrect type for parameter, expected {typeof(T).Name}",
+                    name);
+            }
+
+            return (T)convertedValue!;
+        }
+
+        /// <summary>
+        /// Get the value of a parameter from this instance or the default values
+        /// </summary>
+        /// <typeparam name="T">Type of the parameter value</typeparam>
+        /// <param name="exchangeParameters">The request parameters</param>
+        /// <param name="exchange">Exchange name</param>
+        /// <param name="name">Parameter name</param>
+        public static T? GetValue<T>(ExchangeParameters? exchangeParameters, string exchange, string name)
+        {
+            if (exchangeParameters != null) {
+
+                var provided = exchangeParameters.GetValue<T>(exchange, name);
+                if (provided != null)
+                    return provided;
+            }
+
+            var val = TryGetValue(_staticProcessParameters, exchange, name);
+            if (val == null)
+                return default;
+
+            if (!TryConvertValue(val, typeof(T), out var convertedValue))
+            {
+                throw new ArgumentException(
+                    $"Incorrect type for parameter, expected {typeof(T).Name}",
+                    name);
+            }
+
+            return (T)convertedValue!;
+        }
+
+        private static bool TryConvertValue(
+            object value,
+            Type expectedType,
+            out object? convertedValue)
+        {
+            var targetType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
+
+            if (targetType.IsInstanceOfType(value))
+            {
+                convertedValue = value;
+                return true;
+            }
+
+            if (targetType.IsEnum)
+            {
+                convertedValue = null;
+                return false;
+            }
+
+            try
+            {
+                convertedValue = Convert.ChangeType(
+                    value,
+                    targetType,
+                    CultureInfo.InvariantCulture);
+
+                return true;
+            }
+            catch (Exception ex) when (
+                ex is FormatException ||
+                ex is InvalidCastException ||
+                ex is OverflowException ||
+                ex is ArgumentException)
+            {
+                convertedValue = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Set static parameters
+        /// </summary>
+        /// <param name="exchange">Exchange name</param>
+        /// <param name="key">Parameter name</param>
+        /// <param name="value">Parameter value</param>
+        public static void SetStaticParameter(string exchange, string key, object value)
+        {
+            if (!_staticProcessParameters.TryGetValue(exchange, out var exchangeParameters))
+            {
+                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
+                _staticProcessParameters[exchange] = exchangeParameters;
+            }
+
+            exchangeParameters.Remove(key);
+            exchangeParameters.AddRaw(key, value);
+        }
+
+        /// <summary>
+        /// Reset the static parameters, clears all parameters for all exchanges
+        /// </summary>
+        public static void ResetStaticParameters()
+        {
+            _staticProcessParameters.Clear();
+        }
+
+        /// <summary>
+        /// Reset the static parameters, clears all parameters for an exchange exchanges
+        /// </summary>
+        public static void ResetStaticExchangeParameters(string exchange)
+        {
+            _staticProcessParameters.Remove(exchange);
+        }
+
+        private static object? TryGetValue(Dictionary<string, Parameters> list, string exchange, string key)
+        {
+            if (!list.TryGetValue(exchange, out var exchangeParams))
+                return null;
+
+            return exchangeParams.SingleOrDefault(x => x.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Value;
+        }
+    }
+}

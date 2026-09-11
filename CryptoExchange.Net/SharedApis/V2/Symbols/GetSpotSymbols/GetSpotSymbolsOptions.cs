@@ -1,0 +1,75 @@
+using CryptoExchange.Net.Objects;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Options for requesting symbol info
+    /// </summary>
+    public class GetSpotSymbolsOptions : CapabilityOptions<GetSymbolsRequest, IGetSpotSymbols>
+    {
+        /// <inheritdoc />
+        public override string Description => "Retrieve supported spot symbols and their trading rules";
+
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.TradingMode, "Filter the symbols by trading mode", TradingMode.Spot),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.BaseAssetType, "Filter by base asset type", SharedAssetType.Crypto),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.BaseAssetSubType, "Filter by base asset subtype", SharedAssetSubType.StableCoin),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.QuoteAssetType, "Filter by quote asset type", SharedAssetType.Crypto),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.QuoteAssetSubType, "Filter by quote asset subtype", SharedAssetSubType.StableCoin),
+        };
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbols.GetSpotSymbolsAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
+        {
+        }
+
+
+        /// <inheritdoc />
+        public override Error? ValidateRequest(GetSymbolsRequest request, IGetSpotSymbols client)
+        {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
+            if (request.BaseAssetType != null && request.BaseAssetSubType != null)
+            {
+                error = ValidateAssetTypeCombination(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
+                if (error != null)
+                    return error;
+            }
+
+            if (request.QuoteAssetType != null && request.QuoteAssetSubType != null)
+            {
+                error = ValidateAssetTypeCombination(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
+                if (error != null)
+                    return error;
+            }
+
+            return null;
+        }
+
+        private Error? ValidateAssetTypeCombination(SharedAssetType type, SharedAssetSubType subType)
+        {
+            if (type == SharedAssetType.Crypto
+                    && (subType == SharedAssetSubType.Commodity
+                    || (subType == SharedAssetSubType.Equity)))
+            {
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
+            }
+
+            if (type == SharedAssetType.TradFi && subType == SharedAssetSubType.StableCoin)
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
+
+            if (type == SharedAssetType.Fiat)
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
+
+            return null;
+        }
+    }
+}

@@ -35,6 +35,11 @@ namespace CryptoExchange.Net.Objects.Options
 #endif
 
         /// <summary>
+        /// Whether concurrent identical REST requests may share the same in-flight request when allowed by the request definition.
+        /// </summary>
+        public bool RequestCoalescingEnabled { get; set; } = true;
+
+        /// <summary>
         /// Http client keep alive interval for keeping connections open. Only applied when using dotnet8.0 or higher and dependency injection
         /// </summary>
         public TimeSpan? HttpKeepAliveInterval { get; set; } = TimeSpan.FromSeconds(15);
@@ -73,6 +78,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.CachingEnabled = CachingEnabled;
             item.CachingMaxAge = CachingMaxAge;
             item.HttpVersion = HttpVersion;
+            item.RequestCoalescingEnabled = RequestCoalescingEnabled;
             item.HttpKeepAliveInterval = HttpKeepAliveInterval;
 #if NET5_0_OR_GREATER
             item.HttpMaxConnectionsPerServer = HttpMaxConnectionsPerServer;
