@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"[{ValueType.Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
+            return $"[{(Nullable.GetUnderlyingType(ValueType) ?? ValueType).Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
         }
     }
 
@@ -135,7 +135,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"[{Support}] [{ValueType.Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
+            return $"[{Support}] [{(Nullable.GetUnderlyingType(ValueType) ?? ValueType).Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
         }
     }
 
@@ -167,7 +167,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"[{Requirement}] [{ValueType.Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
+            return $"[{Requirement}] [{(Nullable.GetUnderlyingType(ValueType) ?? ValueType).Name}] \"{Name}\" {string.Join(" / ", Aliases.Select(x => $"\"{x}\""))}: {Description}";
         }
     }
 }

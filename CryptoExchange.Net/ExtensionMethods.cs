@@ -488,19 +488,77 @@ namespace CryptoExchange.Net
         {
             services.AddTransient<TSharedApi>(factory);
 
-            var markerInterfaces = new[]
-            {
-                typeof(ISharedApiCapability),
-                typeof(ISharedRest),
-                typeof(ISharedSocket),
-                typeof(ISharedSubscription)
-            };
+            var allInterfaces = typeof(TSharedApi).GetInterfaces();
 
-            var capabilityInterfaces = typeof(TSharedApi)
-                .GetInterfaces()
+            var transportCapabilityInterfaces = allInterfaces
                 .Where(x =>
                     typeof(ISharedApiCapability).IsAssignableFrom(x)
-                    && !markerInterfaces.Contains(x))
+                    && (typeof(ISharedRest).IsAssignableFrom(x)
+                        || typeof(ISharedSocket).IsAssignableFrom(x))
+                    && x != typeof(ISharedRest)
+                    && x != typeof(ISharedSocket)
+                    && x != typeof(ISharedSubscription))
+                .Distinct()
+                .ToArray();
+
+            var baseCapabilityInterfaces = allInterfaces
+                .Where(x =>
+                    x != typeof(ISharedApiCapability)
+                    && typeof(ISharedApiCapability).IsAssignableFrom(x)
+                    && !typeof(ISharedRest).IsAssignableFrom(x)
+                    && !typeof(ISharedSocket).IsAssignableFrom(x))
+                .Distinct()
+                .ToArray();
+
+            services.AddSingleton(new SharedApiRegistrationInfo(
+                typeof(TSharedApi),
+                baseCapabilityInterfaces));
+
+            foreach (var capabilityInterface in transportCapabilityInterfaces)
+            {
+                services.AddTransient(
+                    capabilityInterface,
+                    serviceProvider =>
+                        serviceProvider.GetRequiredService<TSharedApi>());
+            }
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers transport-agnostic Shared API capabilities through the
+        /// exchange-specific Shared API aggregate client.
+        /// </summary>
+        public static IServiceCollection RegisterSharedApiClientCapabilities<
+#if NET5_0_OR_GREATER
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+            TSharedApiClient>(
+            this IServiceCollection services)
+            where TSharedApiClient : class, ISharedApiClientBase
+        {
+            services.AddTransient<ISharedApiClientBase>(serviceProvider =>
+                serviceProvider.GetRequiredService<TSharedApiClient>());
+
+            var sharedApiTypes = new HashSet<Type>(
+                typeof(TSharedApiClient)
+                    .GetProperties()
+                    .Where(property =>
+                        typeof(ISharedApi).IsAssignableFrom(
+                            property.PropertyType))
+                    .Select(property => property.PropertyType));
+
+            var capabilityInterfaces = services
+                .Where(descriptor =>
+                    descriptor.ImplementationInstance
+                        is SharedApiRegistrationInfo)
+                .Select(descriptor =>
+                    (SharedApiRegistrationInfo)descriptor.ImplementationInstance!)
+                .Where(registration =>
+                    sharedApiTypes.Contains(registration.SharedApiType))
+                .SelectMany(registration =>
+                    registration.BaseCapabilityTypes)
                 .Distinct()
                 .ToArray();
 
@@ -509,7 +567,22 @@ namespace CryptoExchange.Net
                 services.AddTransient(
                     capabilityInterface,
                     serviceProvider =>
-                        serviceProvider.GetRequiredService<TSharedApi>());
+                    {
+                        var sharedApiClient = serviceProvider
+                            .GetRequiredService<TSharedApiClient>();
+
+                        if (sharedApiClient is not ISharedApiClientResolver resolver)
+                        {
+                            throw new InvalidOperationException(
+                                $"{typeof(TSharedApiClient).Name} should derive from " +
+                                $"{nameof(SharedApiClientBase)}");
+                        }
+
+                        return resolver.GetCapability(capabilityInterface)
+                            ?? throw new InvalidOperationException(
+                                $"No implementation of " +
+                                $"{capabilityInterface.Name} is available");
+                    });
             }
 
             return services;

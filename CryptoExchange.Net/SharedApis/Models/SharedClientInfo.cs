@@ -35,6 +35,14 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public CentralizationType CentralizationType { get; set; }
         /// <summary>
+        /// The underlying transport type used by this client
+        /// </summary>
+        public SharedTransport Transport { get; init; }
+        /// <summary>
+        /// Whether API credentials have been configured for this client. Does not check whether the credentials are valid.
+        /// </summary>
+        public bool Authenticated { get; init; }
+        /// <summary>
         /// Use Capabilities instead
         /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -74,6 +82,8 @@ namespace CryptoExchange.Net.SharedApis
             sb.AppendLine($"Supported environments: {string.Join(", ", SupportedEnvironments)}");
             sb.AppendLine($"Supported trading modes: {string.Join(", ", SupportedTradingModes)}");
             sb.AppendLine($"Centralization type: {CentralizationType}");
+            sb.AppendLine($"Transport: {Transport}");
+            sb.AppendLine($"Authenticated: {Authenticated}");
             sb.AppendLine($"Capabilities:");
             foreach (var capability in Capabilities)
             {

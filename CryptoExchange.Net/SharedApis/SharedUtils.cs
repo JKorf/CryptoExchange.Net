@@ -21,6 +21,8 @@ namespace CryptoExchange.Net.SharedApis
                 SupportedEnvironments = platformInfo.SupportedEnvironments,
                 SupportedTradingModes = client.SupportedTradingModes,
                 CentralizationType = platformInfo.CentralizationType,
+                Transport = client.Transport,
+                Authenticated = client.Authenticated,
                 Capabilities = client.Capabilities.Where(x => x.Supported).ToArray()
             };
         }

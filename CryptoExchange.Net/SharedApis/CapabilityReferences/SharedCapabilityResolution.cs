@@ -12,6 +12,16 @@ namespace CryptoExchange.Net.SharedApis
         where T : ISharedApiCapability
     {
         /// <summary>
+        /// The exchange name
+        /// </summary>
+        public string Exchange => Capability.Exchange;
+
+        /// <summary>
+        /// The transport type
+        /// </summary>
+        public SharedTransport Transport => Capability.Transport;
+
+        /// <summary>
         /// The capability
         /// </summary>
         public T Capability { get; }
