@@ -1,5 +1,8 @@
 ﻿using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
@@ -44,6 +47,34 @@ namespace CryptoExchange.Net.SharedApis
             if (request.QuoteAssetSubType != null)
                 resultData = resultData.Where(x => x.QuoteAssetSubType == request.QuoteAssetSubType);
             return resultData.ToArray();
+        }
+
+        /// <summary>
+        /// Register Shared API client in DI container
+        /// </summary>
+        public static IServiceCollection RegisterSharedApiClient<
+            TSharedApiClient,
+#if NET5_0_OR_GREATER
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        TImplementation
+            >(this IServiceCollection services, Action<SharedApiClientRegistrationBuilder<TSharedApiClient>> configure)
+                where TImplementation : class, TSharedApiClient
+                where TSharedApiClient : class, ISharedApiClientBase
+        {
+            services.AddTransient<TSharedApiClient, TImplementation>();
+            services.AddTransient<ISharedApiClientBase>(
+                serviceProvider =>
+                    serviceProvider.GetRequiredService<TSharedApiClient>());
+
+            var builder =
+                new SharedApiClientRegistrationBuilder<TSharedApiClient>(services);
+
+            configure(builder);
+            builder.RegisterTransportAgnosticCapabilities();
+
+            return services;
         }
     }
 }

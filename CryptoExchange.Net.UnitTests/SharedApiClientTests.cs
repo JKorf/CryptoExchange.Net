@@ -63,7 +63,6 @@ namespace CryptoExchange.Net.UnitTests
             var restApi = new TestRestSharedApi();
             var socketApi = new TestSocketSharedApi();
             var client = new TestDiSharedApiClient(
-                SharedTransport.Socket,
                 restApi,
                 socketApi);
 
@@ -82,26 +81,48 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [Test]
-        public void RegisterSharedApiClientCapabilities_ShouldResolvePreferredTransport()
+        public void RegisterSharedApiClient_ShouldResolvePreferredTransport()
         {
             var restApi = new TestRestSharedApi();
             var socketApi = new TestSocketSharedApi();
             var services = new ServiceCollection();
 
-            services.RegisterSharedApi<ITestRestSharedApi>(_ => restApi);
-            services.RegisterSharedApi<ITestSocketSharedApi>(_ => socketApi);
-            services.AddTransient<ITestSharedApiClient>(_ =>
-                new TestDiSharedApiClient(SharedTransport.Socket, restApi, socketApi));
-            services.RegisterSharedApiClientCapabilities<ITestSharedApiClient>();
+            services.AddSingleton(restApi);
+            services.AddSingleton(socketApi);
+
+            services.RegisterSharedApiClient<
+                ITestSharedApiClient,
+                TestDiSharedApiClient>(sharedApis => sharedApis
+                    .Add(client => client.Rest)
+                    .Add(client => client.Socket));
 
             using var provider = services.BuildServiceProvider();
 
             Assert.Multiple(() =>
             {
-                Assert.That(provider.GetRequiredService<ITestCapability>(), Is.SameAs(socketApi));
-                Assert.That(provider.GetServices<ITestCapability>().ToArray(), Is.EqualTo(new[] { socketApi }));
-                Assert.That(provider.GetRequiredService<ITestRestCapability>(), Is.SameAs(restApi));
-                Assert.That(provider.GetRequiredService<ITestSocketCapability>(), Is.SameAs(socketApi));
+                Assert.That(
+                    provider.GetRequiredService<ITestSharedApiClient>(),
+                    Is.Not.Null);
+
+                Assert.That(
+                    provider.GetRequiredService<ISharedApiClientBase>(),
+                    Is.InstanceOf<TestDiSharedApiClient>());
+
+                Assert.That(
+                    provider.GetRequiredService<ITestCapability>(),
+                    Is.SameAs(socketApi));
+
+                Assert.That(
+                    provider.GetServices<ITestCapability>().ToArray(),
+                    Is.EqualTo(new[] { socketApi }));
+
+                Assert.That(
+                    provider.GetRequiredService<ITestRestCapability>(),
+                    Is.SameAs(restApi));
+
+                Assert.That(
+                    provider.GetRequiredService<ITestSocketCapability>(),
+                    Is.SameAs(socketApi));
             });
         }
 
@@ -292,10 +313,9 @@ namespace CryptoExchange.Net.UnitTests
             public ITestSocketSharedApi Socket { get; }
 
             public TestDiSharedApiClient(
-                SharedTransport preferredTransport,
-                ITestRestSharedApi rest,
-                ITestSocketSharedApi socket)
-                : base(preferredTransport, rest, socket)
+                TestRestSharedApi rest,
+                TestSocketSharedApi socket)
+                : base(SharedTransport.Socket, rest, socket)
             {
                 Rest = rest;
                 Socket = socket;
