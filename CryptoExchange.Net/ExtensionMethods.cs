@@ -146,25 +146,42 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static string ToFormData(this IDictionary<string, object> parameters)
         {
-            var formData = HttpUtility.ParseQueryString(string.Empty);
+            var result = new StringBuilder();
+            var first = true;
+
+            void Append(string key, object value)
+            {
+                if (!first)
+                    result.Append('&');
+                first = false;
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    result.Append(HttpUtility.UrlEncode(key, Encoding.UTF8));
+                    result.Append('=');
+                }
+
+                var text = string.Format(CultureInfo.InvariantCulture, "{0}", value);
+                result.Append(HttpUtility.UrlEncode(text, Encoding.UTF8));
+            }
+
             foreach (var kvp in parameters)
             {
                 if (kvp.Value is null)
                     continue;
 
-                if (kvp.Value.GetType().IsArray)
+                if (kvp.Value is Array array)
                 {
-                    var array = (Array)kvp.Value;
                     foreach (var value in array)
-                        formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                        Append(kvp.Key, value);
                 }
                 else
                 {
-                    formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", kvp.Value));
+                    Append(kvp.Key, kvp.Value);
                 }
             }
 
-            return formData.ToString()!;
+            return result.ToString();
         }
 
         /// <summary>
