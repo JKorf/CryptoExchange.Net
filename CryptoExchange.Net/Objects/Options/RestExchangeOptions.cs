@@ -75,6 +75,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.RateLimiterEnabled = RateLimiterEnabled;
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.RateLimitGroup = RateLimitGroup;
+            item.RateLimitAdmission = RateLimitAdmission;
             item.CachingEnabled = CachingEnabled;
             item.CachingMaxAge = CachingMaxAge;
             item.HttpVersion = HttpVersion;

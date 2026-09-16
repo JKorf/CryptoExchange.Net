@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.RateLimiting.Interfaces;
+﻿using CryptoExchange.Net.RateLimiting;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -63,6 +64,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// What to do when rate limit is reached
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehavior { get; set; }
+
+        /// <summary>
+        /// A delegate receiving the request definition and the request weight that can be used to determine whether a request should be admitted or rejected based 
+        /// on the request definition and the current rate limit usage ratio. This allows for custom rate limiting logic to be implemented.
+        /// </summary>
+        public Func<RequestDefinition, int, RateLimitAdmission>? RateLimitAdmission { get; set; }
 
         /// <summary>
         /// Encoding for sending/receiving data

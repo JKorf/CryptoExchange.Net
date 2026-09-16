@@ -41,22 +41,31 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
-        public TimeSpan GetWaitTime(int weight)
+        public TimeSpan GetWaitTime(int weight, double allowedRateRatio)
         {
             // Decrease the counter based on the last update time and decay rate
             DecreaseCounter(DateTime.UtcNow);
 
-            if (Current + weight > Limit)
+            if ((Current + weight) / (double)Limit > allowedRateRatio)
             {
                 // The weight would cause the rate limit to be passed
                 if (Current == 0)
                 {
-                    throw new Exception("Request limit reached without any prior request. " +
-                        $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    if (allowedRateRatio < 1)
+                    {
+                        throw new Exception("Request limit reached max utilization. " +
+                            $"This request can never execute with the current rate limiter configuration. Request weight: {weight}, RateLimit: {Limit}, " +
+                            $"Request ratio: {(Current + weight) / (double)Limit}, AllowedRateRatio: {allowedRateRatio}");
+                    }
+                    else
+                    {
+                        throw new Exception("Request limit reached without any prior request. " +
+                            $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    }
                 }
 
                 // Determine the time to wait before this weight can be applied without going over the rate limit
-                return DetermineWaitTime(weight);
+                return DetermineWaitTime(weight, allowedRateRatio);
             }
 
             // Weight can fit without going over limit
@@ -90,10 +99,11 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         /// Determine the time to wait before the weight would fit
         /// </summary>
         /// <param name="requestWeight"></param>
+        /// <param name="allowedRateRatio"></param>
         /// <returns></returns>
-        private TimeSpan DetermineWaitTime(int requestWeight)
+        private TimeSpan DetermineWaitTime(int requestWeight, double allowedRateRatio)
         {
-            var weightToRemove = Math.Max(Current - (Limit - requestWeight), 0);
+            var weightToRemove = Math.Max(Current + requestWeight - Limit * allowedRateRatio, 0);
             var result = TimeSpan.FromMilliseconds(Math.Ceiling(weightToRemove / DecreaseRate) * TimePeriod.TotalMilliseconds);
             if (result < TimeSpan.Zero)
                 return TimeSpan.Zero;

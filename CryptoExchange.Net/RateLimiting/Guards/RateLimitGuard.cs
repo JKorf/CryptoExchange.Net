@@ -104,7 +104,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix, double allowedRateRatio)
         {
             foreach (var filter in _filters)
             {
@@ -127,7 +127,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                     _trackers.Add(key, tracker);
                 }
 
-                var delay = tracker.GetWaitTime(requestWeight);
+                var delay = tracker.GetWaitTime(requestWeight, allowedRateRatio);
                 if (delay == default)
                     return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
 

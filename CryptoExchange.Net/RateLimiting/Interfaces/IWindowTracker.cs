@@ -22,9 +22,7 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <summary>
         /// Get the time to wait to fit the weight
         /// </summary>
-        /// <param name="weight"></param>
-        /// <returns></returns>
-        TimeSpan GetWaitTime(int weight);
+        TimeSpan GetWaitTime(int weight, double allowedRateRatio);
         /// <summary>
         /// Register the weight in this window
         /// </summary>

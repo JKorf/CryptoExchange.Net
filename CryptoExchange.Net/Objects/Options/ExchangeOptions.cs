@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.RateLimiting;
 using System;
 
 namespace CryptoExchange.Net.Objects.Options
@@ -40,6 +41,12 @@ namespace CryptoExchange.Net.Objects.Options
         /// What should happen when a rate limit is reached
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+
+        /// <summary>
+        /// A delegate receiving the request definition and the request weight that can be used to determine whether a request should be admitted or rejected based 
+        /// on the request definition and the current rate limit usage ratio. This allows for custom rate limiting logic to be implemented.
+        /// </summary>
+        public Func<RequestDefinition, int, RateLimitAdmission>? RateLimitAdmission { get; set; }
 
         /// <inheritdoc />
         public override string ToString()

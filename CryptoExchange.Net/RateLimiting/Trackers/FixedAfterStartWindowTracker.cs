@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             }
         }
 
-        public TimeSpan GetWaitTime(int weight)
+        public TimeSpan GetWaitTime(int weight, double allowedRateRatio)
         {
             // Remove requests no longer in time period from the history
             var checkTime = DateTime.UtcNow;
@@ -63,13 +63,22 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             if (Current == 0)
                 _nextReset = null;
 
-            if (Current + weight > Limit)
+            if ((Current + weight) / (double)Limit > allowedRateRatio)
             {
                 // The weight would cause the rate limit to be passed
                 if (Current == 0)
                 {
-                    throw new Exception("Request limit reached without any prior request. " +
-                        $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    if (allowedRateRatio < 1)
+                    {
+                        throw new Exception("Request limit reached max utilization. " +
+                            $"This request can never execute with the current rate limiter configuration. Request weight: {weight}, RateLimit: {Limit}, " +
+                            $"Request ratio: {(Current + weight) / (double)Limit}, AllowedRateRatio: {allowedRateRatio}");
+                    }
+                    else
+                    {
+                        throw new Exception("Request limit reached without any prior request. " +
+                            $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    }
                 }
 
                 // Determine the time to wait before this weight can be applied without going over the rate limit

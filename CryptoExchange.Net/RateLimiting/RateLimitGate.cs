@@ -37,14 +37,24 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public async ValueTask<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
+        public async ValueTask<CallResult> ProcessAsync(
+            ILogger logger,
+            int itemId,
+            RateLimitItemType type,
+            RequestDefinition definition, 
+            string? apiKey, 
+            int requestWeight, 
+            RateLimitingBehaviour rateLimitingBehaviour, 
+            string? keySuffix, 
+            double allowedRateRatio,
+            CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             bool release = true;
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(_guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(_guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, allowedRateRatio, ct).ConfigureAwait(false);
             }
             catch (TaskCanceledException tce)
             {
@@ -71,6 +81,7 @@ namespace CryptoExchange.Net.RateLimiting
              int requestWeight,
             RateLimitingBehaviour rateLimitingBehaviour,
             string? keySuffix,
+            double allowedRateRatio,
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
@@ -78,7 +89,7 @@ namespace CryptoExchange.Net.RateLimiting
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, allowedRateRatio, ct).ConfigureAwait(false);
             }
             catch (TaskCanceledException tce)
             {
@@ -94,12 +105,23 @@ namespace CryptoExchange.Net.RateLimiting
             }
         }
 
-        private async ValueTask<CallResult> CheckGuardsAsync(IEnumerable<IRateLimitGuard> guards, ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
+        private async ValueTask<CallResult> CheckGuardsAsync(
+            IEnumerable<IRateLimitGuard> guards,
+            ILogger logger,
+            int itemId,
+            RateLimitItemType type,
+            RequestDefinition definition,
+            string? apiKey,
+            int requestWeight, 
+            RateLimitingBehaviour rateLimitingBehaviour, 
+            string? keySuffix, 
+            double allowedRateRatio,
+            CancellationToken ct)
         {
             foreach (var guard in guards)
             {
                 // Check if a wait is needed for this guard
-                var result = guard.Check(type, definition, apiKey, requestWeight, keySuffix);
+                var result = guard.Check(type, definition, apiKey, requestWeight, keySuffix, allowedRateRatio);
                 if (result.Delay != TimeSpan.Zero && rateLimitingBehaviour == RateLimitingBehaviour.Fail)
                 {
                     // Delay is needed and limit behaviour is to fail the request
@@ -126,7 +148,7 @@ namespace CryptoExchange.Net.RateLimiting
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-                    return await CheckGuardsAsync(guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                    return await CheckGuardsAsync(guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, allowedRateRatio, ct).ConfigureAwait(false);
                 }
             }
 

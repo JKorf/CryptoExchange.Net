@@ -208,7 +208,11 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, null, 1, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                    var rateRatio = 1.0;
+                    if (Parameters.RateLimitAdmission != null)
+                        rateRatio = Parameters.RateLimitAdmission(_requestDefinition, 1).MaxUtilization;
+
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, null, 1, Parameters.RateLimitingBehavior, null, rateRatio, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult.Success)
                         return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -530,9 +534,14 @@ namespace CryptoExchange.Net.Sockets.Default
                     {
                         if (Parameters.RateLimiter != null)
                         {
+                            var rateRatio = 1.0;
+                            if (Parameters.RateLimitAdmission != null)
+                                rateRatio = Parameters.RateLimitAdmission(_requestDefinition, data.Weight).MaxUtilization;
+
                             try
                             {
-                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, _requestDefinition, null, data.Weight, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                                var limitResult = await Parameters.RateLimiter.ProcessAsync(
+                                    _logger, data.Id, RateLimitItemType.Request, _requestDefinition, null, data.Weight, Parameters.RateLimitingBehavior, null, rateRatio, _ctsSource.Token).ConfigureAwait(false);
                                 if (!limitResult.Success)
                                 {
                                     await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
