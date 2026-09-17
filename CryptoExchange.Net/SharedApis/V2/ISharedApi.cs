@@ -1,12 +1,15 @@
-﻿using System;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.RateLimiting;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Shared API
     /// </summary>
-    public interface ISharedApi
+    public interface ISharedApi : IRateLimitAdmissionClient
     {
         /// <summary>
         /// Name of the exchange

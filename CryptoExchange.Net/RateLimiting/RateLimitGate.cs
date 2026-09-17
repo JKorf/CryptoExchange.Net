@@ -131,7 +131,10 @@ namespace CryptoExchange.Net.RateLimiting
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
                     
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
-                    return CallResult.Fail(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
+                    var errorMsg = $"Rate limit check failed on guard {guard.Name}; {guard.Description}";
+                    if (allowedRateRatio < 1)
+                        errorMsg += $" with allowed ratio {allowedRateRatio}";
+                    return CallResult.Fail(new ClientRateLimitError(errorMsg));
                 }
 
                 if (result.Delay != TimeSpan.Zero)
@@ -139,7 +142,14 @@ namespace CryptoExchange.Net.RateLimiting
                     // Delay is needed and limit behaviour is to wait for the request to be under the limit
                     _semaphore.Release();
 
-                    var description = result.Limit == null ? guard.Description : $"{guard.Description}, Request weight: {requestWeight}, Current: {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}";
+                    var description = 
+                        result.Limit == null 
+                            ? guard.Description 
+                            : $"{guard.Description}, Request weight: {requestWeight}," +
+                                $" Current: {result.Current}" +
+                                $", Limit: {result.Limit}" +
+                                (allowedRateRatio < 1 ? $", Allowed ratio: {allowedRateRatio}" : "") +
+                                $", requests now being limited: {_waitingCount}";
                     if (type == RateLimitItemType.Connection)
                         logger.RateLimitDelayingConnection(itemId, result.Delay, guard.Name, description);
                     else

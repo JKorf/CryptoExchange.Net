@@ -1,5 +1,8 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -11,6 +14,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace CryptoExchange.Net
@@ -509,6 +513,23 @@ namespace CryptoExchange.Net
             }
 
             return bytes;
+        }
+
+        /// <summary>
+        /// Execute an operation with a specific rate limit admission rule
+        /// </summary>
+        /// <param name="client">Client</param>
+        /// <param name="admission">Rate limit admission rule</param>
+        /// <param name="operation">Operation to execute</param>
+        public static Task<TResult> WithRateLimitAdmissionAsync<TClient, TResult>(
+            this TClient client,
+            RateLimitAdmission admission,
+            Func<TClient, Task<TResult>> operation)
+            where TClient : IRateLimitAdmissionClient
+        {
+            return client.WithRateLimitAdmissionAsync(
+                admission,
+                () => operation(client));
         }
     }
 }

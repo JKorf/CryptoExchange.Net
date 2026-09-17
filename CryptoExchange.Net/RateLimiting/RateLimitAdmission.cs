@@ -12,13 +12,13 @@ namespace CryptoExchange.Net.RateLimiting
         /// <summary>
         /// Value ratio between 0 and 1
         /// </summary>
-        public double MaxUtilization { get; }
+        public double MaxUtilizationRatio { get; }
 
         private RateLimitAdmission(double maxUtilizationValue) { 
             if (maxUtilizationValue <= 0 || maxUtilizationValue > 1)
                 throw new ArgumentOutOfRangeException(nameof(maxUtilizationValue), "Max utilization value must be bigger than 0 and less than or equal to 1");
 
-            MaxUtilization = maxUtilizationValue;
+            MaxUtilizationRatio = maxUtilizationValue;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// 1 means it's allowed to use the full rate limit.
         /// </summary>
         /// <param name="value">0.5 means a max use 50% of the rate limit, 1 means the request is allowed to use the full rate limit</param>
-        public static RateLimitAdmission WithMaxUtilization(double value)
+        public static RateLimitAdmission WithMaxUtilizationRatio(double value)
             => new RateLimitAdmission(value);
     }
 }

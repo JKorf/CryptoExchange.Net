@@ -69,7 +69,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// A delegate receiving the request definition and the request weight that can be used to determine whether a request should be admitted or rejected based 
         /// on the request definition and the current rate limit usage ratio. This allows for custom rate limiting logic to be implemented.
         /// </summary>
-        public Func<RequestDefinition, int, RateLimitAdmission>? RateLimitAdmission { get; set; }
+        public Func<RequestDefinition, int, RateLimitAdmission?>? RateLimitAdmissionCallbackOptions { get; set; }
+
+        /// <summary>
+        /// A delegate for retrieving the current rate limit admission decision for a specific request. This allows for custom rate limiting logic to be implemented.
+        /// </summary>
+        public Func<RateLimitAdmission?>? RateLimitAdmissionCallbackRequest { get; set; }
 
         /// <summary>
         /// Encoding for sending/receiving data

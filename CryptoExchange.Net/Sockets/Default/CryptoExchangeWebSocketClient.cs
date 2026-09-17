@@ -208,11 +208,17 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var rateRatio = 1.0;
-                    if (Parameters.RateLimitAdmission != null)
-                        rateRatio = Parameters.RateLimitAdmission(_requestDefinition, 1).MaxUtilization;
-
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, null, 1, Parameters.RateLimitingBehavior, null, rateRatio, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(
+                        _logger,
+                        Id,
+                        RateLimitItemType.Connection,
+                        _requestDefinition,
+                        null,
+                        1,
+                        Parameters.RateLimitingBehavior,
+                        null,
+                        1.0,
+                        _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult.Success)
                         return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -386,7 +392,15 @@ namespace CryptoExchange.Net.Sockets.Default
 
             var bytes = Parameters.Encoding.GetBytes(data);
             _logger.SocketAddingBytesToSendBuffer(Id, id, bytes);
-            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Text, Weight = weight, Bytes = bytes });
+            _sendBuffer.Enqueue(
+                new SendItem 
+                {
+                    Id = id, 
+                    Type = WebSocketMessageType.Text,
+                    Weight = weight, 
+                    Bytes = bytes, 
+                    RateLimitAdmission = Parameters.RateLimitAdmissionCallbackRequest?.Invoke() 
+                });
             _sendEvent.Set();
             return true;
         }
@@ -398,7 +412,14 @@ namespace CryptoExchange.Net.Sockets.Default
                 return false;
 
             _logger.SocketAddingBytesToSendBuffer(Id, id, data);
-            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Binary, Weight = weight, Bytes = data });
+            _sendBuffer.Enqueue(
+                new SendItem {
+                    Id = id,
+                    Type = WebSocketMessageType.Binary,
+                    Weight = weight,
+                    Bytes = data,
+                    RateLimitAdmission = Parameters.RateLimitAdmissionCallbackRequest?.Invoke()
+                });
             _sendEvent.Set();
             return true;
         }
@@ -534,9 +555,8 @@ namespace CryptoExchange.Net.Sockets.Default
                     {
                         if (Parameters.RateLimiter != null)
                         {
-                            var rateRatio = 1.0;
-                            if (Parameters.RateLimitAdmission != null)
-                                rateRatio = Parameters.RateLimitAdmission(_requestDefinition, data.Weight).MaxUtilization;
+                            var admission = data.RateLimitAdmission ?? Parameters.RateLimitAdmissionCallbackOptions?.Invoke(_requestDefinition, data.Weight);
+                            var rateRatio = admission?.MaxUtilizationRatio ?? 1.0;
 
                             try
                             {
@@ -1034,6 +1054,11 @@ namespace CryptoExchange.Net.Sockets.Default
         /// Message type
         /// </summary>
         public WebSocketMessageType Type { get; set; }
+
+        /// <summary>
+        /// Rate limit admission override
+        /// </summary>
+        public RateLimitAdmission? RateLimitAdmission { get; set; }
 
         /// <summary>
         /// The bytes to send

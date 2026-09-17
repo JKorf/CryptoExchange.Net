@@ -350,9 +350,8 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var rateRatio = 1.0;
-                    if (ClientOptions.RateLimitAdmission != null)
-                        rateRatio = ClientOptions.RateLimitAdmission(definition, requestWeight).MaxUtilization;                    
+                    var admissionOverride = AdmissionOverride.Value ?? ClientOptions.RateLimitAdmission?.Invoke(definition, requestWeight);
+                    var rateRatio = admissionOverride?.MaxUtilizationRatio ?? 1.0;                  
 
                     var limitResult = await definition.RateLimitGate.ProcessAsync(
                         _logger,
@@ -379,9 +378,8 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RateLimiterEnabled)
                 {
                     var singleRequestWeight = weightSingleLimiter ?? 1;
-                    var rateRatio = 1.0;
-                    if (ClientOptions.RateLimitAdmission != null)
-                        rateRatio = ClientOptions.RateLimitAdmission(definition, singleRequestWeight).MaxUtilization;
+                    var admissionOverride = AdmissionOverride.Value ?? ClientOptions.RateLimitAdmission?.Invoke(definition, singleRequestWeight);
+                    var rateRatio = admissionOverride?.MaxUtilizationRatio ?? 1.0;
 
                     var limitResult = await definition.RateLimitGate.ProcessSingleAsync(
                         _logger,

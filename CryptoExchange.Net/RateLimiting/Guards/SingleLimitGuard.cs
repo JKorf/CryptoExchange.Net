@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public string Name => "EndpointLimitGuard";
 
         /// <inheritdoc />
-        public string Description => $"Limit requests to endpoint";
+        public string Description => _windowType == RateLimitWindowType.Decay ? $"Endpoint limit of {_limit} with a decay rate of {_decayRate}" : $"Limit of {_limit} per {_period}";
 
         /// <summary>
         /// ctor

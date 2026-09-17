@@ -1,7 +1,10 @@
 ﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces.Clients;
+using CryptoExchange.Net.RateLimiting;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -12,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
     {
         private readonly Func<string, string, TradingMode, DateTime?, string> _symbolFormatter;
         private readonly Func<bool> _authDelegate;
-
+        private readonly IBaseApiClient _apiClient;
         private IReadOnlyCollection<CapabilityOptions> _capabilities = Array.Empty<CapabilityOptions>();
         IReadOnlyCollection<CapabilityOptions> ISharedApi.Capabilities => _capabilities;
 
@@ -33,16 +36,17 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedApiBase(
             SharedTransport transport,
-            string exchange,
+            IBaseApiClient apiClient,
             TradingMode[] supportedTradingModes,
             Func<bool> authenticated,
             Func<string, string, TradingMode, DateTime?, string> formatSymbol)
         {
-            Transport = transport;
-            Exchange = exchange;
-            SupportedTradingModes = supportedTradingModes;
+            _apiClient = apiClient;
             _authDelegate = authenticated;
             _symbolFormatter = formatSymbol;
+            Transport = transport;
+            Exchange = apiClient.Exchange;
+            SupportedTradingModes = supportedTradingModes;
         }
 
         /// <inheritdoc />
@@ -63,6 +67,12 @@ namespace CryptoExchange.Net.SharedApis
 
         /// <inheritdoc />
         public void ResetDefaultExchangeParameters() => ExchangeParameters.ResetStaticExchangeParameters(Exchange);
+
+        /// <inheritdoc />
+        public Task<TResult> WithRateLimitAdmissionAsync<TResult>(
+            RateLimitAdmission admission,
+            Func<Task<TResult>> operation)
+            => _apiClient.WithRateLimitAdmissionAsync(admission, operation);
 
         /// <inheritdoc />
         public abstract SharedClientInfo Discover();
