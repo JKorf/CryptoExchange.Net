@@ -531,6 +531,24 @@ namespace CryptoExchange.Net
                 admission,
                 () => operation(client));
         }
+
+
+        /// <summary>
+        /// Return the task results in the form of an IAsyncEnumerable, returning the first completed task first
+        /// </summary>
+        /// <typeparam name="T">Type of task result</typeparam>
+        /// <param name="tasks">Task list</param>
+        public static async IAsyncEnumerable<T> ParallelEnumerateAsync<T>(this IEnumerable<Task<T>> tasks)
+        {
+            var remaining = new List<Task<T>>(tasks);
+
+            while (remaining.Count != 0)
+            {
+                var task = await Task.WhenAny(remaining).ConfigureAwait(false);
+                remaining.Remove(task);
+                yield return await task.ConfigureAwait(false);
+            }
+        }
     }
 }
 

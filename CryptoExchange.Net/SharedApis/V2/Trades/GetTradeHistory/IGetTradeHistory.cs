@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ICallResult<SharedTrade[]>> GetTradeHistoryAsync(GetTradeHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedTrade[]>> GetTradeHistoryAsync(GetTradeHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 
     /// <summary>

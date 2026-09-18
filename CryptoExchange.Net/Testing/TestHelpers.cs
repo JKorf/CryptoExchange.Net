@@ -174,7 +174,9 @@ namespace CryptoExchange.Net.Testing
                 foreach (var implementation in implementations)
                 {
                     int methods = 0;
-                    foreach (var method in implementation.GetMethods().Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
+                    foreach (var method in implementation.GetMethods()
+                                                            .Where(m => m.DeclaringType?.Assembly == assembly)
+                                                            .Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
                     {
                         var interfaceMethod = 
                             clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray())

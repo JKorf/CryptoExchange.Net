@@ -79,7 +79,7 @@ namespace CryptoExchange.Net.Objects
     /// HTTP call result
     /// </summary>
     /// <typeparam name="T">Result data type</typeparam>
-    public interface IHttpResult<T> : IHttpResult, ICallResult<T>
+    public interface IHttpResult<T> : IHttpResult, IExchangeCallResult<T>
     {
     }
 }

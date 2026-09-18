@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedTicker[]>> GetAllTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
+        Task<IExchangeCallResult<SharedTicker[]>> GetAllTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
     }
 
     /// <summary>

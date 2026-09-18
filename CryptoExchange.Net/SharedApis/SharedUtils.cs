@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -75,6 +76,84 @@ namespace CryptoExchange.Net.SharedApis
             builder.RegisterTransportAgnosticCapabilities();
 
             return services;
+        }
+
+        /// <summary>
+        /// Execute GetTickerAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedTicker>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetTickerRest>> capabilities,
+            GetTickerRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetTickerAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllTickersAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedTicker[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllTickersRest>> capabilities,
+            GetTickersRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllTickersAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAssetAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedAsset>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAssetRest>> capabilities,
+            GetAssetRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAssetAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllAssetsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedAsset[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllAssetsRest>> capabilities,
+            GetAssetsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllAssetsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllBalancesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedBalance[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBalancesRest>> capabilities,
+            GetBalancesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBalancesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllBalancesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<ICallResult<SharedBalance[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBalances>> capabilities,
+            GetBalancesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBalancesAsync(request, ct))
+                .ParallelEnumerateAsync();
         }
     }
 }

@@ -1,7 +1,11 @@
+using CryptoExchange.Net.Interfaces.Clients;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -189,6 +193,24 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
+        private sealed class TestApiClient : IBaseApiClient
+        {
+            public string Exchange => "TestExchange";
+            public string BaseAddress => "https://test.invalid";
+
+            public string FormatSymbol(
+                string baseAsset,
+                string quoteAsset,
+                TradingMode tradingMode,
+                DateTime? deliverDate = null)
+                => $"{baseAsset}{quoteAsset}";
+
+            public Task<TResult> WithRateLimitAdmissionAsync<TResult>(
+                RateLimitAdmission admission,
+                Func<Task<TResult>> operation)
+                => operation();
+        }
+
         private interface ITestRestCapability : ITestCapability, ISharedRest
         {
         }
@@ -236,7 +258,7 @@ namespace CryptoExchange.Net.UnitTests
                 TradingMode[]? applicableTradingModes)
                 : base(
                     SharedTransport.Rest,
-                    "TestExchange",
+                    new TestApiClient(),
                     apiTradingModes,
                     () => false,
                     (baseAsset, quoteAsset, tradingMode, deliverDate) => $"{baseAsset}{quoteAsset}")
@@ -258,7 +280,7 @@ namespace CryptoExchange.Net.UnitTests
             public TestOptionsHost(TradingMode[] apiTradingModes, CapabilityOptions capabilityOptions)
                 : base(
                     SharedTransport.Rest,
-                    "TestExchange",
+                    new TestApiClient(),
                     apiTradingModes,
                     () => false,
                     (baseAsset, quoteAsset, tradingMode, deliverDate) => $"{baseAsset}{quoteAsset}")
@@ -274,7 +296,7 @@ namespace CryptoExchange.Net.UnitTests
             protected TestTransportSharedApi(SharedTransport transport)
                 : base(
                     transport,
-                    "TestExchange",
+                    new TestApiClient(),
                     [TradingMode.Spot],
                     () => false,
                     (baseAsset, quoteAsset, tradingMode, deliverDate) => $"{baseAsset}{quoteAsset}")

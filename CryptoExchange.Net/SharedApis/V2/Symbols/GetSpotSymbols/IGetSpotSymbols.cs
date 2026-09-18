@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Gets whether the client supports a spot symbol
         /// </summary>
         /// <param name="symbol">The symbol</param>
-        Task<ExchangeCallResult<bool>> SupportsSpotSymbolAsync(SharedSymbol symbol);
+        Task<IExchangeCallResult<bool>> SupportsSpotSymbolAsync(SharedSymbol symbol);
 
         /// <summary>
         /// Gets whether the client supports a spot symbol

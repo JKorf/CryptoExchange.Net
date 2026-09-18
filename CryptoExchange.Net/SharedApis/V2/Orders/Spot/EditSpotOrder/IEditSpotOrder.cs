@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedId>> EditSpotOrderAsync(
+        Task<IExchangeCallResult<SharedId>> EditSpotOrderAsync(
             EditOrderRequest request,
             CancellationToken ct = default);
     }

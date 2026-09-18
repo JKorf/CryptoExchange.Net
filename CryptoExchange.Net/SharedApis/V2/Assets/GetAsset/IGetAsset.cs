@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
     }
 
     /// <summary>

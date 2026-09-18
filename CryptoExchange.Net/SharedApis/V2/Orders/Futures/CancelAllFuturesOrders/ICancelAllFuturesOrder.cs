@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult> CancelAllFuturesOrdersAsync(CancelAllOrdersRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult> CancelAllFuturesOrdersAsync(CancelAllOrdersRequest request, CancellationToken ct = default);
     }
 
     /// <summary>

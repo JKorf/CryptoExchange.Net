@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<CallResult<SharedId>[]>> PlaceMultipleSpotOrdersAsync(
+        Task<IExchangeCallResult<CallResult<SharedId>[]>> PlaceMultipleSpotOrdersAsync(
             PlaceMultipleSpotOrdersRequest request,
             CancellationToken ct = default);
     }

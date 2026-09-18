@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
     }
 
     /// <summary>

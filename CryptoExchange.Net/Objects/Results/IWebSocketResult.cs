@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Objects
     /// WebSocket call result
     /// </summary>
     /// <typeparam name="T">Data result type</typeparam>
-    public interface IWebSocketResult<T> : IWebSocketResult, ICallResult<T>
+    public interface IWebSocketResult<T> : IWebSocketResult, IExchangeCallResult<T>
     {
 
     }
