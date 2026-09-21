@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Get all futures symbols for a specific base asset
         /// </summary>
         /// <param name="baseAsset">Asset, for example `ETH`</param>
-        Task<IExchangeCallResult<SharedSymbol[]>> GetFuturesSymbolsForBaseAssetAsync(string baseAsset);
+        Task<ExchangeCallResult<SharedSymbol[]>> GetFuturesSymbolsForBaseAssetAsync(string baseAsset);
 
         /// <summary>
         /// Gets whether the client supports a futures symbol
