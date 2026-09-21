@@ -3,6 +3,7 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Interfaces;
+using CryptoExchange.Net.RateLimiting.Trackers;
 using CryptoExchange.Net.UnitTests.Implementations;
 using NUnit.Framework;
 using System;
@@ -363,6 +364,31 @@ namespace CryptoExchange.Net.UnitTests
                 logger, 11, RateLimitItemType.Request, definition, null, 1,
                 RateLimitingBehaviour.Fail, null, 1.0, default);
             Assert.That(overHardLimit.Error, Is.TypeOf<ClientRateLimitError>());
+        }
+
+        [TestCase(0.1, 10)]
+        [TestCase(1, 50)]
+        [TestCase(5, 250)]
+        [TestCase(60, 250)]
+        public void RateLimitSafetyMargin_DefaultIsProportionalAndCapped(double periodSeconds, int expectedMarginMilliseconds)
+        {
+            var margin = WindowTrackerHelpers.GetDefaultSafetyMargin(TimeSpan.FromSeconds(periodSeconds));
+
+            Assert.That(margin, Is.EqualTo(TimeSpan.FromMilliseconds(expectedMarginMilliseconds)));
+        }
+
+        [Test]
+        public void RateLimitGuard_ExplicitSafetyMarginIsUsed()
+        {
+            var guard = new RateLimitGuard(
+                RateLimitGuard.PerHost,
+                new LimitItemTypeFilter(RateLimitItemType.Request),
+                1,
+                TimeSpan.FromSeconds(1),
+                RateLimitWindowType.Sliding,
+                safetyMargin: TimeSpan.Zero);
+
+            Assert.That(guard.SafetyMargin, Is.EqualTo(TimeSpan.Zero));
         }
     }
 }

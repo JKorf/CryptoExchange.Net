@@ -17,15 +17,18 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private int _currentWeight = 0;
         private DateTime? _nextReset;
 
-        /// <summary>
-        /// Additional wait time to apply to account for time offset between server and client
-        /// </summary>
-        private static TimeSpan _fixedWindowBuffer = TimeSpan.FromMilliseconds(1000);
+        private readonly TimeSpan _safetyMargin;
 
         public FixedAfterStartWindowTracker(int limit, TimeSpan period)
+            : this(limit, period, WindowTrackerHelpers.GetDefaultSafetyMargin(period))
+        {
+        }
+
+        public FixedAfterStartWindowTracker(int limit, TimeSpan period, TimeSpan safetyMargin)
         {
             Limit = limit;
             TimePeriod = period;
+            _safetyMargin = safetyMargin;
             _entries = new Queue<LimitEntry>();
         }
 
@@ -57,7 +60,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
             // Remove requests no longer in time period from the history
             var checkTime = DateTime.UtcNow;
-            if (_nextReset != null && checkTime > _nextReset)
+            if (_nextReset != null && checkTime >= _nextReset + _safetyMargin)
                 RemoveBefore(_nextReset.Value);
 
             if (Current == 0)
@@ -130,7 +133,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private TimeSpan DetermineWaitTime()
         {
             var checkTime = DateTime.UtcNow;
-            var result = (_nextReset!.Value - checkTime) + _fixedWindowBuffer;
+            var result = _nextReset!.Value + _safetyMargin - checkTime;
             if (result < TimeSpan.Zero)
                 return TimeSpan.Zero;
             return result;

@@ -24,6 +24,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private readonly RateLimitWindowType _windowType;
         private readonly double? _decayRate;
+        private readonly TimeSpan _safetyMargin;
         private readonly int _limit;
         private readonly TimeSpan _period;
         private readonly Func<RequestDefinition, string?, string> _keySelector;
@@ -35,12 +36,18 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public string Description => _windowType == RateLimitWindowType.Decay ? $"Endpoint limit of {_limit} with a decay rate of {_decayRate}" : $"Limit of {_limit} per {_period}";
 
         /// <summary>
+        /// Additional time to wait after a rate limit window expires to account for latency and timing differences
+        /// </summary>
+        public TimeSpan SafetyMargin => _safetyMargin;
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SingleLimitGuard(
             int limit,
             TimeSpan period,
             RateLimitWindowType windowType,
+            TimeSpan? safetyMargin = null,
             double? decayRate = null,
             Func<RequestDefinition, string?, string>? keySelector = null)
         {
@@ -48,6 +55,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             _period = period;
             _windowType = windowType;
             _decayRate = decayRate;
+            _safetyMargin = safetyMargin ?? WindowTrackerHelpers.GetDefaultSafetyMargin(period);
             _keySelector = keySelector ?? Default;
             _trackers = new Dictionary<string, IWindowTracker>();
         }
@@ -84,8 +92,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <returns></returns>
         protected IWindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _period)
-                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(_limit, _period) :
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _period, _safetyMargin)
+                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(_limit, _period, _safetyMargin) :
                 new DecayWindowTracker(_limit, _period, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
 

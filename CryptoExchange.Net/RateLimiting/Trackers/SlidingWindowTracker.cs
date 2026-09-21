@@ -16,15 +16,18 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private readonly List<LimitEntry> _entries;
         private int _currentWeight = 0;
 
-        /// <summary>
-        /// Additional wait time to apply to account for fluctuating request times
-        /// </summary>
-        private static readonly TimeSpan _slidingWindowBuffer = TimeSpan.FromMilliseconds(1000);
+        private readonly TimeSpan _safetyMargin;
 
         public SlidingWindowTracker(int limit, TimeSpan period)
+            : this(limit, period, WindowTrackerHelpers.GetDefaultSafetyMargin(period))
+        {
+        }
+
+        public SlidingWindowTracker(int limit, TimeSpan period, TimeSpan safetyMargin)
         {
             Limit = limit;
             TimePeriod = period;
+            _safetyMargin = safetyMargin;
             _entries = new List<LimitEntry>();
         }
 
@@ -56,7 +59,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         public TimeSpan GetWaitTime(int weight, double allowedRateRatio)
         {
             // Remove requests no longer in time period from the history
-            RemoveBefore(DateTime.UtcNow - TimePeriod);
+            RemoveBefore(DateTime.UtcNow - TimePeriod - _safetyMargin);
 
             if ((Current + weight) / (double)Limit > allowedRateRatio)
             {
@@ -99,7 +102,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
             for (var i = 0; i < _entries.Count; i++)
             {
-                if (_entries[i].Timestamp < time)
+                if (_entries[i].Timestamp <= time)
                 {
                     var entry = _entries[i];
                     _entries.Remove(entry);
@@ -127,7 +130,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 removedWeight += entry.Weight;
                 if (removedWeight >= weightToRemove)
                 {
-                    var result = entry.Timestamp + TimePeriod + _slidingWindowBuffer - DateTime.UtcNow;
+                    var result = entry.Timestamp + TimePeriod + _safetyMargin - DateTime.UtcNow;
                     if (result < TimeSpan.Zero)
                         return TimeSpan.Zero;
                     return result;
