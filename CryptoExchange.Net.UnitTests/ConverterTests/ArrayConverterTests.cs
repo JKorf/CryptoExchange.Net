@@ -62,6 +62,31 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
             Assert.That(deserialized.Prop8!.Prop31, Is.EqualTo(5));
             Assert.That(deserialized.Prop8.Prop32, Is.EqualTo("101"));
         }
+
+        [TestCase("[\"4.803E-5\",\"9.623e-4\",\"0.0010025\"]", 0.00004803, 0.0009623, 0.0010025)]
+        [TestCase("[\"81251.5\",\"1E+2\",\"-2.5E-3\"]", 81251.5, 100, -0.0025)]
+        [TestCase("[4.803E-5,9.623e-4,0.0010025]", 0.00004803, 0.0009623, 0.0010025)]
+        public void TestArrayConverterDecimalInScientificNotation(string json, decimal expected1, decimal expected2, decimal expected3)
+        {
+            // Some exchanges send small prices as strings in scientific notation, for example the
+            // Kucoin futures kline stream: "candles":["1789830000","4.803E-5","4.807E-5",...]
+            var deserialized = JsonSerializer.Deserialize<TestDecimal>(json);
+
+            Assert.That(deserialized!.Prop1, Is.EqualTo(expected1));
+            Assert.That(deserialized.Prop2, Is.EqualTo(expected2));
+            Assert.That(deserialized.Prop3, Is.EqualTo(expected3));
+        }
+    }
+
+    [JsonConverter(typeof(ArrayConverter<TestDecimal>))]
+    public record TestDecimal
+    {
+        [ArrayProperty(0)]
+        public decimal Prop1 { get; set; }
+        [ArrayProperty(1)]
+        public decimal? Prop2 { get; set; }
+        [ArrayProperty(2)]
+        public decimal Prop3 { get; set; }
     }
 
     [JsonConverter(typeof(ArrayConverter<Test>))]
