@@ -173,6 +173,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                     if (targetType.IsAssignableFrom(value?.GetType()))
                         attribute.PropertyInfo.SetValue(result, value);
+                    else if (value is string stringValue && targetType == typeof(decimal))
+                        // Convert.ChangeType doesn't accept scientific notation, which some exchanges use for small values ("4.803E-5")
+                        attribute.PropertyInfo.SetValue(result, ExchangeHelpers.ParseDecimal(stringValue));
                     else
                         attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
                 }
