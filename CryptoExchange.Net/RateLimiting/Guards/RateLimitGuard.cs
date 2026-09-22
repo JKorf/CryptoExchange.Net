@@ -77,8 +77,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
         /// <param name="shared">Whether this guard is shared between multiple gates</param>
-        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, TimeSpan? safetyMargin = null, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
-            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, safetyMargin, decayPerTimeSpan, connectionWeight, shared)
+        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false, TimeSpan? safetyMargin = null)
+            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight, shared, safetyMargin)
         {
         }
 
@@ -94,7 +94,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
         /// <param name="shared">Whether this guard is shared between multiple gates</param>
-        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, TimeSpan? safetyMargin = null, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
+        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false, TimeSpan? safetyMargin = null)
         {
             _filters = filters;
             _trackers = new Dictionary<string, IWindowTracker>();

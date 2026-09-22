@@ -48,8 +48,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             TimeSpan period,
             RateLimitWindowType windowType,
             TimeSpan? safetyMargin = null,
-            double? decayRate = null,
-            Func<RequestDefinition, string?, string>? keySelector = null)
+            Func<RequestDefinition, string?, string>? keySelector = null,
+            double? decayRate = null)
         {
             _limit = limit;
             _period = period;

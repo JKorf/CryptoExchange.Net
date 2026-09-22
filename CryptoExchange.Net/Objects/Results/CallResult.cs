@@ -97,7 +97,7 @@ public record CallResult<T> : CallResult, ICallResult<T>
 /// Call result for an exchange
 /// </summary>
 /// <typeparam name="T">Data type</typeparam>
-public record ExchangeCallResult<T> : CallResult<T>
+public record ExchangeCallResult<T> : CallResult<T>, IExchangeCallResult<T>
 {
     /// <summary>
     /// Exchange name
