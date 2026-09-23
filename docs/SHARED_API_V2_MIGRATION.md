@@ -35,7 +35,7 @@ var placementCapabilityResolution = sharedClient.GetCapability(
 
 if (placementCapabilityResolution is not null)
 {
-    IPlaceFuturesOrderRest api = placement.Capability;
+    IPlaceFuturesOrderRest api = placementCapabilityResolution.Capability;
     // placement.Options describes parameter and trading-mode support for this implementation.
 }
 ```
