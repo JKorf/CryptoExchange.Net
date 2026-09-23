@@ -1,66 +1,70 @@
 # Copilot Instructions for CryptoExchange.Net
 
-This repository is **CryptoExchange.Net** — the base library powering 28+ cryptocurrency exchange wrappers in C#/.NET (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.).
+CryptoExchange.Net is the base library behind exchange-specific C#/.NET clients such as Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, and Coinbase.Net.
 
-When generating code in this ecosystem, follow these conventions:
+## Package choice
 
-## You don't install CryptoExchange.Net directly
+Do not install CryptoExchange.Net alone to call an exchange. Install the exchange-specific package, or use `CryptoClients.Net` for the full bundle. For single-exchange code, prefer that library's native client. For portable multi-exchange code, use `CryptoExchange.Net.SharedApis`.
 
-Install the exchange-specific library you need (`Binance.Net`, `JK.OKX.Net`, `Bybit.Net`, ...) or `CryptoClients.Net` for the bundle. CryptoExchange.Net is pulled in as a dependency.
+## Generate Shared API V2 code
 
-## Multi-exchange code uses SharedApis
-
-For code that must work against multiple exchanges, use `CryptoExchange.Net.SharedApis` interfaces accessed via `.SharedClient` properties on each exchange's API surface:
+Use fine-grained V2 capabilities through `.SharedApi`:
 
 ```csharp
 using CryptoExchange.Net.SharedApis;
 
-ISpotTickerRestClient binance = new BinanceRestClient().SpotApi.SharedClient;
-ISpotTickerRestClient okx     = new OKXRestClient().UnifiedApi.SharedClient;
+IGetTickerRest binance = new BinanceRestClient().SpotApi.SharedApi;
+IGetTickerRest okx = new OKXRestClient().UnifiedApi.SharedApi;
 
 var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
-var ticker = await binance.GetSpotTickerAsync(new GetTickerRequest(symbol));
+var result = await binance.GetTickerAsync(new GetTickerRequest(symbol));
 ```
 
-Same code works on every exchange that implements the interface. Use `Task.WhenAll` for concurrent multi-exchange calls.
+Choose the interface for the operation: for example, `IGetTickerRest`, `IGetOrderBookRest`, `IPlaceSpotOrderRest`, `ICancelFuturesOrderRest`, or `ISubscribeTradesSocket`. V1 broad interfaces remain on `.SharedClient` for migration, but new code should use `.SharedApi`.
 
-## Shared symbol metadata
+Use `SharedSymbol`; do not hard-code exchange-native symbol formatting in shared code.
 
-CryptoExchange.Net 12.2.0 classifies the base and quote sides of `SharedSpotSymbol` and `SharedFuturesSymbol` with `SharedAssetType` (`Crypto`, `Fiat`, `TradFi`) and optional `SharedAssetSubType` (`StableCoin`, `Equity`, `Commodity`). The models also expose `DisplayName`. Use the corresponding base/quote fields on `GetSymbolsRequest` to filter symbol discovery.
+## Runtime capability selection
 
-`ISpotSymbolRestClient.SpotSymbolCatalog` is populated by `GetSpotSymbolsAsync`; `IFuturesSymbolRestClient.FuturesSymbolCatalog` is populated by `GetFuturesSymbolsAsync`. Do not assume a catalog is available before that request. For exchange-library implementations, `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` offer best-effort classification and can be extended with exchange-specific values.
+When the API surface is known, assign its typed `.SharedApi` directly. When support or the API surface is selected at runtime, use the exchange-wide `I[Exchange]SharedApiClient`:
 
-## Shared market-data quantities
+```csharp
+var match = sharedClient.GetCapability(
+    SharedCapabilities.Orders.Futures.PlaceOrder.Rest,
+    TradingMode.PerpetualLinear);
 
-CryptoExchange.Net 12.4.0 uses `SharedOrderQuantity` for market-data quantities. Prefer `Volumes` on `SharedSpotTicker`, `SharedFuturesTicker`, and `SharedKline`, and `Quantities` on `SharedTrade`; the scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
+if (match is null)
+    return;
 
-## WebSocket order commands
+var result = await match.Capability.PlaceFuturesOrderAsync(request);
+```
 
-CryptoExchange.Net 12.5.0 adds optional `ISpotOrderManagementSocketClient` and `IFuturesOrderManagementSocketClient` interfaces for placing and canceling orders over WebSocket. These command methods return `QueryResult<SharedId>` rather than a subscription result. Check exchange support before relying on either interface.
+`GetCapability` returns one preferred `SharedCapabilityResolution<T>` or `null`; `GetCapabilities` returns all matching implementations. Include `TradingMode` when an exchange can expose multiple futures surfaces. `SharedCapabilities` entries are lookup references, not guarantees of support.
 
-## Single-exchange code uses the exchange's own client
+Before constructing dynamic requests, inspect `match.Options.RequestParameterRules`, `ExchangeParameterRules`, and `SupportedTradingModes`. A capability may exist while a particular request field is unsupported.
 
-For Binance-only code, use `BinanceRestClient` directly (see Binance.Net repo `AGENTS.md`). SharedApis is for portability — use it when you need that.
+## Results and transports
 
-## Result pattern
+- Transport-agnostic operation: `IExchangeCallResult<T>`
+- REST capability: `HttpResult<T>`
+- WebSocket command capability: `QueryResult<T>`
+- WebSocket subscription capability: `WebSocketResult<UpdateSubscription>`
 
-REST methods return `HttpResult<T>` and websocket subscription methods return `WebSocketResult<UpdateSubscription>`. Check `.Success` before `.Data`. `.Error` has structured info. `.Exchange` on shared clients identifies which exchange responded.
+Select `.Rest` or `.Socket` when transport-specific behavior matters. Otherwise exchange-wide selection uses `PreferredTransport`, normally REST. Always check `.Success` before `.Data`; use `.Error` and `.Exchange` for diagnostics.
 
-## Available shared interfaces
+## Current V2 semantics
 
-REST: tickers, symbols, orderbook, klines, trades, orders (spot/futures, trigger, TP-SL), balances, positions, fees, deposits/withdrawals, transfers.
-WebSocket: tickers, book tickers, orderbook, trades, klines, user data, and optional spot/futures order management.
+- Ticker operations are `GetTickerAsync` and `GetAllTickersAsync`, returning `SharedTicker` for both spot and futures.
+- Socket order streams use `SharedSpotOrderUpdate` and `SharedFuturesOrderUpdate`.
+- `ICloseFullPosition` closes a complete position, not a partial quantity.
+- Exchange support varies by operation, transport, trading mode, and request parameter.
 
-Each exchange library implements a subset. Check exchange docs for support matrix.
+## Engineering conventions
 
-## Avoid
+- Reuse clients through dependency injection.
+- Use `await`; never use `.Result` or `.Wait()`.
+- Use `Task.WhenAll` for independent requests across exchanges.
+- Keep exchange-native models out of portable services.
+- Do not infer feature support from a broad interface or request model.
 
-- Installing `CryptoExchange.Net` alone and trying to call exchange APIs (need exchange-specific packages)
-- Mixing exchange-native models in cross-exchange code (use Shared* types)
-- Synchronous `.Result` / `.Wait()` (use `await`)
-- Instantiating clients per-request (use DI, reuse instances)
-- Sequential per-exchange calls when parallel is fine (`Task.WhenAll`)
-
-## Reference
-
-For detailed patterns see `AGENTS.md` and `llms.txt` in repo root, `examples/ai-friendly/` for compilable examples.
+See `AGENTS.md`, `docs/ai-api-map.md`, and `docs/SHARED_API_V2_MIGRATION.md` for expanded guidance.

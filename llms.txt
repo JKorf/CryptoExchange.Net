@@ -1,40 +1,37 @@
 # CryptoExchange.Net
 
-> Base C#/.NET library for cryptocurrency exchange API client implementations. Provides a standardized abstraction (REST, WebSocket, authentication, rate limiting, error handling, order book management, shared cross-exchange interfaces) that 28+ exchange-specific libraries are built on top of.
+> Base C#/.NET library used by 28+ cryptocurrency exchange clients. It standardizes REST, WebSocket, authentication, rate limiting, results, and exchange-agnostic Shared APIs.
 
-CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `HttpResult<T>` REST result pattern, same `WebSocketResult<UpdateSubscription>` websocket subscription pattern, same DI registration, same shared interfaces across all exchanges. Current version: 12.5.1. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
+CryptoExchange.Net is not an exchange client by itself. Install exchange-specific packages such as Binance.Net, Bybit.Net, JK.OKX.Net, Kraken.Net, or Coinbase.Net, or install `CryptoClients.Net` for the bundle. Current release: 13.0.0. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, and net10.0; Native AOT is supported.
 
-The standout feature for cross-exchange code is `CryptoExchange.Net.SharedApis` — a set of interfaces (`ISpotTickerRestClient`, `ISpotOrderRestClient`, `IBalanceRestClient`, etc.) implemented by every exchange library. Same call signature works against any exchange.
+## Shared API V2
 
-Version 12.2.0 adds typed asset metadata to shared symbol discovery. `SharedSpotSymbol` and `SharedFuturesSymbol` expose `DisplayName` plus base/quote `SharedAssetType` and `SharedAssetSubType` values. `GetSymbolsRequest` can filter on those four type fields. After symbol discovery, `ISpotSymbolRestClient.SpotSymbolCatalog` and `IFuturesSymbolRestClient.FuturesSymbolCatalog` provide asset and symbol dictionaries; each catalog is available only after the corresponding `Get*SymbolsAsync` call. `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` are best-effort helpers for exchange-library implementations.
+For new cross-exchange code, use fine-grained capability interfaces from `CryptoExchange.Net.SharedApis` through each API surface's `.SharedApi` property. Examples: `IGetTickerRest`, `IGetOrderBookRest`, `IPlaceSpotOrderRest`, and `ISubscribeTradesSocket`.
 
-Version 12.4.0 represents market-data quantities with `SharedOrderQuantity`: use `Volumes` on `SharedSpotTicker`, `SharedFuturesTicker`, and `SharedKline`, and `Quantities` on `SharedTrade`. The old scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete. Exchange-library implementations must pass `SharedOrderQuantity` to these model constructors.
+Use `SharedSymbol` to normalize symbols and `Task.WhenAll` for independent calls across exchanges. Use an exchange-wide `I[Exchange]SharedApiClient` plus `SharedCapabilities` and `GetCapability` when selecting operations dynamically. A resolution can be `null`; its `Options` describes supported trading modes and request/exchange parameter rules.
 
-Version 12.5.0 adds optional shared WebSocket order commands through `ISpotOrderManagementSocketClient` and `IFuturesOrderManagementSocketClient`. Their place/cancel methods return `QueryResult<SharedId>`; they are commands rather than update subscriptions, and support is exchange-specific.
+Transport-agnostic capabilities return `IExchangeCallResult<T>`. REST capabilities return `HttpResult<T>`, socket commands return `QueryResult<T>`, and socket subscriptions return `WebSocketResult<UpdateSubscription>`. Always check `.Success` before `.Data`.
+
+V1 broad interfaces remain accessible through `.SharedClient` for incremental migration. Prefer `.SharedApi` for new code. V2 ticker calls use `GetTickerAsync`/`GetAllTickersAsync` and the common `SharedTicker` model.
 
 ## Documentation
 
-- [README](https://github.com/JKorf/CryptoExchange.Net/blob/master/README.md): Overview, full ecosystem table (28+ exchange libraries), installation per exchange, complete release notes
-- [Documentation Site](https://cryptoexchange.jkorf.dev/): Full documentation hub with sections per topic
-- [SharedApis Documentation](https://cryptoexchange.jkorf.dev/CryptoExchange.Net/idocs_shared.html): Cross-exchange shared interface guide
+- [README](https://github.com/JKorf/CryptoExchange.Net/blob/master/README.md): ecosystem overview, packages, and release notes
+- [Shared API V2 migration](https://github.com/JKorf/CryptoExchange.Net/blob/master/docs/SHARED_API_V2_MIGRATION.md): V1-to-V2 mapping, capability selection, transports, and parameter discovery
+- [Documentation site](https://cryptoexchange.jkorf.dev/): complete library documentation
+- [Shared API documentation](https://cryptoexchange.jkorf.dev/CryptoExchange.Net/idocs_shared.html): cross-exchange API guide
+- [AI API map](https://github.com/JKorf/CryptoExchange.Net/blob/master/docs/ai-api-map.md): concise V2 interface and selection map
 
-## Examples
+## AI context files
 
-- [AI-friendly examples directory](https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/ai-friendly): Compact, fully runnable examples optimized for AI assistants
-- [Shared Clients Quickstart](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/01-shared-clients-quickstart.cs): Same code calling multiple exchanges via SharedApis
-- [Multi-Exchange Tickers](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/02-multi-exchange-tickers.cs): Aggregating ticker data across N exchanges concurrently
-- [Cross-Exchange Arbitrage Skeleton](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/03-cross-exchange-arbitrage-skeleton.cs): Pattern for building a price difference scanner
-- [Full Examples Repository](https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples): ConsoleClient with multiple exchange exchanges, BlazorClient, SharedClients
+- [AGENTS.md](https://github.com/JKorf/CryptoExchange.Net/blob/master/AGENTS.md): practical generation rules and examples
+- [llms-full.txt](https://github.com/JKorf/CryptoExchange.Net/blob/master/llms-full.txt): expanded library and Shared API V2 context
+- [.github/copilot-instructions.md](https://github.com/JKorf/CryptoExchange.Net/blob/master/.github/copilot-instructions.md): compact repository conventions
+- [.cursor/rules/CryptoExchange-Net.mdc](https://github.com/JKorf/CryptoExchange.Net/blob/master/.cursor/rules/CryptoExchange-Net.mdc): Cursor rules for cross-exchange C# code
 
-## Reference
+## Related projects
 
-- [Ecosystem libraries list](https://github.com/JKorf/CryptoExchange.Net#cryptoexchangenet-ecosystem): Aster, Binance, BingX, Bitfinex, Bitget, BitMart, BitMEX, Bitstamp, BloFin, Bybit, Coinbase, CoinEx, CoinW, CoinGecko, Crypto.com, DeepCoin, Gate.io, HTX, HyperLiquid, Kraken, Kucoin, Mexc, OKX, Pionex, Polymarket, Toobit, Upbit, Weex, WhiteBit, XT
-- [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): Single bundle package for all exchange libraries
-- [CryptoManager.Net](https://github.com/JKorf/CryptoManager.Net): Full demo application using CryptoClients.Net
-- [NuGet Package](https://www.nuget.org/packages/CryptoExchange.Net): Latest stable release on NuGet
-
-## Optional
-
-- [Discord Community](https://discord.gg/MSpeEtSY8t): Maintainer-supported Discord for ecosystem-wide discussion
-- [GitHub Issues](https://github.com/JKorf/CryptoExchange.Net/issues): Bug reports and feature requests
-- [GitHub Sponsors](https://github.com/sponsors/JKorf): Support the maintainer
+- [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): bundle and cross-exchange capability lookup
+- [CryptoManager.Net](https://github.com/JKorf/CryptoManager.Net): full demo application
+- [NuGet](https://www.nuget.org/packages/CryptoExchange.Net): package releases
+- [Discord](https://discord.gg/MSpeEtSY8t): maintainer-supported community

@@ -127,6 +127,41 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.0.0 - 23 Sep 2026
+    * Shared APIs
+      * Added Shared API V2 with fine-grained capability interfaces for individual REST requests, WebSocket requests and subscriptions
+      * Added transport-agnostic capability interfaces with REST- and WebSocket-specific variants where applicable
+      * Added dynamic capability resolution support with optional transport preference option
+      * Added `RequestParameterRules` and `ExchangeParameterRules` properties on Shared API options making request parameter rules and support clearer
+      * Added new Shared API capabilities for ledger history, funding information and history, leverage tiers, transfers, mark prices and index prices
+      * Added new capabilities for placing and editing multiple spot and futures orders
+      * Added new capabilities for cancelling all open orders and all open symbol orders
+      * Added new incremental order book, mark price and index price subscriptions
+      * Added ReduceOnly parameter to PlaceFuturesTriggerOrderRequest
+      * Added new `SharedTicker` as the common V2 ticker model for spot and futures markets
+        * For additional futures ticker info like mark/index price and funding info separate interfaces are available in V2
+      * Added `SharedSpotOrderUpdate` and `SharedFuturesOrderUpdate` models for WebSocket order updates
+      * Added `IExchangeCallResult` and `IExchangeCallResult<T>` for transport-agnostic Shared API results
+      * Retained the V1 aggregate Shared API interfaces for backwards compatibility 
+      * Renamed GetAssetsOptions to GetAllAssetsOptions
+      * Renamed GetWithdrawalsOptions to GetWithdrawalHistoryOptions
+      * Renamed GetDepositsOptions to GetDepositHistoryOptions
+      * GetFuturesTickerOptions and GetSpotTickerOptions have been replaced by GetTickerOptions
+      * Deprecated Subscribe request constructors using `params` for `SharedSymbol` parameter
+    * Rate limiting
+      * Added `RateLimitAdmission` for restricting requests to a configurable maximum rate limit utilization
+      * Added the `RateLimitAdmission` client option callback for assigning admission rules based on request definition and weight
+      * Added `WithRateLimitAdmissionAsync` for applying a rate limit admission rule to a specific REST, WebSocket or Shared API operation
+      * Added configurable safety margins to fixed, sliding and fixed-after-first rate limit windows
+      * Fixed decay rate limiter calculations and handling of partial decay progress
+      * Fixed fixed and sliding window boundary calculations
+    * Added automatic in-flight request coalescing for identical public REST GET requests
+      * Sending identical public GET requests on the same client will only send a single request to the server and use the same response
+      * Coalescing is enabled by default and can be disabled with the `RequestCoalescingEnabled` client option
+    * Added `DataTime`, `DataTimeLocal` and `SequenceNumber` propagation when converting `DataEvent<T>` instances
+    * Fixed form data URL encoding on .NET Framework when parameter values contain special characters
+    * Fixed array converter not correctly handling decimal parsing for certain notations
+
 * Version 12.5.1 - 01 Sep 2026
     * Fixed KlineTracker reporting incorrect High/Low price on GetStats result
     * Fixed caching issue for auth requests
