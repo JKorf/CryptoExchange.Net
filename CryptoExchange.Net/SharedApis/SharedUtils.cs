@@ -1,6 +1,10 @@
 ﻿using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -12,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get client information including supported features
         /// </summary>
-        public static SharedClientInfo GetClientInfo(PlatformInfo platformInfo, ISharedClient client)
+        public static SharedClientInfo GetClientInfo(PlatformInfo platformInfo, ISharedApi client)
         {
             return new SharedClientInfo
             {
@@ -21,171 +25,10 @@ namespace CryptoExchange.Net.SharedApis
                 SupportedEnvironments = platformInfo.SupportedEnvironments,
                 SupportedTradingModes = client.SupportedTradingModes,
                 CentralizationType = platformInfo.CentralizationType,
-                Features = GetAllEndpointOptions(client)
+                Transport = client.Transport,
+                Authenticated = client.Authenticated,
+                Capabilities = client.Capabilities.Where(x => x.Supported).ToArray()
             };
-        }
-
-        /// <summary>
-        /// Get all supported endpoints for a client
-        /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        public static EndpointOptions[] GetAllEndpointOptions(ISharedClient client)
-        {
-            var clientType = client.GetType();
-            var result = new List<EndpointOptions>();
-            if (client is IAssetsRestClient assetClient)
-            {
-                result.Add(assetClient.GetAssetOptions);
-                result.Add(assetClient.GetAssetsOptions);
-            }
-            if (client is IBalanceRestClient balanceClient)
-                result.Add(balanceClient.GetBalancesOptions);
-            if (client is IDepositRestClient depositClient)
-            {
-                result.Add(depositClient.GetDepositAddressesOptions);
-                result.Add(depositClient.GetDepositsOptions);
-            }
-            if (client is IKlineRestClient klineClient)
-                result.Add(klineClient.GetKlinesOptions);
-            if (client is IOrderBookRestClient orderBookClient)
-                result.Add(orderBookClient.GetOrderBookOptions);
-            if (client is IRecentTradeRestClient recentTradeClient)
-                result.Add(recentTradeClient.GetRecentTradesOptions);
-            if (client is ITradeHistoryRestClient tradeHistoryClient)
-                result.Add(tradeHistoryClient.GetTradeHistoryOptions);
-            if (client is IWithdrawalRestClient withdrawalClient)
-                result.Add(withdrawalClient.GetWithdrawalsOptions);
-            if (client is IWithdrawRestClient withdrawClient)
-                result.Add(withdrawClient.WithdrawOptions);
-            if (client is IFeeRestClient feeClient)
-                result.Add(feeClient.GetFeeOptions);
-            if (client is IBookTickerRestClient bookTickerClient)
-                result.Add(bookTickerClient.GetBookTickerOptions);
-            if (client is ITransferRestClient transferClient)
-                result.Add(transferClient.TransferOptions);
-
-            if (client is ISpotOrderRestClient spotOrderClient)
-            {
-                result.Add(spotOrderClient.PlaceSpotOrderOptions);
-                result.Add(spotOrderClient.CancelSpotOrderOptions);
-                result.Add(spotOrderClient.GetClosedSpotOrdersOptions);
-                result.Add(spotOrderClient.GetOpenSpotOrdersOptions);
-                result.Add(spotOrderClient.GetSpotOrderOptions);
-                result.Add(spotOrderClient.GetSpotOrderTradesOptions);
-                result.Add(spotOrderClient.GetSpotUserTradesOptions);
-            }
-            if (client is ISpotSymbolRestClient spotSymbolClient)
-                result.Add(spotSymbolClient.GetSpotSymbolsOptions);
-            if (client is ISpotTickerRestClient spotTickerClient)
-            {
-                result.Add(spotTickerClient.GetSpotTickerOptions);
-                result.Add(spotTickerClient.GetSpotTickersOptions);
-            }
-            if (client is ISpotTriggerOrderRestClient spotTriggerOrderClient)
-            {
-                result.Add(spotTriggerOrderClient.CancelSpotTriggerOrderOptions);
-                result.Add(spotTriggerOrderClient.GetSpotTriggerOrderOptions);
-                result.Add(spotTriggerOrderClient.PlaceSpotTriggerOrderOptions);
-            }
-            if (client is ISpotOrderClientIdRestClient spotOrderClientIdClient)
-            {
-                result.Add(spotOrderClientIdClient.CancelSpotOrderByClientOrderIdOptions);
-                result.Add(spotOrderClientIdClient.GetSpotOrderByClientOrderIdOptions);
-            }
-
-            if (client is IFundingRateRestClient fundingRateClient)
-                result.Add(fundingRateClient.GetFundingRateHistoryOptions);
-            if (client is IFuturesOrderRestClient futuresOrderClient)
-            {
-                result.Add(futuresOrderClient.CancelFuturesOrderOptions);
-                result.Add(futuresOrderClient.ClosePositionOptions);
-                result.Add(futuresOrderClient.GetClosedFuturesOrdersOptions);
-                result.Add(futuresOrderClient.GetFuturesOrderOptions);
-                result.Add(futuresOrderClient.GetFuturesOrderTradesOptions);
-                result.Add(futuresOrderClient.GetFuturesUserTradesOptions);
-                result.Add(futuresOrderClient.GetOpenFuturesOrdersOptions);
-                result.Add(futuresOrderClient.GetPositionsOptions);
-                result.Add(futuresOrderClient.PlaceFuturesOrderOptions);
-            }
-            if (client is IFuturesSymbolRestClient futuresSymbolClient)
-                result.Add(futuresSymbolClient.GetFuturesSymbolsOptions);
-            if (client is IFuturesTickerRestClient futuresTickerClient)
-            {
-                result.Add(futuresTickerClient.GetFuturesTickerOptions);
-                result.Add(futuresTickerClient.GetFuturesTickersOptions);
-            }
-            if (client is IIndexPriceKlineRestClient indexPriceKlineClient)
-                result.Add(indexPriceKlineClient.GetIndexPriceKlinesOptions);
-            if (client is ILeverageRestClient leverageClient)
-            {
-                result.Add(leverageClient.GetLeverageOptions);
-                result.Add(leverageClient.SetLeverageOptions);
-            }
-            if (client is IMarkPriceKlineRestClient markPriceKlineClient)
-                result.Add(markPriceKlineClient.GetMarkPriceKlinesOptions);
-            if (client is IOpenInterestRestClient openInterestClient)
-                result.Add(openInterestClient.GetOpenInterestOptions);
-            if (client is IPositionHistoryRestClient positionHistoryClient)
-                result.Add(positionHistoryClient.GetPositionHistoryOptions);
-            if (client is IPositionModeRestClient positionModeClient)
-            {
-                result.Add(positionModeClient.SetPositionModeOptions);
-                result.Add(positionModeClient.GetPositionModeOptions);
-            }
-            if (client is IFuturesTpSlRestClient futuresTpSlClient)
-            {
-                result.Add(futuresTpSlClient.SetFuturesTpSlOptions);
-                result.Add(futuresTpSlClient.CancelFuturesTpSlOptions);
-            }
-            if (client is IFuturesTriggerOrderRestClient futuresTriggerOrderClient)
-            {
-                result.Add(futuresTriggerOrderClient.CancelFuturesTriggerOrderOptions);
-                result.Add(futuresTriggerOrderClient.GetFuturesTriggerOrderOptions);
-                result.Add(futuresTriggerOrderClient.PlaceFuturesTriggerOrderOptions);
-            }
-            if (client is IFuturesOrderClientIdRestClient futuresOrderClientIdClient)
-            {
-                result.Add(futuresOrderClientIdClient.GetFuturesOrderByClientOrderIdOptions);
-                result.Add(futuresOrderClientIdClient.CancelFuturesOrderByClientOrderIdOptions);
-            }
-
-            if (client is IBalanceSocketClient balanceSocketClient)
-                result.Add(balanceSocketClient.SubscribeBalanceOptions);
-            if (client is IBookTickerSocketClient bookTickerSocketClient)
-                result.Add(bookTickerSocketClient.SubscribeBookTickerOptions);
-            if (client is IKlineSocketClient klineSocketClient)
-                result.Add(klineSocketClient.SubscribeKlineOptions);
-            if (client is IOrderBookSocketClient orderBookSocketClient)
-                result.Add(orderBookSocketClient.SubscribeOrderBookOptions);
-            if (client is ITickerSocketClient tickerSocketClient)
-                result.Add(tickerSocketClient.SubscribeTickerOptions);
-            if (client is ITickersSocketClient tickersSocketClient)
-                result.Add(tickersSocketClient.SubscribeAllTickersOptions);
-            if (client is ITradeSocketClient tradeSocketClient)
-                result.Add(tradeSocketClient.SubscribeTradeOptions);
-            if (client is IUserTradeSocketClient userTradeSocketClient)
-                result.Add(userTradeSocketClient.SubscribeUserTradeOptions);
-
-            if (client is ISpotOrderSocketClient spotOrderSocketClient)
-                result.Add(spotOrderSocketClient.SubscribeSpotOrderOptions);
-            if (client is ISpotOrderManagementSocketClient spotOrderManagementSocketClient)
-            {
-                result.Add(spotOrderManagementSocketClient.PlaceSpotOrderOptions);
-                result.Add(spotOrderManagementSocketClient.CancelSpotOrderOptions);
-            }
-
-            if (client is IFuturesOrderSocketClient futuresOrderSocketClient)
-                result.Add(futuresOrderSocketClient.SubscribeFuturesOrderOptions);
-            if (client is IPositionSocketClient positionSocketClient)
-                result.Add(positionSocketClient.SubscribePositionOptions);
-            if (client is IFuturesOrderManagementSocketClient futuresOrderManagementSocketClient)
-            {
-                result.Add(futuresOrderManagementSocketClient.PlaceFuturesOrderOptions);
-                result.Add(futuresOrderManagementSocketClient.CancelFuturesOrderOptions);
-            }
-
-            return result.Where(x => x.Supported).ToArray();
         }
 
         /// <summary>
@@ -206,5 +49,580 @@ namespace CryptoExchange.Net.SharedApis
                 resultData = resultData.Where(x => x.QuoteAssetSubType == request.QuoteAssetSubType);
             return resultData.ToArray();
         }
+
+        /// <summary>
+        /// Register Shared API client in DI container
+        /// </summary>
+        public static IServiceCollection RegisterSharedApiClient<
+            TSharedApiClient,
+#if NET5_0_OR_GREATER
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        TImplementation
+            >(this IServiceCollection services, Action<SharedApiClientRegistrationBuilder<TSharedApiClient>> configure)
+                where TImplementation : class, TSharedApiClient
+                where TSharedApiClient : class, ISharedApiClientBase
+        {
+            services.AddTransient<TSharedApiClient, TImplementation>();
+            services.AddTransient<ISharedApiClientBase>(
+                serviceProvider =>
+                    serviceProvider.GetRequiredService<TSharedApiClient>());
+
+            var builder =
+                new SharedApiClientRegistrationBuilder<TSharedApiClient>(services);
+
+            configure(builder);
+            builder.RegisterTransportAgnosticCapabilities();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Execute GetAssetAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedAsset>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAsset>> capabilities,
+            GetAssetRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAssetAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAssetAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedAsset>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAssetRest>> capabilities,
+            GetAssetRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAssetAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllAssetsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedAsset[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllAssets>> capabilities,
+            GetAssetsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllAssetsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllAssetsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedAsset[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllAssetsRest>> capabilities,
+            GetAssetsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllAssetsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetBalancesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedBalance[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBalancesRest>> capabilities,
+            GetBalancesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBalancesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetBalancesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedBalance[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBalances>> capabilities,
+            GetBalancesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBalancesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFeesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedFee>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFeesRest>> capabilities,
+            GetFeeRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFeesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFeesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedFee>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFees>> capabilities,
+            GetFeeRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFeesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFundingInfoAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedFundingInfo>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFundingInfoRest>> capabilities,
+            GetFundingInfoRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFundingInfoAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFundingInfoAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedFundingInfo>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFundingInfo>> capabilities,
+            GetFundingInfoRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFundingInfoAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetIndexPriceAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedIndexPrice>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetIndexPriceRest>> capabilities,
+            GetIndexPriceRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetIndexPriceAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetIndexPriceAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedIndexPrice>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetIndexPrice>> capabilities,
+            GetIndexPriceRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetIndexPriceAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetMarkPriceAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedMarkPrice>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetMarkPriceRest>> capabilities,
+            GetMarkPriceRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetMarkPriceAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetMarkPriceAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedMarkPrice>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetMarkPrice>> capabilities,
+            GetMarkPriceRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetMarkPriceAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllMarkPricesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedMarkPrice[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllMarkPricesRest>> capabilities,
+            GetAllMarkPricesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllMarkPricesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllMarkPricesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedMarkPrice[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllMarkPrices>> capabilities,
+            GetAllMarkPricesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllMarkPricesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllIndexPricesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedIndexPrice[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllIndexPricesRest>> capabilities,
+            GetAllIndexPricesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllIndexPricesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllIndexPricesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedIndexPrice[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllIndexPrices>> capabilities,
+            GetAllIndexPricesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllIndexPricesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetLeverageAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedLeverage>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetLeverageRest>> capabilities,
+            GetLeverageRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetLeverageAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetLeverageAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedLeverage>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetLeverage>> capabilities,
+            GetLeverageRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetLeverageAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetLeverageTiersAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedLeverageTier[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetLeverageTiersRest>> capabilities,
+            GetLeverageTiersRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetLeverageTiersAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetLeverageTiersAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedLeverageTier[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetLeverageTiers>> capabilities,
+            GetLeverageTiersRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetLeverageTiersAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetOpenInterestAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedOpenInterest>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetOpenInterestRest>> capabilities,
+            GetOpenInterestRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetOpenInterestAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetOpenInterestAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedOpenInterest>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetOpenInterest>> capabilities,
+            GetOpenInterestRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetOpenInterestAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetBookTickerAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedBookTicker>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBookTickerRest>> capabilities,
+            GetBookTickerRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBookTickerAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetBookTickerAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedBookTicker>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetBookTicker>> capabilities,
+            GetBookTickerRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetBookTickerAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetOrderBookAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedOrderBook>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetOrderBookRest>> capabilities,
+            GetOrderBookRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetOrderBookAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetOrderBookAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedOrderBook>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetOrderBook>> capabilities,
+            GetOrderBookRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetOrderBookAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetPositionModeAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedPositionModeResult>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetPositionModeRest>> capabilities,
+            GetPositionModeRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetPositionModeAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetPositionModeAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedPositionModeResult>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetPositionMode>> capabilities,
+            GetPositionModeRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetPositionModeAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetPositionsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedPosition[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetPositionsRest>> capabilities,
+            GetPositionsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetPositionsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetPositionsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedPosition[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetPositions>> capabilities,
+            GetPositionsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetPositionsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetSpotSymbolsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedSpotSymbol[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetSpotSymbolsRest>> capabilities,
+            GetSymbolsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetSpotSymbolsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetSpotSymbolsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedSpotSymbol[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetSpotSymbols>> capabilities,
+            GetSymbolsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetSpotSymbolsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFuturesSymbolsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedFuturesSymbol[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFuturesSymbolsRest>> capabilities,
+            GetSymbolsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFuturesSymbolsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetFuturesSymbolsAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedFuturesSymbol[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetFuturesSymbols>> capabilities,
+            GetSymbolsRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetFuturesSymbolsAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetTickerAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedTicker>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetTickerRest>> capabilities,
+            GetTickerRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetTickerAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetTickerAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedTicker>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetTicker>> capabilities,
+            GetTickerRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetTickerAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllTickersAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedTicker[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllTickersRest>> capabilities,
+            GetTickersRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllTickersAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetAllTickersAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedTicker[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetAllTickers>> capabilities,
+            GetTickersRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetAllTickersAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetRecentTradesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<HttpResult<SharedTrade[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetRecentTradesRest>> capabilities,
+            GetRecentTradesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetRecentTradesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Execute GetRecentTradesAsync for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<IExchangeCallResult<SharedTrade[]>> ExecuteAllAsync(
+            this IEnumerable<SharedCapabilityResolution<IGetRecentTrades>> capabilities,
+            GetRecentTradesRequest request,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.GetRecentTradesAsync(request, ct))
+                .ParallelEnumerateAsync();
+        }
+
     }
 }

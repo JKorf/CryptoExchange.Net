@@ -1,10 +1,13 @@
-using System;
 using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -79,6 +82,11 @@ namespace CryptoExchange.Net.Clients
         protected internal virtual ErrorMapping ErrorMapping { get; } = new ErrorMapping([]);
 
         /// <summary>
+        /// Current rate limit admission override
+        /// </summary>
+        protected readonly AsyncLocal<RateLimitAdmission?> AdmissionOverride = new();
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="loggerFactory">Logger factory</param>
@@ -121,6 +129,29 @@ namespace CryptoExchange.Net.Clients
         /// Get error info for a response code
         /// </summary>
         public ErrorInfo GetErrorInfo(string code, string? message = null) => ErrorMapping.GetErrorInfo(code.ToString(), message);
+
+        /// <inheritdoc />
+        public async Task<TResult> WithRateLimitAdmissionAsync<TResult>(
+            RateLimitAdmission admission,
+            Func<Task<TResult>> operation)
+        {
+            if (admission == null)
+                throw new ArgumentNullException(nameof(admission));
+            if (operation == null)
+                throw new ArgumentNullException(nameof(operation));
+
+            var previous = AdmissionOverride.Value;
+            AdmissionOverride.Value = admission;
+
+            try
+            {
+                return await operation().ConfigureAwait(false);
+            }
+            finally
+            {
+                AdmissionOverride.Value = previous;
+            }
+        }
 
         /// <summary>
         /// Dispose

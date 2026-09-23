@@ -18,9 +18,18 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
 
         private int _currentWeight = 0;
         private DateTime _lastDecrease = DateTime.UtcNow;
+        private double _decayProgress;
 
-        public DecayWindowTracker(int limit, TimeSpan period, double decayRate)
+        public DecayWindowTracker(
+            int limit,
+            TimeSpan period,
+            double decayRate)
         {
+            if (period <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(period));
+
+            if (decayRate <= 0)
+                throw new ArgumentOutOfRangeException(nameof(decayRate));
             Limit = limit;
             TimePeriod = period;
             DecreaseRate = decayRate;
@@ -31,73 +40,118 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
             if (amount == null)
             {
-                _lastDecrease = DateTime.UtcNow;
-                _currentWeight = 0;
+                ResetState();
+                return;
             }
-            else
-            {
-                _currentWeight = Math.Max(0, _currentWeight - amount.Value);
-            }
+
+            _currentWeight = Math.Max(0, _currentWeight - amount.Value);
+            if (_currentWeight == 0)
+                ResetState();
         }
 
         /// <inheritdoc />
-        public TimeSpan GetWaitTime(int weight)
+        public TimeSpan GetWaitTime(int weight, double allowedRateRatio)
         {
-            // Decrease the counter based on the last update time and decay rate
-            DecreaseCounter(DateTime.UtcNow);
+            var now = DateTime.UtcNow;
+            DecreaseCounter(now);
 
-            if (Current + weight > Limit)
+            if ((Current + weight) / (double)Limit <= allowedRateRatio)
+                return TimeSpan.Zero;
+
+            if (Current == 0)
             {
-                // The weight would cause the rate limit to be passed
-                if (Current == 0)
+                if (allowedRateRatio < 1)
                 {
-                    throw new Exception("Request limit reached without any prior request. " +
-                        $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    throw new Exception(
+                        "Request limit reached max utilization. " +
+                        "This request can never execute with the current rate limiter configuration. " +
+                        $"Request weight: {weight}, RateLimit: {Limit}, " +
+                        $"Request ratio: {(Current + weight) / (double)Limit}, " +
+                        $"AllowedRateRatio: {allowedRateRatio}");
                 }
 
-                // Determine the time to wait before this weight can be applied without going over the rate limit
-                return DetermineWaitTime(weight);
+                throw new Exception(
+                    "Request limit reached without any prior request. " +
+                    "This request can never execute with the current rate limiter. " +
+                    $"Request weight: {weight}, RateLimit: {Limit}");
             }
 
-            // Weight can fit without going over limit
-            return TimeSpan.Zero;
+            return DetermineWaitTime(
+                weight,
+                allowedRateRatio);
         }
 
-        /// <inheritdoc />
         public void ApplyWeight(int weight)
         {
             if (_currentWeight == 0)
+            {
                 _lastDecrease = DateTime.UtcNow;
+                _decayProgress = 0;
+            }
+
             _currentWeight += weight;
         }
 
-        /// <summary>
-        /// Decrease the counter based on time passed since last update and the decay rate
-        /// </summary>
-        /// <param name="time"></param>
-        protected void DecreaseCounter(DateTime time)
+        private void DecreaseCounter(DateTime now)
         {
-            var dif = (time - _lastDecrease).TotalMilliseconds / TimePeriod.TotalMilliseconds * DecreaseRate;
-            var decrease = (int)Math.Floor(dif);
-            if (decrease >= 1)
+            if (_currentWeight == 0)
             {
-                _currentWeight = Math.Max(0, _currentWeight - (int)Math.Floor(dif));
-                _lastDecrease = time;
+                _lastDecrease = now;
+                _decayProgress = 0;
+                return;
+            }
+
+            var elapsed = now - _lastDecrease;
+            if (elapsed <= TimeSpan.Zero)
+                return;
+
+            var elapsedDecay = elapsed.Ticks / (double)TimePeriod.Ticks * DecreaseRate;
+
+            var totalDecay = _decayProgress + elapsedDecay;
+            var completedDecay = (int)Math.Floor(totalDecay);
+
+            _lastDecrease = now;
+
+            if (completedDecay == 0)
+            {
+                _decayProgress = totalDecay;
+                return;
+            }
+
+            _currentWeight = Math.Max(0, _currentWeight - completedDecay);
+            if (_currentWeight == 0)
+            {
+                // Decay cannot accumulate as credit while the counter is empty.
+                _decayProgress = 0;
+            }
+            else
+            {
+                _decayProgress = totalDecay - completedDecay;
             }
         }
 
-        /// <summary>
-        /// Determine the time to wait before the weight would fit
-        /// </summary>
-        /// <param name="requestWeight"></param>
-        /// <returns></returns>
-        private TimeSpan DetermineWaitTime(int requestWeight)
+        private TimeSpan DetermineWaitTime(
+            int requestWeight,
+            double allowedRateRatio)
         {
-            var weightToRemove = Math.Max(Current - (Limit - requestWeight), 0);
-            var result = TimeSpan.FromMilliseconds(Math.Ceiling(weightToRemove / DecreaseRate) * TimePeriod.TotalMilliseconds);
-            if (result < TimeSpan.Zero)
-                return TimeSpan.Zero;
-            return result;
+            var weightToRemove = Current + requestWeight - Limit * allowedRateRatio;
+
+            // The counter is integer-valued, so enough whole weight units
+            // must decay before the request can be admitted.
+            var requiredDecay = Math.Ceiling(weightToRemove);
+            var remainingDecay = Math.Max(0, requiredDecay - _decayProgress);
+
+            var waitTicks = Math.Ceiling(remainingDecay / DecreaseRate * TimePeriod.Ticks);
+            return waitTicks <= 0
+                ? TimeSpan.Zero
+                : TimeSpan.FromTicks((long)waitTicks);
+        }
+
+        private void ResetState()
+        {
+            _currentWeight = 0;
+            _decayProgress = 0;
+            _lastDecrease = DateTime.UtcNow;
         }
     }
 }

@@ -10,12 +10,8 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// HTTP call result
     /// </summary>
-    public interface IHttpResult : ICallResult
+    public interface IHttpResult : ICallResult, IExchangeCallResult
     {
-        /// <summary>
-        /// Exchange name
-        /// </summary>
-        string Exchange { get; init; }
         /// <summary>
         /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
         /// </summary>
@@ -79,7 +75,7 @@ namespace CryptoExchange.Net.Objects
     /// HTTP call result
     /// </summary>
     /// <typeparam name="T">Result data type</typeparam>
-    public interface IHttpResult<T> : IHttpResult, ICallResult<T>
+    public interface IHttpResult<T> : IHttpResult, IExchangeCallResult<T>
     {
     }
 }

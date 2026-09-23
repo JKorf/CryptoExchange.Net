@@ -16,15 +16,18 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private readonly Queue<LimitEntry> _entries;
         private int _currentWeight = 0;
 
-        /// <summary>
-        /// Additional wait time to apply to account for time offset between server and client
-        /// </summary>
-        private static readonly TimeSpan _fixedWindowBuffer = TimeSpan.FromMilliseconds(1000);
+        private readonly TimeSpan _safetyMargin;
 
         public FixedWindowTracker(int limit, TimeSpan period)
+            : this(limit, period, WindowTrackerHelpers.GetDefaultSafetyMargin(period))
+        {
+        }
+
+        public FixedWindowTracker(int limit, TimeSpan period, TimeSpan safetyMargin)
         {
             Limit = limit;
             TimePeriod = period;
+            _safetyMargin = safetyMargin;
             _entries = new Queue<LimitEntry>();
         }
 
@@ -52,19 +55,32 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
-        public TimeSpan GetWaitTime(int weight)
+        public TimeSpan GetWaitTime(int weight, double allowedRateRatio)
         {
             // Remove requests no longer in time period from the history
             var checkTime = DateTime.UtcNow;
-            RemoveBefore(checkTime.AddTicks(-(checkTime.Ticks % TimePeriod.Ticks)));
+            var startCurrentWindow = checkTime.AddTicks(-(checkTime.Ticks % TimePeriod.Ticks));
+            var resetBoundary = checkTime >= startCurrentWindow + _safetyMargin
+                ? startCurrentWindow
+                : startCurrentWindow - TimePeriod;
+            RemoveBefore(resetBoundary);
 
-            if (Current + weight > Limit)
+            if ((Current + weight) / (double)Limit > allowedRateRatio)
             {
                 // The weight would cause the rate limit to be passed
                 if (Current == 0)
                 {
-                    throw new Exception("Request limit reached without any prior request. " +
-                        $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    if (allowedRateRatio < 1)
+                    {
+                        throw new Exception("Request limit reached max utilization. " +
+                            $"This request can never execute with the current rate limiter configuration. Request weight: {weight}, RateLimit: {Limit}, " +
+                            $"Request ratio: {(Current + weight) / (double)Limit}, AllowedRateRatio: {allowedRateRatio}");
+                    }
+                    else
+                    {
+                        throw new Exception("Request limit reached without any prior request. " +
+                            $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
+                    }
                 }
 
                 // Determine the time to wait before this weight can be applied without going over the rate limit
@@ -115,8 +131,9 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
             var checkTime = DateTime.UtcNow;
             var startCurrentWindow = checkTime.AddTicks(-(checkTime.Ticks % TimePeriod.Ticks));
-            var wait = startCurrentWindow.Add(TimePeriod) - checkTime;
-            var result = wait.Add(_fixedWindowBuffer);
+            var result = checkTime < startCurrentWindow + _safetyMargin
+                ? startCurrentWindow + _safetyMargin - checkTime
+                : startCurrentWindow + TimePeriod + _safetyMargin - checkTime;
             if (result < TimeSpan.Zero)
                 return TimeSpan.Zero;
             return result;

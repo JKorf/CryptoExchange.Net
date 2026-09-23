@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects.Options;
-using CryptoExchange.Net.SharedApis;
+﻿using CryptoExchange.Net.SharedApis;
 using System;
 
 namespace CryptoExchange.Net.Interfaces.Clients
@@ -8,7 +6,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
     /// <summary>
     /// Base api client
     /// </summary>
-    public interface IBaseApiClient
+    public interface IBaseApiClient : IRateLimitAdmissionClient
     {
         /// <summary>
         /// Exchange name

@@ -208,7 +208,17 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, null, 1, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(
+                        _logger,
+                        Id,
+                        RateLimitItemType.Connection,
+                        _requestDefinition,
+                        null,
+                        1,
+                        Parameters.RateLimitingBehavior,
+                        null,
+                        1.0,
+                        _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult.Success)
                         return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -382,7 +392,15 @@ namespace CryptoExchange.Net.Sockets.Default
 
             var bytes = Parameters.Encoding.GetBytes(data);
             _logger.SocketAddingBytesToSendBuffer(Id, id, bytes);
-            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Text, Weight = weight, Bytes = bytes });
+            _sendBuffer.Enqueue(
+                new SendItem 
+                {
+                    Id = id, 
+                    Type = WebSocketMessageType.Text,
+                    Weight = weight, 
+                    Bytes = bytes, 
+                    RateLimitAdmission = Parameters.RateLimitAdmissionCallbackRequest?.Invoke() 
+                });
             _sendEvent.Set();
             return true;
         }
@@ -394,7 +412,14 @@ namespace CryptoExchange.Net.Sockets.Default
                 return false;
 
             _logger.SocketAddingBytesToSendBuffer(Id, id, data);
-            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Binary, Weight = weight, Bytes = data });
+            _sendBuffer.Enqueue(
+                new SendItem {
+                    Id = id,
+                    Type = WebSocketMessageType.Binary,
+                    Weight = weight,
+                    Bytes = data,
+                    RateLimitAdmission = Parameters.RateLimitAdmissionCallbackRequest?.Invoke()
+                });
             _sendEvent.Set();
             return true;
         }
@@ -530,9 +555,13 @@ namespace CryptoExchange.Net.Sockets.Default
                     {
                         if (Parameters.RateLimiter != null)
                         {
+                            var admission = data.RateLimitAdmission ?? Parameters.RateLimitAdmissionCallbackOptions?.Invoke(_requestDefinition, data.Weight);
+                            var rateRatio = admission?.MaxUtilizationRatio ?? 1.0;
+
                             try
                             {
-                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, _requestDefinition, null, data.Weight, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                                var limitResult = await Parameters.RateLimiter.ProcessAsync(
+                                    _logger, data.Id, RateLimitItemType.Request, _requestDefinition, null, data.Weight, Parameters.RateLimitingBehavior, null, rateRatio, _ctsSource.Token).ConfigureAwait(false);
                                 if (!limitResult.Success)
                                 {
                                     await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
@@ -1025,6 +1054,11 @@ namespace CryptoExchange.Net.Sockets.Default
         /// Message type
         /// </summary>
         public WebSocketMessageType Type { get; set; }
+
+        /// <summary>
+        /// Rate limit admission override
+        /// </summary>
+        public RateLimitAdmission? RateLimitAdmission { get; set; }
 
         /// <summary>
         /// The bytes to send

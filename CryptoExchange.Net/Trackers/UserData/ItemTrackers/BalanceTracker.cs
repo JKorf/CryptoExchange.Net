@@ -12,8 +12,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class BalanceTracker : UserDataItemTracker<SharedBalance>
     {
-        private readonly IBalanceRestClient _restClient;
-        private readonly IBalanceSocketClient? _socketClient;
+        private readonly IGetBalancesRest _restClient;
+        private readonly ISubscribeBalancesSocket? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly SharedAccountType _accountType;
 
@@ -23,8 +23,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public BalanceTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IBalanceRestClient restClient,
-            IBalanceSocketClient? socketClient,
+            IGetBalancesRest restClient,
+            ISubscribeBalancesSocket? socketClient,
             SharedAccountType accountType,
             TrackerItemConfig config,
             ExchangeParameters? exchangeParameters = null

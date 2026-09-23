@@ -24,6 +24,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private readonly RateLimitWindowType _windowType;
         private readonly double? _decayRate;
+        private readonly TimeSpan _safetyMargin;
         private readonly int _limit;
         private readonly TimeSpan _period;
         private readonly Func<RequestDefinition, string?, string> _keySelector;
@@ -32,7 +33,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public string Name => "EndpointLimitGuard";
 
         /// <inheritdoc />
-        public string Description => $"Limit requests to endpoint";
+        public string Description => _windowType == RateLimitWindowType.Decay ? $"Endpoint limit of {_limit} with a decay rate of {_decayRate}" : $"Limit of {_limit} per {_period}";
+
+        /// <summary>
+        /// Additional time to wait after a rate limit window expires to account for latency and timing differences
+        /// </summary>
+        public TimeSpan SafetyMargin => _safetyMargin;
 
         /// <summary>
         /// ctor
@@ -41,19 +47,21 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             int limit,
             TimeSpan period,
             RateLimitWindowType windowType,
-            double? decayRate = null,
-            Func<RequestDefinition, string?, string>? keySelector = null)
+            TimeSpan? safetyMargin = null,
+            Func<RequestDefinition, string?, string>? keySelector = null,
+            double? decayRate = null)
         {
             _limit = limit;
             _period = period;
             _windowType = windowType;
             _decayRate = decayRate;
+            _safetyMargin = safetyMargin ?? WindowTrackerHelpers.GetDefaultSafetyMargin(period);
             _keySelector = keySelector ?? Default;
             _trackers = new Dictionary<string, IWindowTracker>();
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix, double allowedRateRatio)
         {
             var key = _keySelector(definition, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
@@ -62,7 +70,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                 _trackers.Add(key, tracker);
             }
 
-            var delay = tracker.GetWaitTime(requestWeight);
+            var delay = tracker.GetWaitTime(requestWeight, allowedRateRatio);
             if (delay == default)
                 return LimitCheck.NotNeeded(_limit, _period, tracker.Current);
 
@@ -84,8 +92,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <returns></returns>
         protected IWindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _period)
-                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(_limit, _period) :
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _period, _safetyMargin)
+                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(_limit, _period, _safetyMargin) :
                 new DecayWindowTracker(_limit, _period, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
 

@@ -1,15 +1,20 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace CryptoExchange.Net
@@ -145,25 +150,42 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static string ToFormData(this IDictionary<string, object> parameters)
         {
-            var formData = HttpUtility.ParseQueryString(string.Empty);
+            var result = new StringBuilder();
+            var first = true;
+
+            void Append(string key, object value)
+            {
+                if (!first)
+                    result.Append('&');
+                first = false;
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    result.Append(HttpUtility.UrlEncode(key, Encoding.UTF8));
+                    result.Append('=');
+                }
+
+                var text = string.Format(CultureInfo.InvariantCulture, "{0}", value);
+                result.Append(HttpUtility.UrlEncode(text, Encoding.UTF8));
+            }
+
             foreach (var kvp in parameters)
             {
                 if (kvp.Value is null)
                     continue;
 
-                if (kvp.Value.GetType().IsArray)
+                if (kvp.Value is Array array)
                 {
-                    var array = (Array)kvp.Value;
                     foreach (var value in array)
-                        formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                        Append(kvp.Key, value);
                 }
                 else
                 {
-                    formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", kvp.Value));
+                    Append(kvp.Key, kvp.Value);
                 }
             }
 
-            return formData.ToString()!;
+            return result.ToString();
         }
 
         /// <summary>
@@ -395,7 +417,6 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IBookTickerRestClient)client(x)!);
             if (typeof(ITransferRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ITransferRestClient)client(x)!);
-
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
             if (typeof(ISpotSymbolRestClient).IsAssignableFrom(typeof(T)))
@@ -492,6 +513,41 @@ namespace CryptoExchange.Net
             }
 
             return bytes;
+        }
+
+        /// <summary>
+        /// Execute an operation with a specific rate limit admission rule
+        /// </summary>
+        /// <param name="client">Client</param>
+        /// <param name="admission">Rate limit admission rule</param>
+        /// <param name="operation">Operation to execute</param>
+        public static Task<TResult> WithRateLimitAdmissionAsync<TClient, TResult>(
+            this TClient client,
+            RateLimitAdmission admission,
+            Func<TClient, Task<TResult>> operation)
+            where TClient : IRateLimitAdmissionClient
+        {
+            return client.WithRateLimitAdmissionAsync(
+                admission,
+                () => operation(client));
+        }
+
+
+        /// <summary>
+        /// Return the task results in the form of an IAsyncEnumerable, returning the first completed task first
+        /// </summary>
+        /// <typeparam name="T">Type of task result</typeparam>
+        /// <param name="tasks">Task list</param>
+        public static async IAsyncEnumerable<T> ParallelEnumerateAsync<T>(this IEnumerable<Task<T>> tasks)
+        {
+            var remaining = new List<Task<T>>(tasks);
+
+            while (remaining.Count != 0)
+            {
+                var task = await Task.WhenAny(remaining).ConfigureAwait(false);
+                remaining.Remove(task);
+                yield return await task.ConfigureAwait(false);
+            }
         }
     }
 }

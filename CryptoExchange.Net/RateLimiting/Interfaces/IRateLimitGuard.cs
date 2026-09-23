@@ -25,8 +25,9 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="apiKey">The API key</param>
         /// <param name="requestWeight">The request weight</param>
         /// <param name="keySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
+        /// <param name="allowedRateRatio">The allowed rate ratio</param>
         /// <returns></returns>
-        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix);
+        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix, double allowedRateRatio);
 
         /// <summary>
         /// Apply the request to this guard with the specified weight

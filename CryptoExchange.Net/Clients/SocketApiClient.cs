@@ -858,6 +858,8 @@ namespace CryptoExchange.Net.Clients
                 ReconnectInterval = ClientOptions.ReconnectInterval,
                 RateLimiter = ClientOptions.RateLimiterEnabled ? RateLimiter : null,
                 RateLimitingBehavior = ClientOptions.RateLimitingBehaviour,
+                RateLimitAdmissionCallbackOptions = (def, weight) => ClientOptions.RateLimitAdmission?.Invoke(def, weight),
+                RateLimitAdmissionCallbackRequest = () => AdmissionOverride.Value,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
                 ReceiveBufferSize = ClientOptions.ReceiveBufferSize,

@@ -22,6 +22,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, Exception?> _restApiCacheHit;
         private static readonly Action<ILogger, string, Exception?> _restApiCacheNotHit;
         private static readonly Action<ILogger, int?, Exception?> _restApiCancellationRequested;
+        private static readonly Action<ILogger, string, string, Exception?> _restApiRequestsJoined;
 
         static RestApiClientLoggingExtensions()
         {
@@ -89,7 +90,11 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Debug,
                 new EventId(4012, "RestApiCancellationRequested"),
                 "[Req {RequestId}] request cancelled by user");
-            
+
+            _restApiRequestsJoined = LoggerMessage.Define<string, string>(
+                LogLevel.Debug,
+                new EventId(4013, "RestApiRequestsJoined"),
+                "Request for {Method} {Path} joined with in flight request");
         }
 
         public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error, string? originalData, Exception? exception)
@@ -151,9 +156,15 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _restApiCacheNotHit(logger, key, null);
         }
+
         public static void RestApiCancellationRequested(this ILogger logger, int? requestId)
         {
             _restApiCancellationRequested(logger, requestId, null);
+        }
+
+        public static void RestApiRequestsJoined(this ILogger logger, string method, string path)
+        {
+            _restApiRequestsJoined(logger, method, path, null);
         }
     }
 }

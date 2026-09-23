@@ -53,6 +53,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="tryParseOnNonSuccess">Try parse the response even when status is not success</param>
         /// <param name="forcePathEndWithSlash">Force trailing `/`</param>
         /// <param name="identifier">Optional request identifier override</param>
+        /// <param name="preventRequestCoalescing">Whether concurrent identical requests should be prevented from sharing the same request/response</param>
         /// <returns></returns>
         public RequestDefinition GetOrCreate(
             HttpMethod method,
@@ -68,7 +69,8 @@ namespace CryptoExchange.Net.Objects
             bool? preventCaching = null,
             bool? tryParseOnNonSuccess = null,
             bool? forcePathEndWithSlash = null,
-            string? identifier = null)
+            string? identifier = null,
+            bool? preventRequestCoalescing = null)
         {
             var identifierToUse = identifier ?? $"{path}{method.Method}{baseAddress}";
             if (!_definitions.TryGetValue(identifierToUse, out var def))
@@ -85,6 +87,7 @@ namespace CryptoExchange.Net.Objects
                     PreventCaching = preventCaching ?? false,
                     TryParseOnNonSuccess = tryParseOnNonSuccess ?? false,
                     ForcePathEndWithSlash = forcePathEndWithSlash ?? false,
+                    PreventRequestCoalescing = preventRequestCoalescing ?? false,
                 };
                 _definitions.TryAdd(identifierToUse, def);
             }

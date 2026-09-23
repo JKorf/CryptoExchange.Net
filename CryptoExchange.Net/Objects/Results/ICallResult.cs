@@ -41,3 +41,22 @@ public interface ICallResult<T> : ICallResult
     /// </summary>
     T? Data { get; }
 }
+
+/// <summary>
+/// Exchange call result
+/// </summary>
+public interface IExchangeCallResult : ICallResult
+{
+    /// <summary>
+    /// Exchange name
+    /// </summary>
+    public string Exchange { get; }
+}
+
+/// <summary>
+/// Exchange call result
+/// </summary>
+/// <typeparam name="T">Result data type</typeparam>
+public interface IExchangeCallResult<T> : IExchangeCallResult, ICallResult<T>
+{
+}

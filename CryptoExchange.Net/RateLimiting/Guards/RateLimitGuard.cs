@@ -36,6 +36,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private readonly RateLimitWindowType _windowType;
         private readonly double? _decayRate;
+        private readonly TimeSpan _safetyMargin;
         private readonly int? _connectionWeight;
         private readonly Func<RequestDefinition, string?, string> _keySelector;
         private readonly SemaphoreSlim? _sharedGuardSemaphore;
@@ -54,6 +55,10 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// The time period for the limit
         /// </summary>
         public TimeSpan TimeSpan { get; }
+        /// <summary>
+        /// Additional time to wait after a rate limit window expires to account for latency and timing differences
+        /// </summary>
+        public TimeSpan SafetyMargin => _safetyMargin;
 
         /// <summary>
         /// Whether this guard is shared between multiple gates
@@ -68,11 +73,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="limit">Limit per period</param>
         /// <param name="timeSpan">Timespan for the period</param>
         /// <param name="windowType">Type of rate limit window</param>
+        /// <param name="safetyMargin">Additional time to wait after a window expires, or null to use the default margin</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
         /// <param name="shared">Whether this guard is shared between multiple gates</param>
-        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
-            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight, shared)
+        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false, TimeSpan? safetyMargin = null)
+            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight, shared, safetyMargin)
         {
         }
 
@@ -84,10 +90,11 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="limit">Limit per period</param>
         /// <param name="timeSpan">Timespan for the period</param>
         /// <param name="windowType">Type of rate limit window</param>
+        /// <param name="safetyMargin">Additional time to wait after a window expires, or null to use the default margin</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
         /// <param name="shared">Whether this guard is shared between multiple gates</param>
-        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
+        public RateLimitGuard(Func<RequestDefinition, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false, TimeSpan? safetyMargin = null)
         {
             _filters = filters;
             _trackers = new Dictionary<string, IWindowTracker>();
@@ -97,6 +104,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             SharedGuard = shared;
             _keySelector = keySelector;
             _decayRate = decayPerTimeSpan;
+            _safetyMargin = safetyMargin ?? WindowTrackerHelpers.GetDefaultSafetyMargin(timeSpan); ;
             _connectionWeight = connectionWeight;
 
             if (SharedGuard)
@@ -104,7 +112,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix, double allowedRateRatio)
         {
             foreach (var filter in _filters)
             {
@@ -127,7 +135,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                     _trackers.Add(key, tracker);
                 }
 
-                var delay = tracker.GetWaitTime(requestWeight);
+                var delay = tracker.GetWaitTime(requestWeight, allowedRateRatio);
                 if (delay == default)
                     return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
 
@@ -205,9 +213,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <returns></returns>
         protected IWindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan)
-                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(Limit, TimeSpan)
-                : _windowType == RateLimitWindowType.FixedAfterFirst ? new FixedAfterStartWindowTracker(Limit, TimeSpan) :
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan, _safetyMargin)
+                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(Limit, TimeSpan, _safetyMargin)
+                : _windowType == RateLimitWindowType.FixedAfterFirst ? new FixedAfterStartWindowTracker(Limit, TimeSpan, _safetyMargin) :
                 new DecayWindowTracker(Limit, TimeSpan, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
     }

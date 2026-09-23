@@ -10,13 +10,8 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// WebSocket call result
     /// </summary>
-    public interface IWebSocketResult : ICallResult
+    public interface IWebSocketResult : ICallResult, IExchangeCallResult
     {
-        /// <summary>
-        /// Exchange name
-        /// </summary>
-        string Exchange { get; init; }
-
         /// <summary>
         /// The request id
         /// </summary>
@@ -42,7 +37,7 @@ namespace CryptoExchange.Net.Objects
     /// WebSocket call result
     /// </summary>
     /// <typeparam name="T">Data result type</typeparam>
-    public interface IWebSocketResult<T> : IWebSocketResult, ICallResult<T>
+    public interface IWebSocketResult<T> : IWebSocketResult, IExchangeCallResult<T>
     {
 
     }
