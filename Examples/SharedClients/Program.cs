@@ -5,13 +5,13 @@ using CryptoExchange.Net.SharedApis;
 using OKX.Net.Clients;
 
 var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
-var binanceSpotRestClient = new BinanceRestClient().SpotApi.SharedClient;
-var okxSpotRestClient = new OKXRestClient().UnifiedApi.SharedClient;
-var bitmartSpotRestClient = new BitMartRestClient().SpotApi.SharedClient;
+var binanceSpotRestClient = new BinanceRestClient().SpotApi.SharedApi;
+var okxSpotRestClient = new OKXRestClient().UnifiedApi.SharedApi;
+var bitmartSpotRestClient = new BitMartRestClient().SpotApi.SharedApi;
 
-var binanceSpotSocketClient = new BinanceSocketClient().SpotApi.SharedClient;
-var okxSpotSocketClient = new OKXSocketClient().UnifiedApi.SharedClient;
-var bitmartSpotSocketClient = new BitMartSocketClient().SpotApi.SharedClient;
+var binanceSpotSocketClient = new BinanceSocketClient().SpotApi.SharedApi;
+var okxSpotSocketClient = new OKXSocketClient().UnifiedApi.SharedApi;
+var bitmartSpotSocketClient = new BitMartSocketClient().SpotApi.SharedApi;
 
 await GetLastTradePriceAsync(binanceSpotRestClient, symbol);
 await GetLastTradePriceAsync(okxSpotRestClient, symbol);
@@ -31,9 +31,9 @@ Console.ReadLine();
 foreach (var subscription in subscriptions)
     await subscription.CloseAsync();
 
-async Task GetLastTradePriceAsync(ISpotTickerRestClient client, SharedSymbol symbol)
+async Task GetLastTradePriceAsync(IGetTickerRest client, SharedSymbol symbol)
 {
-    var result = await client.GetSpotTickerAsync(new GetTickerRequest(symbol));
+    var result = await client.GetTickerAsync(new GetTickerRequest(symbol));
     if (!result.Success)
     {
         Console.WriteLine($"Failed to get ticker: {result.Error}");
@@ -43,7 +43,7 @@ async Task GetLastTradePriceAsync(ISpotTickerRestClient client, SharedSymbol sym
     Console.WriteLine($"{client.Exchange} {result.Data.Symbol}: {result.Data.LastPrice}");
 }
 
-async Task SubscribeTickerUpdatesAsync(ITickerSocketClient client, SharedSymbol symbol, ICollection<UpdateSubscription> subscriptions)
+async Task SubscribeTickerUpdatesAsync(ISubscribeTickerSocket client, SharedSymbol symbol, ICollection<UpdateSubscription> subscriptions)
 {
     var result = await client.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
     {

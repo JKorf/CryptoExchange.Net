@@ -1,7 +1,7 @@
 ﻿@page "/SpotClient"
 @using CryptoExchange.Net.SharedApis
 @using System.Diagnostics
-@inject IEnumerable<ISpotTickerRestClient> restClients
+@inject IEnumerable<IGetTicker> restClients
 
 <h3>ETH-BTC prices:</h3>
 @foreach(var price in _prices.OrderBy(p => p.Key))
@@ -15,7 +15,7 @@
     protected override async Task OnInitializedAsync()
     {
         var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "BTC");
-        var tasks = restClients.Select(x => x.GetSpotTickerAsync(new GetTickerRequest(symbol)));
+        var tasks = restClients.Where(x => x.SupportedTradingModes.Contains(TradingMode.Spot)).Select(x => x.GetTickerAsync(new GetTickerRequest(symbol)));
         await foreach (var ticker in ParallelEnumerateAsync(tasks))
         {
             if (ticker.Success)

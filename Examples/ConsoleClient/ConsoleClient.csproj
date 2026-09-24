@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="12.13.0" />
-    <PackageReference Include="Bybit.Net" Version="6.13.0" />
+    <PackageReference Include="Binance.Net" Version="13.6.0" />
+    <PackageReference Include="Bybit.Net" Version="7.6.0" />
   </ItemGroup>
 
 </Project>

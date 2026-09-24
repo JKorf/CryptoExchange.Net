@@ -25,18 +25,22 @@ var exchanges = new Dictionary<string, ExchangeClients>(StringComparer.OrdinalIg
 {
     ["binance"] = new ExchangeClients(
         "Binance",
-        binanceRest.SpotApi.SharedClient,
-        binanceRest.SpotApi.SharedClient,
-        binanceRest.SpotApi.SharedClient,
-        binanceRest.SpotApi.SharedClient,
-        binanceSocket.SpotApi.SharedClient),
+        binanceRest.SpotApi.SharedApi,
+        binanceRest.SpotApi.SharedApi,
+        binanceRest.SpotApi.SharedApi,
+        binanceRest.SpotApi.SharedApi,
+        binanceRest.SpotApi.SharedApi,
+        binanceRest.SpotApi.SharedApi,
+        binanceSocket.SpotApi.SharedApi),
     ["bybit"] = new ExchangeClients(
         "Bybit",
-        bybitRest.V5Api.SharedClient,
-        bybitRest.V5Api.SharedClient,
-        bybitRest.V5Api.SharedClient,
-        bybitRest.V5Api.SharedClient,
-        bybitSocket.V5SpotApi.SharedClient)
+        bybitRest.V5Api.SharedApi,
+        bybitRest.V5Api.SharedApi,
+        bybitRest.V5Api.SharedApi,
+        bybitRest.V5Api.SharedApi,
+        bybitRest.V5Api.SharedApi,
+        bybitRest.V5Api.SharedApi,
+        bybitSocket.V5SpotApi.SharedApi)
 };
 
 PrintHelp();
@@ -98,7 +102,7 @@ async Task PrintPricesAsync(string[] args)
     var symbol = GetSymbol(args, 1);
     var tasks = exchanges.Values.Select(async exchange =>
     {
-        var result = await exchange.TickerRest.GetSpotTickerAsync(new GetTickerRequest(symbol));
+        var result = await exchange.TickerRest.GetTickerAsync(new GetTickerRequest(symbol));
         if (!result.Success)
         {
             Console.WriteLine($"{exchange.Name,-8} error: {result.Error}");
@@ -171,7 +175,7 @@ async Task PrintOpenOrdersAsync(string[] args)
     var exchange = GetExchange(args, 1);
     var symbol = GetSymbol(args, 2);
 
-    var result = await exchange.OrderRest.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(symbol));
+    var result = await exchange.GetOpenOrdersRest.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(symbol));
     if (!result.Success)
     {
         Console.WriteLine($"Open orders request failed: {result.Error}");
@@ -203,23 +207,9 @@ async Task PlaceLimitOrderAsync(string[] args)
         SharedQuantity.Base(quantity),
         price,
         SharedTimeInForce.GoodTillCanceled,
-        exchange.OrderRest.GenerateClientOrderId());
+        exchange.PlaceOrderRest.GenerateClientOrderId());
 
-    var validationError = exchange.OrderRest.PlaceSpotOrderOptions.ValidateRequest(
-        exchange.Name,
-        request,
-        TradingMode.Spot,
-        exchange.OrderRest.SupportedTradingModes,
-        exchange.OrderRest.SpotSupportedOrderTypes,
-        exchange.OrderRest.SpotSupportedTimeInForce,
-        exchange.OrderRest.SpotSupportedOrderQuantity);
-    if (validationError != null)
-    {
-        Console.WriteLine($"Order request is not valid for {exchange.Name}: {validationError}");
-        return;
-    }
-
-    var result = await exchange.OrderRest.PlaceSpotOrderAsync(request);
+    var result = await exchange.PlaceOrderRest.PlaceSpotOrderAsync(request);
     Console.WriteLine(result.Success
         ? $"Order placed. Id: {result.Data.Id}"
         : $"Order failed: {result.Error}");
@@ -233,7 +223,7 @@ async Task CancelOrderAsync(string[] args)
     if (string.IsNullOrWhiteSpace(orderId))
         throw new ArgumentException("Missing order id. Example: cancel-order binance BTC USDT 123456");
 
-    var result = await exchange.OrderRest.CancelSpotOrderAsync(new CancelOrderRequest(symbol, orderId));
+    var result = await exchange.CancelOrderRest.CancelSpotOrderAsync(new CancelOrderRequest(symbol, orderId));
     Console.WriteLine(result.Success
         ? $"Order canceled. Id: {result.Data.Id}"
         : $"Cancel failed: {result.Error}");
@@ -296,8 +286,10 @@ static void PrintHelp()
 
 internal record ExchangeClients(
     string Name,
-    ISpotTickerRestClient TickerRest,
-    IOrderBookRestClient OrderBookRest,
-    IBalanceRestClient BalanceRest,
-    ISpotOrderRestClient OrderRest,
-    ITickerSocketClient TickerSocket);
+    IGetTickerRest TickerRest,
+    IGetOrderBookRest OrderBookRest,
+    IGetBalancesRest BalanceRest,
+    IPlaceSpotOrderRest PlaceOrderRest,
+    IGetOpenSpotOrdersRest GetOpenOrdersRest,
+    ICancelSpotOrderRest CancelOrderRest,
+    ISubscribeTickerSocket TickerSocket);

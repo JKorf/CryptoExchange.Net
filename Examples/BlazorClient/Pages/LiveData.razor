@@ -5,7 +5,6 @@
 @inject IBitfinexSocketClient bitfinexSocketClient
 @inject IBitgetSocketClient bitgetSocketClient
 @inject IBitMartSocketClient bitmartSocketClient
-@inject IBitMEXSocketClient bitmexSocketClient
 @inject IBloFinSocketClient bloFinSocketClient
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinbaseSocketClient coinbaseSocketClient
@@ -56,7 +55,6 @@
             bitfinexSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
             bitgetSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.First().LastPrice)),
             bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
-            bitmexSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH_XBT", data => UpdateData("BitMEX", data.Data.LastPrice ?? 0)),
             // BloFin doesn't support the ETH/BTC pair
             //bloFinSocketClient.FuturesApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BloFin", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
