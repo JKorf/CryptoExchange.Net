@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -625,7 +626,6 @@ namespace CryptoExchange.Net.SharedApis
                 .ParallelEnumerateAsync();
         }
 
-
         /// <summary>
         /// Subscribe to trade updates for all capabilities in parallel and return results as they arrive
         /// </summary>
@@ -806,6 +806,18 @@ namespace CryptoExchange.Net.SharedApis
             return capabilities
                 .Select(x => x.Capability.SubscribeToUserTradeUpdatesAsync(request, onData, ct))
                 .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Wait for all results from an IAsyncEnumerable and return them as an array
+        /// </summary>
+        public static async Task<T[]> WaitAllAsync<T>(this IAsyncEnumerable<T> enumerable)
+        {
+            var result = new List<T>();
+            await foreach (var itemResult in enumerable.ConfigureAwait(false))
+                result.Add(itemResult);
+
+            return result.ToArray();
         }
     }
 }
