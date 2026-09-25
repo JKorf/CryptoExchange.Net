@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -624,5 +625,187 @@ namespace CryptoExchange.Net.SharedApis
                 .ParallelEnumerateAsync();
         }
 
+
+        /// <summary>
+        /// Subscribe to trade updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeTradesSocket>> capabilities,
+            SubscribeTradeRequest request,
+            Action<DataEvent<SharedTrade[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToTradeUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to balance updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeBalancesSocket>> capabilities,
+            SubscribeBalancesRequest request,
+            Action<DataEvent<SharedBalance[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToBalanceUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to index price updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeIndexPriceSocket>> capabilities,
+            SubscribeIndexPriceRequest request,
+            Action<DataEvent<SharedIndexPrice>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToIndexPriceUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to kline updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeKlinesSocket>> capabilities,
+            SubscribeKlineRequest request,
+            Action<DataEvent<SharedKline>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToKlineUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to mark price updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeMarkPriceSocket>> capabilities,
+            SubscribeMarkPriceRequest request,
+            Action<DataEvent<SharedMarkPrice>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToMarkPriceUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to order book updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeOrderBookSocket>> capabilities,
+            SubscribeOrderBookRequest request,
+            Action<DataEvent<SharedOrderBook>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToOrderBookUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to incremental order book updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeIncrementalOrderBookSocket>> capabilities,
+            SubscribeOrderBookRequest request,
+            Action<DataEvent<SharedOrderBook>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToOrderBookUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to futures order updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeFuturesOrdersSocket>> capabilities,
+            SubscribeFuturesOrderRequest request,
+            Action<DataEvent<SharedFuturesOrderUpdate[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToFuturesOrderUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to spot order updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeSpotOrdersSocket>> capabilities,
+            SubscribeSpotOrderRequest request,
+            Action<DataEvent<SharedSpotOrderUpdate[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToSpotOrderUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to position updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribePositionsSocket>> capabilities,
+            SubscribePositionRequest request,
+            Action<DataEvent<SharedPosition[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToPositionUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to ticker updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeTickerSocket>> capabilities,
+            SubscribeTickerRequest request,
+            Action<DataEvent<SharedTicker>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToTickerUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to all ticker updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeAllTickersSocket>> capabilities,
+            SubscribeAllTickersRequest request,
+            Action<DataEvent<SharedTicker[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToAllTickersUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
+        /// Subscribe to user trade updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeUserTradesSocket>> capabilities,
+            SubscribeUserTradeRequest request,
+            Action<DataEvent<SharedUserTrade[]>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToUserTradeUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
     }
 }
