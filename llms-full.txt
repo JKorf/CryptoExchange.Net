@@ -1,8 +1,8 @@
 # CryptoExchange.Net — full AI context
 
 Library: CryptoExchange.Net
-Library version: 13.0.0
-CryptoExchange.Net package version: 13.0.0
+Library version: 13.1.0
+CryptoExchange.Net package version: 13.1.0
 Language: C#/.NET
 Targets: netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0
 

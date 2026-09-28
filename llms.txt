@@ -2,7 +2,7 @@
 
 > Base C#/.NET library used by 28+ cryptocurrency exchange clients. It standardizes REST, WebSocket, authentication, rate limiting, results, and exchange-agnostic Shared APIs.
 
-CryptoExchange.Net is not an exchange client by itself. Install exchange-specific packages such as Binance.Net, Bybit.Net, JK.OKX.Net, Kraken.Net, or Coinbase.Net, or install `CryptoClients.Net` for the bundle. Current release: 13.0.0. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, and net10.0; Native AOT is supported.
+CryptoExchange.Net is not an exchange client by itself. Install exchange-specific packages such as Binance.Net, Bybit.Net, JK.OKX.Net, Kraken.Net, or Coinbase.Net, or install `CryptoClients.Net` for the bundle. Current release: 13.1.0. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, and net10.0; Native AOT is supported.
 
 ## Shared API V2
 

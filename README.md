@@ -127,6 +127,11 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.1.0 - 28 Sep 2026
+    * Added UnsubscribeAllAsync method to Shared APIs ISharedSubscription and ISharedApiClientBase
+    * Added WaitAllAsync extension method for waiting on an IAsyncEnumerable to finish
+    * Added SubscribeAllAsync extension methods for Shared API resolved capabilities
+
 * Version 13.0.0 - 23 Sep 2026
     * Shared APIs
       * Added Shared API V2 with fine-grained capability interfaces for individual REST requests, WebSocket requests and subscriptions
