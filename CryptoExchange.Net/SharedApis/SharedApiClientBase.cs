@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -104,6 +105,11 @@ namespace CryptoExchange.Net.SharedApis
         SharedCapabilityResolution<T>? GetCapability<T>(SharedCapabilityReference<T> capability, TradingMode tradingMode)
             where T : ISharedApiCapability;
 
+        /// <summary>
+        /// Unsubscribes all subscriptions created by the underlying socket API
+        /// client and closes its subscription connections.
+        /// </summary>
+        Task UnsubscribeAllAsync();
     }
 
     /// <summary>
@@ -207,6 +213,15 @@ namespace CryptoExchange.Net.SharedApis
             where T : ISharedApiCapability
         {
             return GetCapabilities<T>(tradingMode);
+        }
+
+        /// <inheritdoc />
+        public Task UnsubscribeAllAsync()
+        {
+            return Task.WhenAll(
+                _sharedApis
+                    .OfType<ISharedSubscription>()
+                    .Select(x => x.UnsubscribeAllAsync()));
         }
 
         object? ISharedApiClientResolver.GetCapability(Type capabilityType)
