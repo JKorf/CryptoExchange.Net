@@ -669,6 +669,20 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <summary>
+        /// Subscribe to funding info updates for all capabilities in parallel and return results as they arrive
+        /// </summary>
+        public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
+            this IEnumerable<SharedCapabilityResolution<ISubscribeFundingInfoSocket>> capabilities,
+            SubscribeFundingInfoRequest request,
+            Action<DataEvent<SharedFundingInfo>> onData,
+            CancellationToken ct = default)
+        {
+            return capabilities
+                .Select(x => x.Capability.SubscribeToFundingInfoUpdatesAsync(request, onData, ct))
+                .ParallelEnumerateAsync();
+        }
+
+        /// <summary>
         /// Subscribe to kline updates for all capabilities in parallel and return results as they arrive
         /// </summary>
         public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
