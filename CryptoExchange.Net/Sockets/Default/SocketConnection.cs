@@ -424,6 +424,9 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 try
                 {
+                    if ((ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect) != TimeSpan.Zero)
+                        await Task.Delay(ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect).ConfigureAwait(false);
+
                     var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
                     if (!reconnectSuccessful.Success)
                     {
@@ -616,7 +619,17 @@ namespace CryptoExchange.Net.Sockets.Default
         /// Connect the websocket
         /// </summary>
         /// <returns></returns>
-        public async Task<CallResult> ConnectAsync(CancellationToken ct) => await _socket.ConnectAsync(ct).ConfigureAwait(false);
+        public async Task<CallResult> ConnectAsync(CancellationToken ct)
+        {
+            var result = await _socket.ConnectAsync(ct).ConfigureAwait(false);
+            if (!result.Success)
+                return result;
+
+            if ((ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect) != TimeSpan.Zero)
+                await Task.Delay(ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect).ConfigureAwait(false);
+
+            return result;
+        }
 
         /// <summary>
         /// Retrieve the underlying socket

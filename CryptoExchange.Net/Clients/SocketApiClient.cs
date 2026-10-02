@@ -533,9 +533,6 @@ namespace CryptoExchange.Net.Clients
             if (!connectResult.Success)
                 return connectResult;
 
-            if (ClientOptions.DelayAfterConnect != TimeSpan.Zero)
-                await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
-
             if (!authenticated || socket.Authenticated)
                 return CallResult.Ok();
 
@@ -862,7 +859,7 @@ namespace CryptoExchange.Net.Clients
                 RateLimitAdmissionCallbackRequest = () => AdmissionOverride.Value,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
-                ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
+                ReceiveBufferSize = ClientOptions.ReceiveBufferSize
             };
 
         /// <summary>
