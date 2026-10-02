@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SubscribeIncrementalOrderBookOptions(string exchange, bool needsAuthentication, int[] limits, SharedOrderBookSubscriptionType updateType)
-            : base(exchange, needsAuthentication, nameof(ISubscribeIncrementalOrderBookSocket.SubscribeToOrderBookUpdatesAsync), _defaultParameterRules)
+            : base(exchange, needsAuthentication, nameof(ISubscribeIncrementalOrderBookSocket.SubscribeToIncrementalOrderBookUpdatesAsync), _defaultParameterRules)
         {
             SupportedLimits = limits;
             UpdateType = updateType;

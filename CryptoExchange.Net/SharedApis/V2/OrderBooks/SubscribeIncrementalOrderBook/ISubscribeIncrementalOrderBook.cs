@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Order book subscription options
         /// </summary>
-        SubscribeOrderBookOptions SubscribeOrderBookOptions { get; }
+        SubscribeIncrementalOrderBookOptions SubscribeIncrementalOrderBookOptions { get; }
 
         /// <summary>
         /// Subscribe to incremental order book updates for a symbol
@@ -23,6 +23,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<DataEvent<SharedOrderBook>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToIncrementalOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<DataEvent<SharedIncrementalOrderBook>> handler, CancellationToken ct = default);
     }
 }

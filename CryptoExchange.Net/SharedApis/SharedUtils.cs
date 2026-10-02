@@ -716,11 +716,11 @@ namespace CryptoExchange.Net.SharedApis
         public static IAsyncEnumerable<WebSocketResult<UpdateSubscription>> SubscribeAllAsync(
             this IEnumerable<SharedCapabilityResolution<ISubscribeIncrementalOrderBookSocket>> capabilities,
             SubscribeOrderBookRequest request,
-            Action<DataEvent<SharedOrderBook>> onData,
+            Action<DataEvent<SharedIncrementalOrderBook>> onData,
             CancellationToken ct = default)
         {
             return capabilities
-                .Select(x => x.Capability.SubscribeToOrderBookUpdatesAsync(request, onData, ct))
+                .Select(x => x.Capability.SubscribeToIncrementalOrderBookUpdatesAsync(request, onData, ct))
                 .ParallelEnumerateAsync();
         }
 
