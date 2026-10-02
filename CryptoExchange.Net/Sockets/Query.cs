@@ -124,7 +124,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// On complete callback
         /// </summary>
-        public Action? OnComplete { get; set; }
+        public Action<bool>? OnComplete { get; set; }
 
         /// <inheritdoc />
         public event Action? OnMessageRouterUpdated;
@@ -157,8 +157,7 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
-                Completed = true;
-                _event.Set();
+                Complete();
             }
         }
 
@@ -174,6 +173,11 @@ namespace CryptoExchange.Net.Sockets
         /// Mark request as timeout
         /// </summary>
         public abstract void Timeout();
+
+        /// <summary>
+        /// Mark request as successfully completed
+        /// </summary>
+        public abstract void Complete();
 
         /// <summary>
         /// Mark request as failed
@@ -248,7 +252,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 Completed = true;
                 _event.Set();
-                OnComplete?.Invoke();
+                OnComplete?.Invoke(Success);
             }
 
             return handled;
@@ -267,7 +271,19 @@ namespace CryptoExchange.Net.Sockets
 
             Completed = true;
             _event.Set();
-            OnComplete?.Invoke();
+            OnComplete?.Invoke(Success);
+        }
+
+        /// <inheritdoc />
+        public override void Complete()
+        {
+            if (Completed)
+                return;
+
+            Result = CallResult<THandlerResponse>.Ok(default!);
+            Completed = true;
+            _event.Set();
+            OnComplete?.Invoke(Success);
         }
 
         /// <inheritdoc />
@@ -280,7 +296,7 @@ namespace CryptoExchange.Net.Sockets
             Completed = true;
 
             _event.Set();
-            OnComplete?.Invoke();
+            OnComplete?.Invoke(Success);
         }
     }
 }

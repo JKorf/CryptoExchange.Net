@@ -689,7 +689,7 @@ namespace CryptoExchange.Net.Sockets.Default
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            bool anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
+            bool anyDuplicateSubscription = SubscriptionIsCovered(subscription);
             bool shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Status == SubscriptionStatus.Closing || r.Status == SubscriptionStatus.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
 
             if (!anyDuplicateSubscription)
@@ -1057,6 +1057,32 @@ namespace CryptoExchange.Net.Sockets.Default
         }
 
         /// <summary>
+        /// Whether there is currently a subscription covering all the routes the subscription lists
+        /// </summary>
+        protected bool SubscriptionIsCovered(Subscription subscription)
+            => _listeners.OfType<Subscription>().Any(
+                x => x != subscription
+                && x.Active
+                && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
+
+        /// <summary>
+        /// Whether there is a subscription earlier in the list covering all the routes the subscription lists
+        /// </summary>
+        protected bool IsCoveredByEarlierSubscription(Subscription subscription)
+        {
+            foreach (var other in _listeners.OfType<Subscription>())
+            {
+                if (other == subscription)
+                    return false;
+
+                if (other.Active && other.MessageRouter.Routes.All(x => subscription.MessageRouter.ContainsCheck(x)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Try to subscribe a new subscription by sending the subscribe query and wait for the result as needed
         /// </summary>
         /// <param name="subscription">The subscription</param>
@@ -1090,11 +1116,11 @@ namespace CryptoExchange.Net.Sockets.Default
                 return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, 0, ConnectionUriString);
             }
 
-            var subCompleteHandler = () =>
+            var subCompleteHandler = (bool success) =>
             {
-                subscription.Status = subQuery.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
+                subscription.Status = success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
                 subscription.HandleSubQueryResponse(this, subQuery.Response);
-                if (newSubscription && subQuery.Success)
+                if (newSubscription && success)
                 {
                     subscription.TokenExpired += HandleTokenExpired;
                     if (subCancelToken != default)
@@ -1109,6 +1135,14 @@ namespace CryptoExchange.Net.Sockets.Default
             };
             subQuery.OnComplete = subCompleteHandler;
 
+            // For duplicate subscription don't send another subscribe request but just handle it internally
+            // Unsubscribe also doesn't unsubscribe when there is still a duplicate subscription running
+            if (IsCoveredByEarlierSubscription(subscription))
+            {
+                subQuery.Complete();
+                return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, subQuery.Id, ConnectionUriString);
+            }
+
             var subQueryResult = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             if (!subQueryResult.Success)
             {
@@ -1118,9 +1152,6 @@ namespace CryptoExchange.Net.Sockets.Default
                     await CloseAsync(subscription).ConfigureAwait(false);
                 return WebSocketResult.Fail(ApiClient.Exchange, subQueryResult.Error!);
             }
-
-            if (!subQuery.ExpectsResponse)
-                subCompleteHandler();
 
             return subQueryResult;
         }
