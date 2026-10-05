@@ -20,6 +20,11 @@ namespace CryptoExchange.Net.Objects.Options
         public int? MaxSocketConnections { get; set; }
 
         /// <summary>
+        /// The time to wait after connecting a socket before sending messages. Can be used for API's which will rate limit if you subscribe directly after connecting.
+        /// </summary>
+        public TimeSpan? DelayAfterConnect { get; set; }
+
+        /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
         public T Set<T>(T item) where T : SocketApiOptions, new()
@@ -28,6 +33,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.SocketNoDataTimeout = SocketNoDataTimeout;
             item.AutoTimestamp = AutoTimestamp;
             item.MaxSocketConnections = MaxSocketConnections;
+            item.DelayAfterConnect = DelayAfterConnect;
             return item;
         }
     }
