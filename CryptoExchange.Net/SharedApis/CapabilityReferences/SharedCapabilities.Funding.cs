@@ -23,6 +23,10 @@ namespace CryptoExchange.Net.SharedApis
             /// Get user funding history capability.
             /// </summary>
             public static SharedRestCapability<IGetUserFundingHistory, IGetUserFundingHistoryRest> GetUserFundingHistory { get; } = new();
+            /// <summary>
+            /// Subscribe to funding info updates capability.
+            /// </summary>
+            public static SharedCapabilityReference<ISubscribeFundingInfoSocket> SubscribeFundingInfo { get; } = new();
         }
     }
 }
