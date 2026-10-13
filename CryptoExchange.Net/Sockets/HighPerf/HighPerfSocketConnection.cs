@@ -198,7 +198,12 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         {
             var result = await _socket.ConnectAsync(ct).ConfigureAwait(false);
             if (result.Success)
+            {
                 _processTask = ProcessAsync(_cts.Token);
+
+                if ((ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect) != TimeSpan.Zero)
+                    await Task.Delay(ApiClient.ApiOptions.DelayAfterConnect ?? ApiClient.ClientOptions.DelayAfterConnect).ConfigureAwait(false);
+            }
 
             return result;
         }
