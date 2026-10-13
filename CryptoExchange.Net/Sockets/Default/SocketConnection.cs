@@ -1076,7 +1076,7 @@ namespace CryptoExchange.Net.Sockets.Default
             => _listeners.OfType<Subscription>().Any(
                 x => x != subscription
                 && x.Active
-                && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
+                && subscription.MessageRouter.Routes.All(l => x.MessageRouter.ContainsCheck(l)));
 
         /// <summary>
         /// Whether there is a subscription earlier in the list covering all the routes the subscription lists
@@ -1088,7 +1088,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 if (other == subscription)
                     return false;
 
-                if (other.Active && other.MessageRouter.Routes.All(x => subscription.MessageRouter.ContainsCheck(x)))
+                if (other.Active && subscription.MessageRouter.Routes.All(x => other.MessageRouter.ContainsCheck(x)))
                     return true;
             }
 
