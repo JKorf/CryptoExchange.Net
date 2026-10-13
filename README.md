@@ -127,6 +127,15 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.2.0 - 13 Oct 2026
+    * Added Shared API ISubscribeFundingInfoSocket
+    * Added DelayAfterConnect to SocketApiOptions
+    * Added processor parameter for some methods in SocketApiClient to allow specific overriding behavior
+    * Updated WebSocket duplicate subscription handling
+    * Updated Shared APIs ISubscribeIncrementalOrderBook
+    * Fixed incorrect status keeping of WebSocket subscriptions which don't expect a response
+    * Fixed DelayAfterConnect not being respected on reconnection
+
 * Version 13.1.0 - 28 Sep 2026
     * Added UnsubscribeAllAsync method to Shared APIs ISharedSubscription and ISharedApiClientBase
     * Added WaitAllAsync extension method for waiting on an IAsyncEnumerable to finish
