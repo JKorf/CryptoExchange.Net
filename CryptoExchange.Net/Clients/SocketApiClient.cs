@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.Clients
                     while (true)
                     {
                         // Get a new or existing socket connection
-                        var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription.Topic, subscription.IndividualSubscriptionCount).ConfigureAwait(false);
+                        var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription, subscription.Topic, subscription.IndividualSubscriptionCount).ConfigureAwait(false);
                         if (!socketResult.Success)
                             return WebSocketResult.Fail<UpdateSubscription>(Exchange, socketResult.Error);
 
@@ -309,7 +309,7 @@ namespace CryptoExchange.Net.Clients
 
                         var needsConnecting = !socketConnection.Connected;
 
-                        var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated, ct).ConfigureAwait(false);
+                        var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated, ct, subscription).ConfigureAwait(false);
                         if (!connectResult.Success)
                             return WebSocketResult.Fail<UpdateSubscription>(Exchange, connectResult.Error!);
 
@@ -482,7 +482,7 @@ namespace CryptoExchange.Net.Clients
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                var socketResult = await GetSocketConnection(url, query.Authenticated, true, ct).ConfigureAwait(false);
+                var socketResult = await GetSocketConnection(url, query.Authenticated, true, ct, processor: query).ConfigureAwait(false);
                 if (!socketResult.Success)
                     return QueryResult.Fail<THandlerResponse>(Exchange, socketResult.Error);
 
@@ -495,7 +495,7 @@ namespace CryptoExchange.Net.Clients
                     released = true;
                 }
 
-                var connectResult = await ConnectIfNeededAsync(socketConnection, query.Authenticated, ct).ConfigureAwait(false);
+                var connectResult = await ConnectIfNeededAsync(socketConnection, query.Authenticated, ct, query).ConfigureAwait(false);
                 if (!connectResult.Success)
                     return QueryResult.Fail<THandlerResponse>(Exchange, connectResult.Error!);
             }
@@ -524,7 +524,18 @@ namespace CryptoExchange.Net.Clients
         /// <param name="authenticated">Whether the socket should authenticated</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult> ConnectIfNeededAsync(ISocketConnection socket, bool authenticated, CancellationToken ct)
+        protected virtual Task<CallResult> ConnectIfNeededAsync(ISocketConnection socket, bool authenticated, CancellationToken ct)
+            => ConnectIfNeededAsync(socket, authenticated, ct, null);
+
+        /// <summary>
+        /// Checks if a socket needs to be connected and does so if needed. Also authenticates on the socket if needed
+        /// </summary>
+        /// <param name="socket">The connection to check</param>
+        /// <param name="authenticated">Whether the socket should authenticated</param>
+        /// <param name="processor">The message processor requesting a connection</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        protected virtual async Task<CallResult> ConnectIfNeededAsync(ISocketConnection socket, bool authenticated, CancellationToken ct, IMessageProcessor? processor)
         {
             if (socket.Connected)
                 return CallResult.Ok();
@@ -539,7 +550,7 @@ namespace CryptoExchange.Net.Clients
             if (socket is not SocketConnection sc)
                 throw new InvalidOperationException("HighPerfSocketConnection not supported for authentication");
 
-            var result = await AuthenticateSocketAsync(sc).ConfigureAwait(false);
+            var result = await AuthenticateSocketAsync(sc, processor).ConfigureAwait(false);
             if (!result.Success)
                 await socket.CloseAsync().ConfigureAwait(false);
 
@@ -551,13 +562,22 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="socket">Socket to authenticate</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> AuthenticateSocketAsync(SocketConnection socket)
+        public virtual Task<CallResult> AuthenticateSocketAsync(SocketConnection socket)
+            => AuthenticateSocketAsync(socket, null);
+
+        /// <summary>
+        /// Authenticate a socket connection
+        /// </summary>
+        /// <param name="socket">Socket to authenticate</param>
+        /// <param name="processor">The message processor requesting authentication</param>
+        /// <returns></returns>
+        public virtual async Task<CallResult> AuthenticateSocketAsync(SocketConnection socket, IMessageProcessor? processor)
         {
             if (GetAuthenticationProvider() == null)
                 return CallResult.Fail(new NoApiCredentialsError());
 
             _logger.AttemptingToAuthenticate(socket.SocketId);
-            var authRequest = await GetAuthenticationRequestAsync(socket).ConfigureAwait(false);
+            var authRequest = await GetAuthenticationRequestAsync(socket, processor).ConfigureAwait(false);
             if (authRequest != null)
             {
                 var result = await socket.SendAndWaitQueryAsync(authRequest).ConfigureAwait(false);
@@ -578,12 +598,20 @@ namespace CryptoExchange.Net.Clients
             return CallResult.Ok();
         }
 
+
         /// <summary>
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection) => 
+        protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection) =>
             Task.FromResult(GetAuthenticationProvider()!.GetAuthenticationQuery(this, connection));
+
+        /// <summary>
+        /// Should return the request which can be used to authenticate a socket connection
+        /// </summary>
+        /// <returns></returns>
+        protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection, IMessageProcessor? processor) =>
+            GetAuthenticationRequestAsync(connection);
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
@@ -643,6 +671,18 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
+        /// Whether the connection can be used for a new subscription or query with the provided parameters
+        /// </summary>
+        /// <param name="connection">The connection to check</param>
+        /// <param name="address">The address set by the request</param>
+        /// <param name="authenticated">Whether the request needs an authenticated connection</param>
+        /// <param name="processor">The processor requesting a connection</param>
+        /// <param name="topic">Topic of the request</param>
+        /// <returns>True if connection can be used</returns>
+        protected virtual bool ConnectionCanBeUsedFor(SocketConnection connection, string address, bool authenticated, IMessageProcessor? processor, string? topic = null)
+            => ConnectionCanBeUsedFor(connection, address, authenticated, topic);
+
+        /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
         /// </summary>
         /// <param name="address">The address the socket is for</param>
@@ -652,15 +692,36 @@ namespace CryptoExchange.Net.Clients
         /// <param name="topic">The subscription topic, can be provided when multiple of the same topics are not allowed on a connection</param>
         /// <param name="individualSubscriptionCount">The number of individual subscriptions in this subscribe request</param>
         /// <returns></returns>
+        protected virtual Task<CallResult<SocketConnection>> GetSocketConnection(
+            string address,
+            bool authenticated,
+            bool dedicatedRequestConnection,
+            CancellationToken ct,
+            string? topic = null,
+            int individualSubscriptionCount = 1)
+            => GetSocketConnection(address, authenticated, dedicatedRequestConnection, ct, null, topic, individualSubscriptionCount);
+
+        /// <summary>
+        /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
+        /// </summary>
+        /// <param name="address">The address the socket is for</param>
+        /// <param name="authenticated">Whether the socket should be authenticated</param>
+        /// <param name="dedicatedRequestConnection">Whether a dedicated request connection should be returned</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <param name="topic">The subscription topic, can be provided when multiple of the same topics are not allowed on a connection</param>
+        /// <param name="individualSubscriptionCount">The number of individual subscriptions in this subscribe request</param>
+        /// <param name="processor">The processor requesting a connection</param>
+        /// <returns></returns>
         protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(
             string address,
             bool authenticated,
             bool dedicatedRequestConnection, 
             CancellationToken ct,
+            IMessageProcessor? processor,
             string? topic = null,
             int individualSubscriptionCount = 1)
         {
-            var socketQuery = _socketConnections.Where(s => ConnectionCanBeUsedFor(s.Value, address, authenticated, topic)).Select(x => x.Value); // Don't ToList this so the query is executed again when called
+            var socketQuery = _socketConnections.Where(s => ConnectionCanBeUsedFor(s.Value, address, authenticated, processor, topic)).Select(x => x.Value); // Don't ToList this so the query is executed again when called
 
             // If all current socket connections are reconnecting or resubscribing wait for that to finish as we can probably use the existing connection
             var delayStart = DateTime.UtcNow;
