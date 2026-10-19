@@ -127,6 +127,10 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.2.1 - 19 Oct 2026
+    * Fixed subscription without any predefined routes failing to subscribe
+    * Fixed test validation failing with empty body string
+
 * Version 13.2.0 - 13 Oct 2026
     * Added Shared API ISubscribeFundingInfoSocket
     * Added DelayAfterConnect to SocketApiOptions
