@@ -168,12 +168,18 @@ namespace CryptoExchange.Net.Testing
             {
                 // Validate request body
                 Dictionary<string, object> bodyParameters;
-                if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
+                if (string.IsNullOrEmpty(result.RequestBody))
                 {
+                    bodyParameters = new Dictionary<string, object>();
+                }
+                else if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
+                {
+                    // Json
                     bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!)!;
                 }
                 else
                 {
+                    // Form data
                     var splitKvp = result.RequestBody.Split('&');
                     bodyParameters = splitKvp.Select(x => x.Split('=')).ToDictionary(x => x[0], x => (object)x[1]);
                 }
