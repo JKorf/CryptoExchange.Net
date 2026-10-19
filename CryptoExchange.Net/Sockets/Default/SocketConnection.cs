@@ -1083,6 +1083,10 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         protected bool IsCoveredByEarlierSubscription(Subscription subscription)
         {
+            if (subscription.MessageRouter.Routes.Length == 0)
+                // Can be subscription which only knows what to listen to after receiving the subscribe response, for example Bitfinex
+                return false;
+
             foreach (var other in _listeners.OfType<Subscription>())
             {
                 if (other == subscription)
