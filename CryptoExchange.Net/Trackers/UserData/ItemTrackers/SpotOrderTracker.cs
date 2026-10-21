@@ -23,6 +23,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly bool _timeFilterSupportedClosedOrders;
         private readonly Dictionary<string, int> _openOrderNotReturnedTimes = new();
         private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
+        private bool _openOrderWarningDone = false;
 
         internal event Func<UpdateSource, SharedUserTrade[], Task>? OnTradeUpdate;
 
@@ -39,10 +40,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, symbolTracker, UserDataType.Orders, openOrderClient.Exchange, config)
+            ) : base(logger, symbolTracker, UserDataType.Orders, openOrderClient.Exchange)
         {
-            if (_socketClient == null)
+            if (socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+            SetConfig(config);
 
             _openOrderClient = openOrderClient;
             _closedOrderClient = closedOrderClient;
@@ -244,7 +246,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             }
             else
             {
-                foreach (var symbol in _symbolTracker.GetTrackedSymbols())
+                var trackedSymbols = _symbolTracker.GetTrackedSymbols();
+                if (!_openOrderWarningDone && trackedSymbols.Count() == 0)
+                {
+                    _openOrderWarningDone = true;
+                    _logger.LogDebug("No tracked symbols specified while symbol is required to retrieve open orders. Tracked symbols should be updated before orders may be returned");
+                }
+
+                foreach (var symbol in trackedSymbols)
                 {
                     var openOrdersResult = await _openOrderClient.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(symbol, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                     if (!openOrdersResult.Success)

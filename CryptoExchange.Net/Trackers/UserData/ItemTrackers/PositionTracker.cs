@@ -37,10 +37,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             bool onlyTrackProvidedSymbols,
             bool websocketPositionUpdatesAreFullSnapshots,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, symbolTracker, UserDataType.Positions, restClient.Exchange, config)
+            ) : base(logger, symbolTracker, UserDataType.Positions, restClient.Exchange)
         {
-            if (_socketClient == null)
+            if (socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+            SetConfig(config);
 
             _restClient = restClient;
             _socketClient = socketClient;

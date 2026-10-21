@@ -34,10 +34,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, symbolTracker, UserDataType.Trades, restClient.Exchange, config)
+            ) : base(logger, symbolTracker, UserDataType.Trades, restClient.Exchange)
         {
-            if (_socketClient == null)
+            if (socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+            SetConfig(config);
 
             _restClient = restClient;
             _socketClient = socketClient;

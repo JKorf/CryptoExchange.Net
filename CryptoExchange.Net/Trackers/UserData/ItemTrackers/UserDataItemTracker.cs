@@ -242,15 +242,21 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
             UserDataType dataType,
-            string exchange,
-            TrackerItemConfig config) : base(logger, dataType, exchange)
+            string exchange) : base(logger, dataType, exchange)
+        {
+            _isSymbolModel = typeof(T).IsSubclassOf(typeof(SharedSymbolModel));
+            _symbolTracker = symbolTracker;
+        }
+
+        /// <summary>
+        /// Set the tracker item config
+        /// </summary>
+        protected void SetConfig(TrackerItemConfig config)
         {
             _pollIntervalDisconnected = config.PollIntervalDisconnected;
             _pollIntervalConnected = config.PollIntervalConnected;
             _pollAtStart = config.PollAtStart;
             _retentionTime = config is TrackerTimedItemConfig timeConfig ? timeConfig.RetentionTime : TimeSpan.MaxValue;
-            _isSymbolModel = typeof(T).IsSubclassOf(typeof(SharedSymbolModel));
-            _symbolTracker = symbolTracker;
         }
 
         /// <summary>

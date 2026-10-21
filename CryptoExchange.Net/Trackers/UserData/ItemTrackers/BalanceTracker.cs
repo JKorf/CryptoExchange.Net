@@ -28,10 +28,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             SharedAccountType accountType,
             TrackerItemConfig config,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, symbolTracker, UserDataType.Balances, restClient.Exchange, config)
+            ) : base(logger, symbolTracker, UserDataType.Balances, restClient.Exchange)
         {
-            if (_socketClient == null)
+            if (socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+            SetConfig(config);
 
             _restClient = restClient;
             _socketClient = socketClient;
