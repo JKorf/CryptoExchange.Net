@@ -127,6 +127,10 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.2.2 - 22 Oct 2026
+    * Fixed UserDataTracker config not getting set correctly
+    * Added UserDataTracker warning for missing tracked symbols if open orders request requires it
+
 * Version 13.2.1 - 19 Oct 2026
     * Fixed subscription without any predefined routes failing to subscribe
     * Fixed test validation failing with empty body string
