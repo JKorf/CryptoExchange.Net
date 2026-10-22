@@ -4,11 +4,11 @@
 @inject IBingXSocketClient bingXSocketClient
 @inject IBitfinexSocketClient bitfinexSocketClient
 @inject IBitgetSocketClient bitgetSocketClient
-@inject IBitMartSocketClient bitmartSocketClient
+@inject IBitstampSocketClient bitstampSocketClient
+@inject IBitunixSocketClient bitunixSocketClient
 @inject IBloFinSocketClient bloFinSocketClient
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinbaseSocketClient coinbaseSocketClient
-@inject ICoinExSocketClient coinExSocketClient
 @inject ICoinWSocketClient coinWSocketClient
 @inject ICryptoComSocketClient cryptocomSocketClient
 @inject IDeepCoinSocketClient deepCoinSocketClient
@@ -28,6 +28,8 @@
 @inject IWhiteBitSocketClient whitebitSocketClient
 @inject IXTSocketClient xtSocketClient
 @using System.Collections.Concurrent
+@using Bitstamp.Net.Interfaces.Clients
+@using Bitunix.Net.Interfaces.Clients
 @using CryptoExchange.Net.Objects
 @using CryptoExchange.Net.Objects.Sockets;
 @using CryptoExchange.Net.Sockets
@@ -54,11 +56,9 @@
             bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BingX", data.Data.LastPrice)),
             bitfinexSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
             bitgetSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.First().LastPrice)),
-            bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
             // BloFin doesn't support the ETH/BTC pair
             //bloFinSocketClient.FuturesApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BloFin", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
-            coinExSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync(["ETHBTC"], data => UpdateData("CoinEx", data.Data.First().LastPrice)),
             coinWSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CoinW", data.Data.LastPrice)),
             coinbaseSocketClient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Coinbase", data.Data.LastPrice ?? 0)),
             cryptocomSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CryptoCom", data.Data.LastPrice ?? 0)),

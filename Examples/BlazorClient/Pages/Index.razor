@@ -1,14 +1,16 @@
 ﻿@page "/"
+@using Bitstamp.Net.Interfaces.Clients
+@using Bitunix.Net.Interfaces.Clients
 @inject IAsterRestClient asterClient
 @inject IBinanceRestClient binanceClient
 @inject IBingXRestClient bingXClient
 @inject IBitfinexRestClient bitfinexClient
 @inject IBitgetRestClient bitgetClient
-@inject IBitMartRestClient bitmartClient
+@inject IBitstampRestClient bitstampClient
+@inject IBitunixRestClient bitunixClient
 @inject IBloFinRestClient bloFinClient
 @inject IBybitRestClient bybitClient
 @inject ICoinbaseRestClient coinbaseClient
-@inject ICoinExRestClient coinexClient
 @inject ICoinWRestClient coinWClient
 @inject ICryptoComRestClient cryptocomClient
 @inject IDeepCoinRestClient deepCoinClient
@@ -45,11 +47,11 @@
         var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bitfinexTask = bitfinexClient.ExchangeApi.ExchangeData.GetTickerAsync("tBTCUSD");
         var bitgetTask = bitgetClient.SpotApiV2.ExchangeData.GetTickersAsync("BTCUSDT");
-        var bitmartTask = bitmartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");
+        var bitstampTask = bitstampClient.ExchangeApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var bitunixTask = bitunixClient.SpotApi.ExchangeData.GetLastPriceAsync("BTCUSDT");
         var bloFinTask = bloFinClient.FuturesApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
         var coinbaseTask = coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");
-        var coinexTask = coinexClient.SpotApiV2.ExchangeData.GetTickersAsync(["BTCUSDT"]);
         var coinWTask = coinWClient.SpotApi.ExchangeData.GetTickersAsync();
         var cryptocomTask = cryptocomClient.ExchangeApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var deepCoinTask = deepCoinClient.ExchangeApi.ExchangeData.GetTickersAsync(DeepCoin.Net.Enums.SymbolType.Spot);
@@ -69,7 +71,7 @@
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
         var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
-        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, 
+        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitstampTask, bitunixTask, bloFinTask, bybitTask, coinWTask, deepCoinTask, gateioTask,
                            htxTask, krakenTask, kucoinTask, lBankTask, mexcTask, okxTask, pionexTask, toobitTask, upbitTask, weexTask, whitebitTask, xtTask);
 
         if (asterTask.Result.Success)
@@ -87,8 +89,11 @@
         if (bitgetTask.Result.Success)
             _prices.Add("Bitget", bitgetTask.Result.Data.Single().LastPrice);
 
-        if (bitmartTask.Result.Success)
-            _prices.Add("BitMart", bitmartTask.Result.Data.LastPrice);
+        if (bitstampTask.Result.Success)
+            _prices.Add("Bitstamp", bitstampTask.Result.Data.LastPrice);
+
+        if (bitunixTask.Result.Success)
+            _prices.Add("Bitunix", bitunixTask.Result.Data);
 
         if (bloFinTask.Result.Success)
             _prices.Add("BloFin", bloFinTask.Result.Data.First().LastPrice);
@@ -98,9 +103,6 @@
 
         if (coinbaseTask.Result.Success)
             _prices.Add("Coinbase", coinbaseTask.Result.Data.LastPrice ?? 0);
-
-        if (coinexTask.Result.Success)
-            _prices.Add("CoinEx", coinexTask.Result.Data.Single().LastPrice);
 
         if (coinWTask.Result.Success)
             _prices.Add("CoinW", coinWTask.Result.Data.Single(x => x.Symbol == "BTC_USDT").LastPrice);

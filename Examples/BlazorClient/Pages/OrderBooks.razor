@@ -6,10 +6,10 @@
 @using BingX.Net.Interfaces
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
-@using BitMart.Net.Interfaces;
+@using Bitstamp.Net.Interfaces;
+@using Bitunix.Net.Interfaces;
 @using BloFin.Net.Interfaces;
 @using Bybit.Net.Interfaces
-@using CoinEx.Net.Interfaces
 @using CoinW.Net.Interfaces
 @using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Authentication
@@ -38,11 +38,11 @@
 @inject IBingXOrderBookFactory bingXFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
 @inject IBitgetOrderBookFactory bitgetFactory
-@inject IBitMartOrderBookFactory bitmartFactory
+@inject IBitstampOrderBookFactory bitstampFactory
+@inject IBitunixOrderBookFactory bitunixFactory
 @inject IBloFinOrderBookFactory bloFinFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinbaseOrderBookFactory coinbaseFactory
-@inject ICoinExOrderBookFactory coinExFactory
 @inject ICoinWOrderBookFactory coinWFactory
 @inject ICryptoComOrderBookFactory cryptocomFactory
 @inject IDeepCoinOrderBookFactory deepCoinFactory
@@ -100,11 +100,11 @@
                 { "BingX", bingXFactory.CreateSpot("ETH-BTC") },
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
-                { "BitMart", bitmartFactory.CreateSpot("ETH_BTC", null) },
+                { "Bitstamp", bitstampFactory.Create("ETHUSDT", null) },
+                { "Bitunix", bitunixFactory.CreateFutures("ETHUSDT", null) },
                 { "BloFin", bloFinFactory.CreateFutures("ETH-USDT") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
-                { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "CoinW", coinWFactory.CreateSpot("ETH_BTC") },
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },

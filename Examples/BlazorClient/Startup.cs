@@ -38,11 +38,11 @@ namespace BlazorClient
             services.AddBingX();
             services.AddBitfinex();
             services.AddBitget();
-            services.AddBitMart();
+            services.AddBitstamp();
+            services.AddBitunix();
             services.AddBloFin();
             services.AddBybit();
             services.AddCoinbase();
-            services.AddCoinEx();
             services.AddCoinW();
             services.AddCryptoCom();
             services.AddDeepCoin();
