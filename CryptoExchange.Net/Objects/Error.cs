@@ -130,13 +130,18 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.MissingCredentials, false, 
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.MissingCredentials, false,
             "No credentials provided for private endpoint, set the `ApiCredentials` option in the client configuration");
 
         /// <summary>
         /// ctor
         /// </summary>
         public NoApiCredentialsError() : base(null, _errorInfo, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public NoApiCredentialsError(string message) : base(null, _errorInfo with { Message = message }, null) { }
 
         /// <summary>
         /// ctor
