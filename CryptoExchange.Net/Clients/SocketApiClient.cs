@@ -899,6 +899,8 @@ namespace CryptoExchange.Net.Clients
                 return connectResult;
             }
 
+            // Remove the connection and stop any reconnect processing before disposing it.
+            await socketConnection.CloseAsync().ConfigureAwait(false);
             socketConnection.Dispose();
             return connectResult;
         }
