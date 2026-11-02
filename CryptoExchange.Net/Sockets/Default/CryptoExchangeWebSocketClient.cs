@@ -446,18 +446,16 @@ namespace CryptoExchange.Net.Sockets.Default
                 if (_closeTask?.IsCompleted == false)
                 {
                     _logger.SocketCloseAsyncWaitingForExistingCloseTask(Id);
-                    await _closeTask.ConfigureAwait(false);
-                    return;
                 }
-
-                if (!IsOpen)
+                else
                 {
-                    _logger.SocketCloseAsyncSocketNotOpen(Id);
-                    return;
-                }
+                    if (!IsOpen)
+                        _logger.SocketCloseAsyncSocketNotOpen(Id);
+                    else
+                        _logger.SocketClosing(Id);
 
-                _logger.SocketClosing(Id);
-                _closeTask = CloseInternalAsync();
+                    _closeTask = CloseInternalAsync();
+                }
             }
             finally
             {
@@ -465,8 +463,11 @@ namespace CryptoExchange.Net.Sockets.Default
             }
 
             await _closeTask.ConfigureAwait(false);
+            
+            // Processing may still be running after the socket closes; finish before the caller disposes it.
             if(_processTask != null)
                 await _processTask.ConfigureAwait(false);
+            
             await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _logger.SocketClosed(Id);
         }
