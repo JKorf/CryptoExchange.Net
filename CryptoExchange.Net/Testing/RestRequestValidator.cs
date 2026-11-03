@@ -202,7 +202,7 @@ namespace CryptoExchange.Net.Testing
         private void CompareParameters(Dictionary<string, object> expectedUrlParameters, Dictionary<string, object> parameters, List<string>? ignoreParamValidation)
         {
             if (expectedUrlParameters.Count > parameters.Count)
-                throw new Exception($"Url parameters count not matched. Expected: {expectedUrlParameters.Count}, Actual: {parameters.Count}");
+                throw new Exception($"Parameters count not matched. Expected: {expectedUrlParameters.Count}, Actual: {parameters.Count}");
 
             foreach (var kvp in expectedUrlParameters)
             {
@@ -210,10 +210,10 @@ namespace CryptoExchange.Net.Testing
                     continue;
 
                 if (!parameters.TryGetValue(kvp.Key, out var value))
-                    throw new Exception($"Url parameter {kvp.Key} not found in actual parameters");
+                    throw new Exception($"Parameter {kvp.Key} not found in actual parameters");
 
                 if (Convert.ToString(kvp.Value, CultureInfo.InvariantCulture) != Convert.ToString(value, CultureInfo.InvariantCulture))
-                    throw new Exception($"Url parameter {kvp.Key} value not matched. Expected: {kvp.Value}, Actual: {value}");
+                    throw new Exception($"Parameter {kvp.Key} value not matched. Expected: {kvp.Value}, Actual: {value}");
             }
         }
 
