@@ -128,6 +128,11 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.2.3 - 03 Nov 2026
+    * Added additional constructor for NoApiCredentialsError
+    * Updated test error messages
+    * Fixed some timing issues in WebSocket closing
+
 * Version 13.2.2 - 22 Oct 2026
     * Fixed UserDataTracker config not getting set correctly
     * Added UserDataTracker warning for missing tracked symbols if open orders request requires it
