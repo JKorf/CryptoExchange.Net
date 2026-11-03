@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.32014.148
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12201.205 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoExchange.Net", "CryptoExchange.Net\CryptoExchange.Net.csproj", "{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleClient", "Examples\ConsoleClient\ConsoleClient.csproj", "{23480C58-23BF-4EBF-A173-B7F51A043A99}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedClients", "Examples\SharedClients\SharedClients.csproj", "{988A87EF-EAEA-4313-A6CF-FA869813D5AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoExchange.Net.Web3", "CryptoExchange.Net.Web3\CryptoExchange.Net.Web3.csproj", "{7ABCD210-C708-42ED-AF81-85C0A6089A1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7ABCD210-C708-42ED-AF81-85C0A6089A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7ABCD210-C708-42ED-AF81-85C0A6089A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7ABCD210-C708-42ED-AF81-85C0A6089A1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7ABCD210-C708-42ED-AF81-85C0A6089A1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

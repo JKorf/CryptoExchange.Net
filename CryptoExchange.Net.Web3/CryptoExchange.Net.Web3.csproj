@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0;net9.0;net10.0</TargetFrameworks>
+	</PropertyGroup>
+	<PropertyGroup>
+      <PackageId>CryptoExchange.Net.Web3</PackageId>
+		<Authors>JKorf</Authors>
+		<Description>CryptoExchange.Net.Web3 is a helper library adding Web3 utilities to CryptoExchange.Net implementations.</Description>
+		<PackageVersion>13.0.0</PackageVersion>
+		<AssemblyVersion>13.0.0</AssemblyVersion>
+		<FileVersion>13.0.0</FileVersion>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
+		<NeutralLanguage>en</NeutralLanguage>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageReleaseNotes>https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes</PackageReleaseNotes>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+	<ItemGroup>
+		<None Include="..\CryptoExchange.Net\Icon\icon.png" Pack="true" PackagePath="\" />
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<PropertyGroup Label="AOT" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
+	<PropertyGroup Label="Deterministic Build" Condition="'$(Configuration)' == 'Release'">
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DocumentationFile>CryptoExchange.Net.Web3.xml</DocumentationFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="CryptoExchange.Net" Version="13.2.2" />
+		<PackageReference Include="Secp256k1.Net" Version="2.0.0" />
+	</ItemGroup>
+</Project>

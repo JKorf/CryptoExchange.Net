@@ -287,3 +287,4 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 CryptoExchange.Net/CryptoExchange.Net.xml
+CryptoExchange.Net.Web3/CryptoExchange.Net.Web3.xml
