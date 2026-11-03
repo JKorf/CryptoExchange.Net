@@ -3,3 +3,6 @@
 Web3 utilities for CryptoExchange.Net implementations.
 
 ## Release notes
+* Version 13.0.0 - 03 Nov 2026
+    * Initial release
+
