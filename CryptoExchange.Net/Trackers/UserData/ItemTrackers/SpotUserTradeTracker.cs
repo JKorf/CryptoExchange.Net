@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
@@ -141,13 +142,16 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync()
+        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(CancellationToken ct)
         {
             if (_socketClient == null)
                 return Task.FromResult(new WebSocketResult<UpdateSubscription?>(_exchange!, default!, default));
 
+            if (ct.IsCancellationRequested)
+                return Task.FromResult(WebSocketResult.Fail<UpdateSubscription?>(_socketClient.Exchange, new CancellationRequestedError()));
+
             return ExchangeHelpers.ProcessQueuedAsync<SharedUserTrade[]>(
-                async handler => await _socketClient.SubscribeToUserTradeUpdatesAsync(new SubscribeUserTradeRequest(exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
+                async handler => await _socketClient.SubscribeToUserTradeUpdatesAsync(new SubscribeUserTradeRequest(exchangeParameters: _exchangeParameters), handler, ct: ct).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }
 

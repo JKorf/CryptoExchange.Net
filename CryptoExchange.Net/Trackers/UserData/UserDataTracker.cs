@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             if (ct.IsCancellationRequested)
                 return CallResult.Fail(new CancellationRequestedError());
 
-            _cts = new CancellationTokenSource();
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             Started = true;
 
             foreach(var tracker in DataTrackers)
@@ -97,7 +97,11 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var tasks = new List<Task<CallResult>>();
             foreach (var dataTracker in DataTrackers)
-                tasks.Add(dataTracker.StartAsync(ct));
+                tasks.Add(dataTracker.StartAsync(_cts.Token));
+
+            var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+            if (!task.Result.Success)
+                _cts.Cancel();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
             if (!tasks.All(x => x.Result.Success))

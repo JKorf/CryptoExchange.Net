@@ -330,7 +330,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (ct.IsCancellationRequested)
                 return CallResult.Fail(new CancellationRequestedError());
 
-            var subscriptionResult = await DoSubscribeAsync().ConfigureAwait(false);
+            var subscriptionResult = await DoSubscribeAsync(ct).ConfigureAwait(false);
             if (!subscriptionResult.Success)
             {
                 // Failed
@@ -448,7 +448,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Websocket subscription implementation
         /// </summary>
-        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync();
+        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(CancellationToken ct);
 
         /// <summary>
         /// Polling task
