@@ -15,8 +15,8 @@ namespace CryptoExchange.Net.Trackers.Klines
     /// <inheritdoc />
     public class KlineTracker : IKlineTracker
     {
-        private readonly IKlineSocketClient _socketClient;
-        private readonly IKlineRestClient _restClient;
+        private readonly ISubscribeKlinesSocket _socketClient;
+        private readonly IGetKlinesRest _restClient;
         private SyncStatus _status;
         private bool _startWithSnapshot;
         private ExchangeParameters? _exchangeParameters;
@@ -153,8 +153,8 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// </summary>
         public KlineTracker(
             ILogger? logger,
-            IKlineRestClient restClient,
-            IKlineSocketClient socketClient,
+            IGetKlinesRest restClient,
+            ISubscribeKlinesSocket socketClient,
             SharedSymbol symbol,
             SharedKlineInterval interval,
             int? limit = null,
@@ -222,6 +222,10 @@ namespace CryptoExchange.Net.Trackers.Klines
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
+            _updateSubscription = null;
+            _snapshotSet = false;
+            _firstTimestamp = null;
+            _lastWindowApplied = DateTime.MinValue;
             _logger.KlineTrackerStopped(SymbolName);
         }
 
@@ -239,18 +243,30 @@ namespace CryptoExchange.Net.Trackers.Klines
                 startTime = DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value);
 
             var limit = Math.Min(_restClient.GetKlinesOptions.MaxLimit, Limit ?? 100);
+            var isDesc = _restClient.GetKlinesOptions.SupportsDescending;
 
-            var request = new GetKlinesRequest(Symbol, Interval, startTime, DateTime.UtcNow, limit: limit, exchangeParameters: _exchangeParameters);
+            var lastMin = DateTime.UtcNow;
+            var request = new GetKlinesRequest(Symbol, Interval, startTime, DateTime.UtcNow, direction: isDesc? DataDirection.Descending: null, limit: limit, exchangeParameters: _exchangeParameters);
             var data = new List<SharedKline>();
             await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
             {
                 if (!result.Success)
                     return CallResult.Fail(result.Error!);
 
-                if (Limit != null && data.Count > Limit)
-                    break;
+                if (result.Data.Length > 0)
+                {
+                    var min = result.Data.Min(d => d.OpenTime);
+                    if (isDesc && min > lastMin)
+                        // This is a bug in the exchange, the data is not returned in descending order, stop here to avoid an infinite loop
+                        break;
+
+                    lastMin = min;
+                }
 
                 data.AddRange(result.Data);
+
+                if (isDesc && (Limit != null && data.Count >= Limit))
+                    break;
             }
 
             SetInitialData(data);
@@ -329,18 +345,31 @@ namespace CryptoExchange.Net.Trackers.Klines
 
                 _snapshotSet = true;
 
+                var addedItems = new HashSet<DateTime>();
                 foreach (var item in _preSnapshotQueue)
                 {
                     if (_data.ContainsKey(item.OpenTime))
-                        continue;
+                    {
+                        if (addedItems.Contains(item.OpenTime))
+                        {
+                            // This update is newer than the one we added, replace it
+                            _data[item.OpenTime] = item;
+                        }
 
+                        continue;
+                    }
+
+                    addedItems.Add(item.OpenTime);
                     _data.Add(item.OpenTime, item);
                 }
 
                 _firstTimestamp = _data.Count == 0 ? null : _data.Min(v => v.Key);
 
                 ApplyWindow(false);
-                _logger.KlineTrackerInitialDataSet(SymbolName, _data.Last().Key);
+                if (_data.Count > 0)
+                    _logger.KlineTrackerInitialDataSet(SymbolName, _data.Last().Key);
+                else
+                    _logger.LogWarning("Kline tracker {Symbol} set but snapshot is empty", SymbolName);
             }
         }
 
@@ -397,7 +426,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             if (Period != null)
             {
                 var compareDate = DateTime.UtcNow.Add(-Period.Value);
-                for (var i = 0; i < _data.Count; i++)
+                while(_data.Count > 0)
                 {
                     var item = _data.ElementAt(0);
                     if (item.Key >= compareDate)

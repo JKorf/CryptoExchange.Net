@@ -15,9 +15,9 @@ namespace CryptoExchange.Net.Trackers.Trades
     /// <inheritdoc />
     public class TradeTracker : ITradeTracker
     {
-        private readonly ITradeSocketClient _socketClient;
-        private readonly IRecentTradeRestClient? _recentRestClient;
-        private readonly ITradeHistoryRestClient? _historyRestClient;
+        private readonly ISubscribeTradesSocket _socketClient;
+        private readonly IGetRecentTradesRest? _recentRestClient;
+        private readonly IGetTradeHistoryRest? _historyRestClient;
         private SyncStatus _status;
         private long _snapshotId;
         private bool _startWithSnapshot;
@@ -155,9 +155,9 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// </summary>
         public TradeTracker(
             ILogger? logger,
-            IRecentTradeRestClient? recentRestClient,
-            ITradeHistoryRestClient? historyRestClient,
-            ITradeSocketClient socketClient,
+            IGetRecentTradesRest? recentRestClient,
+            IGetTradeHistoryRest? historyRestClient,
+            ISubscribeTradesSocket socketClient,
             SharedSymbol symbol,
             int? limit = null,
             TimeSpan? period = null,
@@ -205,7 +205,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             {
                 stats.VolumeWeightedAveragePrice =
                     trades.Any()
-                        ? Math.Round(trades.Select(d => d.Quantities.GetQuantityInQuoteAsset(d.Price) ?? 0).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantities.QuantityInContracts!.Value).DefaultIfEmpty().Sum(), 8)
+                        ? Math.Round(trades.Select(d => (d.Quantities.QuantityInContracts * d.Price) ?? 0).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantities.QuantityInContracts!.Value).DefaultIfEmpty().Sum(), 8)
                         : null;
                 stats.Volume = Math.Round(trades.Sum(d => d.Quantities.QuantityInContracts!.Value), 8);
                 stats.BuySellRatio = Math.Round(trades.Where(x => x.Side == SharedOrderSide.Buy).Sum(x => x.Quantities.QuantityInContracts!.Value) / trades.Sum(x => x.Quantities.QuantityInContracts!.Value), 8);
@@ -271,6 +271,11 @@ namespace CryptoExchange.Net.Trackers.Trades
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
+            _updateSubscription = null;
+            _snapshotId = 0;
+            _snapshotSet = false;
+            _firstTimestamp = null;
+            _lastWindowApplied = DateTime.MinValue;
             _logger.TradeTrackerStopped(SymbolName);
         }
 
@@ -286,17 +291,30 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (_historyRestClient != null)
             {
                 var startTime = Period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-Period.Value);
-                var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow, exchangeParameters: _exchangeParameters);
+                var isDesc = _historyRestClient.GetTradeHistoryOptions.SupportsDescending;
+                var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow, direction: isDesc ? DataDirection.Descending : null, exchangeParameters: _exchangeParameters);
+
+                var lastMin = DateTime.UtcNow;
                 var data = new List<SharedTrade>();
                 await foreach (var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
                 {
                     if (!result.Success)
                         return CallResult.Fail(result.Error);
 
-                    if (Limit != null && data.Count > Limit)
-                        break;
+                    if (result.Data.Length > 0)
+                    {
+                        var min = result.Data.Min(d => d.Timestamp);
+                        if (isDesc && min > lastMin)
+                            // This is a bug in the exchange, the data is not returned in descending order, stop here to avoid an infinite loop
+                            break;
+
+                        lastMin = min;
+                    }
 
                     data.AddRange(result.Data);
+
+                    if (isDesc && (Limit != null && data.Count >= Limit))
+                        break;
                 }
 
                 SetInitialData(data);
@@ -431,7 +449,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (Period != null)
             {
                 var compareDate = DateTime.UtcNow.Add(-Period.Value);
-                for(var i = 0; i < _data.Count; i++)
+                while(_data.Count > 0)
                 {
                     var item = _data[0];
                     if (item.Timestamp >= compareDate)
