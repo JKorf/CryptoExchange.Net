@@ -51,28 +51,13 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserFuturesDataTracker(
             ILogger logger,
-            IGetFuturesSymbolsRest symbolRestClient,
-
-            IGetBalancesRest balanceRestClient,
-            ISubscribeBalancesSocket? balanceSocketClient,
-
-            IGetOpenFuturesOrdersRest openOrderRestClient,
-            IGetClosedFuturesOrdersRest closedOrderRestClient,
-            ISubscribeFuturesOrdersSocket? subscribeFuturesOrdersOperation,
-
-            IGetFuturesUserTradeHistoryRest getFuturesUserTradeHistoryRestClient,
-            ISubscribeUserTradesSocket? userTradeSocketClient,
-
-            IGetPositionsRest positionRestClient,
-            ISubscribePositionsSocket? positionSocketClient,
-
+            ISharedApiClientBase client,
             string? userIdentifier,
             FuturesUserDataTrackerConfig config,
             SharedAccountType? accountType = null,
-            ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
+            ExchangeParameters? exchangeParameters = null) : base(logger, client.Exchange, config, userIdentifier)
         {
             // create trackers
-            _symbolClient = symbolRestClient;
             _exchangeParameters = exchangeParameters;
 
             _tradingMode = accountType == SharedAccountType.PerpetualInverseFutures ? TradingMode.PerpetualInverse :
@@ -80,23 +65,58 @@ namespace CryptoExchange.Net.Trackers.UserData
                               accountType == SharedAccountType.DeliveryInverseFutures ? TradingMode.DeliveryInverse :
                               TradingMode.PerpetualLinear;
 
+            _symbolClient = client.GetCapability<IGetFuturesSymbolsRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No Futures symbols capability available");
+
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, SymbolTracker, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(
+                logger,
+                SymbolTracker, 
+                client.GetCapability<IGetBalancesRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No Futures balances capability available"),
+                client.GetCapability<ISubscribeBalancesSocket>(_tradingMode)?.Capability,
+                accountType ?? SharedAccountType.PerpetualLinearFutures, 
+                config.BalancesConfig, 
+                exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new FuturesOrderTracker(logger, SymbolTracker, openOrderRestClient, closedOrderRestClient, subscribeFuturesOrdersOperation, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new FuturesOrderTracker(
+                logger, 
+                SymbolTracker,
+                client.GetCapability<IGetOpenFuturesOrdersRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No Futures open orders capability available"),
+                client.GetCapability<IGetClosedFuturesOrdersRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No Futures closed orders capability available"),
+                client.GetCapability<ISubscribeFuturesOrdersSocket>(_tradingMode)?.Capability,
+                config.OrdersConfig, 
+                config.TrackedSymbols, 
+                config.OnlyTrackProvidedSymbols, 
+                exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
-            var positionTracker = new PositionTracker(logger, SymbolTracker, positionRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
+            var positionTracker = new PositionTracker(
+                logger,
+                SymbolTracker,
+                client.GetCapability<IGetPositionsRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No positions capability available"),
+                client.GetCapability<ISubscribePositionsSocket>(_tradingMode)?.Capability,
+                config.PositionConfig,
+                config.TrackedSymbols,
+                config.OnlyTrackProvidedSymbols,
+                WebsocketPositionUpdatesAreFullSnapshots,
+                exchangeParameters);
             Positions = positionTracker;
             trackers.Add(positionTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new FuturesUserTradeTracker(logger, SymbolTracker, getFuturesUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new FuturesUserTradeTracker(
+                    logger, 
+                    SymbolTracker,
+                    client.GetCapability<IGetFuturesUserTradeHistoryRest>(_tradingMode)?.Capability ?? throw new ArgumentException("No futures user trade history capability available"),
+                    client.GetCapability<ISubscribeUserTradesSocket>(_tradingMode)?.Capability,
+                    config.UserTradesConfig, 
+                    config.TrackedSymbols, 
+                    config.OnlyTrackProvidedSymbols, 
+                    exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

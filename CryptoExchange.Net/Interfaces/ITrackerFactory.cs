@@ -1,7 +1,13 @@
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.Klines;
 using CryptoExchange.Net.Trackers.Trades;
+using CryptoExchange.Net.Trackers.UserData.Interfaces;
+using CryptoExchange.Net.Trackers.UserData.Objects;
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -43,5 +49,28 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="exchangeParameters">Exchange parameters</param>
         /// <returns></returns>
         ITradeTracker CreateTradeTracker(SharedSymbol symbol, int? limit = null, TimeSpan? period = null, ExchangeParameters? exchangeParameters = null);
+    }
+
+    public interface ISpotUserDataTrackerFactory<TEnvironment>
+        where TEnvironment : TradeEnvironment
+    {
+        Task<CallResult<IUserSpotDataTracker>>
+            TryCreateUserSpotDataTrackerAsync(
+                string userIdentifier,
+                SpotUserDataTrackerConfig? config = null,
+                TEnvironment? environment = null,
+                CancellationToken ct = default);
+    }
+
+    public interface IFuturesUserDataTrackerFactory<TEnvironment>
+        where TEnvironment : TradeEnvironment
+    {
+        Task<CallResult<IUserFuturesDataTracker>>
+            TryCreateUserFuturesDataTrackerAsync(
+                string userIdentifier,
+                TradingMode tradingMode,
+                FuturesUserDataTrackerConfig? config = null,
+                TEnvironment? environment = null,
+                CancellationToken ct = default);
     }
 }
