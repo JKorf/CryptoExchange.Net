@@ -26,8 +26,6 @@ namespace CryptoExchange.Net.Clients
         where TCredentials : ApiCredentials
         where TEnvironment : TradeEnvironment
     {
-        public delegate Task<TCredentials?> CredentialResolver(string userIdentifier, TEnvironment? environment, CancellationToken ct);
-
         protected static string GetEnvironmentCacheKey(TEnvironment? environment)
             => environment == null
                 ? "default"
@@ -43,7 +41,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected readonly ILoggerFactory? _loggerFactory;
 
-        protected readonly CredentialResolver? _credentialResolver; 
+        protected readonly CredentialResolver<TCredentials, TEnvironment>? _credentialResolver; 
         protected readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         /// <inheritdoc />
@@ -56,7 +54,7 @@ namespace CryptoExchange.Net.Clients
             HttpClient? httpClient,
             ILoggerFactory? loggerFactory,
             IOptions<TRestOptions> restOptions,
-            CredentialResolver? credentialResolver)
+            CredentialResolver<TCredentials, TEnvironment>? credentialResolver)
         {
             _httpClient = httpClient ?? new HttpClient();
             _httpClient.Timeout = restOptions.Value.RequestTimeout;
@@ -241,7 +239,7 @@ namespace CryptoExchange.Net.Clients
             ILoggerFactory? loggerFactory,
             IOptions<TRestOptions> restOptions,
             IOptions<TSocketOptions> socketOptions,
-            CredentialResolver? credentialResolver)
+            CredentialResolver<TCredentials, TEnvironment>? credentialResolver)
             : base(httpClient, loggerFactory, restOptions, credentialResolver)
         {
             _socketOptions = socketOptions;

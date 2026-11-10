@@ -13,29 +13,13 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Clients;
 
-public abstract class SharedUserClientProvider<
-    TRestClient,
-    TSocketClient,
-    TSharedClient,
-    TRestOptions,
-    TSocketOptions,
-    TCredentials,
-    TEnvironment>
-    : UserClientProvider<
-        TRestClient,
-        TSocketClient,
-        TRestOptions,
-        TSocketOptions,
-        TCredentials,
-        TEnvironment>,
-      ISharedUserClientProvider<TSharedClient, TEnvironment>
+public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSharedClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>
+    : UserClientProvider<TRestClient, TSocketClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>, ISharedUserClientProvider<TSharedClient, TEnvironment>
     where TRestClient : class, IRestClient<TCredentials>
     where TSocketClient : class, ISocketClient<TCredentials>
     where TSharedClient : class, ISharedApiClientBase
-    where TRestOptions :
-        RestExchangeOptions<TEnvironment, TCredentials>, new()
-    where TSocketOptions :
-        SocketExchangeOptions<TEnvironment, TCredentials>, new()
+    where TRestOptions : RestExchangeOptions<TEnvironment, TCredentials>, new()
+    where TSocketOptions : SocketExchangeOptions<TEnvironment, TCredentials>, new()
     where TCredentials : ApiCredentials
     where TEnvironment : TradeEnvironment
 {
@@ -44,14 +28,14 @@ public abstract class SharedUserClientProvider<
     private readonly Dictionary<
         (string? UserIdentifier, string EnvironmentKey),
         (TRestClient RestClient, TSocketClient SocketClient, TSharedClient SharedClient)>
-        _sharedClients = new();
+            _sharedClients = new();
 
     protected SharedUserClientProvider(
         HttpClient? httpClient,
         ILoggerFactory? loggerFactory,
         IOptions<TRestOptions> restOptions,
         IOptions<TSocketOptions> socketOptions,
-        CredentialResolver? credentialResolver)
+        CredentialResolver<TCredentials, TEnvironment>? credentialResolver)
         : base(
             httpClient,
             loggerFactory,
