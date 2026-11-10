@@ -16,11 +16,12 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// <summary>
     /// User futures data tracker
     /// </summary>
-    public abstract class UserFuturesDataTracker : UserDataTracker, IUserFuturesDataTracker
+    public class UserFuturesDataTracker : UserDataTracker, IUserFuturesDataTracker
     {
         private readonly IGetFuturesSymbolsRest _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TradingMode _tradingMode;
+        private readonly bool _websocketPositionUpdatesAreFullSnapshots;
 
         /// <inheritdoc />
         protected override UserDataItemTracker[] DataTrackers { get; }
@@ -44,7 +45,27 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// <summary>
         /// Whether websocket position updates are full snapshots and missing positions should be considered 0
         /// </summary>
-        protected abstract bool WebsocketPositionUpdatesAreFullSnapshots { get; }
+        protected virtual bool WebsocketPositionUpdatesAreFullSnapshots
+            => _websocketPositionUpdatesAreFullSnapshots;
+
+
+        public UserFuturesDataTracker(
+            ILogger logger,
+            ISharedApiClientBase client,
+            string? userIdentifier,
+            FuturesUserDataTrackerConfig config,
+            SharedAccountType? accountType = null,
+            ExchangeParameters? exchangeParameters = null)
+            : this(
+                logger,
+                client,
+                userIdentifier,
+                config,
+                websocketPositionUpdatesAreFullSnapshots: true,
+                accountType: accountType,
+                exchangeParameters: exchangeParameters)
+        {
+        }
 
         /// <summary>
         /// ctor
@@ -54,9 +75,13 @@ namespace CryptoExchange.Net.Trackers.UserData
             ISharedApiClientBase client,
             string? userIdentifier,
             FuturesUserDataTrackerConfig config,
+            bool websocketPositionUpdatesAreFullSnapshots,
             SharedAccountType? accountType = null,
-            ExchangeParameters? exchangeParameters = null) : base(logger, client.Exchange, config, userIdentifier)
+            ExchangeParameters? exchangeParameters = null)
+            : base(logger, client.Exchange, config, userIdentifier)
         {
+            _websocketPositionUpdatesAreFullSnapshots = websocketPositionUpdatesAreFullSnapshots;
+
             // create trackers
             _exchangeParameters = exchangeParameters;
 

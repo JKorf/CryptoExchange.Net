@@ -17,4 +17,18 @@ namespace CryptoExchange.Net.Interfaces.Clients
             TradeEnvironment? environment = null, 
             CancellationToken ct = default);
     }
+
+    public interface ISharedUserClientProvider<TSharedClient, TEnvironment>
+        : ISharedUserClientProvider
+        where TSharedClient : class, ISharedApiClientBase
+        where TEnvironment : TradeEnvironment
+    {
+        new TSharedClient GetPublicSharedApiClient(
+            TEnvironment? environment = null);
+
+        new Task<CallResult<TSharedClient>> TryGetSharedApiClientAsync(
+            string userIdentifier,
+            TEnvironment? environment = null,
+            CancellationToken ct = default);
+    }
 }

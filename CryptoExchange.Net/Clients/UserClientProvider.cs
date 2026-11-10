@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -27,10 +28,16 @@ namespace CryptoExchange.Net.Clients
     {
         public delegate Task<TCredentials?> CredentialResolver(string userIdentifier, TEnvironment? environment, CancellationToken ct);
 
+        protected static string GetEnvironmentCacheKey(TEnvironment? environment)
+            => environment == null
+                ? "default"
+                : "environment:" + environment.Name;
+
         private ConcurrentDictionary<UserClientKey, TRestClient> _userRestClients = new();
         private ConcurrentDictionary<string, TRestClient> _publicRestClient = new();
         protected readonly IOptions<TRestOptions> _restOptions;
         protected readonly HttpClient _httpClient;
+        protected readonly object _publicClientsLock = new();
         /// <summary>
         /// Logger factory
         /// </summary>
@@ -75,14 +82,32 @@ namespace CryptoExchange.Net.Clients
             CreateUserRestClient(userIdentifier, credentials, environment);
         }
 
-        public TRestClient GetPublicRestClient(TEnvironment? environment) =>
-            _publicRestClient.GetOrAdd(environment?.Name ?? "default", _ =>
-                CreatePublicRestClient(environment));
+        public TRestClient GetPublicRestClient(TEnvironment? environment = null)
+        {
+            var key = GetEnvironmentCacheKey(environment);
+
+            lock (_publicClientsLock)
+            {
+                if (_publicRestClient.TryGetValue(key, out var client)
+                    && !client.Disposed)
+                {
+                    return client;
+                }
+
+                client = ConstructRestClient(
+                    _httpClient,
+                    _loggerFactory,
+                    SetRestEnvironment(_restOptions, environment));
+
+                _publicRestClient[key] = client;
+                return client;
+            }
+        }
 
         /// <inheritdoc />
         public TRestClient GetRestClient(string userIdentifier, TCredentials? credentials = null, TEnvironment? environment = null)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             if (!_userRestClients.TryGetValue(key, out var client) || client.Disposed)
                 client = CreateUserRestClient(userIdentifier, credentials, environment);
 
@@ -92,7 +117,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public async Task<CallResult<TRestClient>> TryGetRestClientAsync(string userIdentifier, TEnvironment? environment = null, CancellationToken ct = default)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             if (_userRestClients.TryGetValue(key, out var client) && !client.Disposed)
                 return CallResult.Ok(client);
 
@@ -121,7 +146,7 @@ namespace CryptoExchange.Net.Clients
             if (credentials == null)
                 return CallResult.Fail<TRestClient>(new NoApiCredentialsError("No API credentials returned by CredentialResolver"));
 
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             client.SetApiCredentials(credentials);
             _userRestClients[key] = client;
             return CallResult.Ok(client);
@@ -131,7 +156,7 @@ namespace CryptoExchange.Net.Clients
         {
             var clientRestOptions = SetRestEnvironment(_restOptions, environment);
             var client = ConstructRestClient(_httpClient, _loggerFactory, clientRestOptions);
-            _publicRestClient[environment?.Name ?? "default"] = client;
+            _publicRestClient[GetEnvironmentCacheKey(environment)] = client;
             return client;
         }
 
@@ -141,7 +166,7 @@ namespace CryptoExchange.Net.Clients
             var client = ConstructRestClient(_httpClient, _loggerFactory, clientRestOptions);
             if (credentials != null)
             {
-                var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+                var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
                 _userRestClients[key] = client;
                 client.SetApiCredentials(credentials);
             }
@@ -159,7 +184,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public virtual void ClearUserClients(string userIdentifier, TEnvironment? environment = null)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             _userRestClients.TryRemove(key, out var restClient);
             restClient?.Dispose();
         }
@@ -170,6 +195,16 @@ namespace CryptoExchange.Net.Clients
             foreach (var client in _userRestClients.Values)
                 client.Dispose();
             _userRestClients.Clear();
+            TRestClient[] publicClients;
+
+            lock (_publicClientsLock)
+            {
+                publicClients = _publicRestClient.Values.ToArray();
+                _publicRestClient.Clear();
+            }
+
+            foreach (var client in publicClients)
+                client.Dispose();
         }
 
         /// <summary>
@@ -233,21 +268,38 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public TSocketClient GetSocketClient(string userIdentifier, TCredentials? credentials = null, TEnvironment? environment = null)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             if (!_socketClients.TryGetValue(key, out var client) || client.Disposed)
                 client = CreateSocketClient(userIdentifier, credentials, environment);
 
             return client;
         }
 
-        public TSocketClient GetPublicSocketClient(TEnvironment? environment) =>
-            _publicSocketClient.GetOrAdd(environment?.Name ?? "default", _ =>
-                CreatePublicSocketClient(environment));
+        public TSocketClient GetPublicSocketClient(TEnvironment? environment = null)
+        {
+            var key = GetEnvironmentCacheKey(environment);
+
+            lock (_publicClientsLock)
+            {
+                if (_publicSocketClient.TryGetValue(key, out var client)
+                    && !client.Disposed)
+                {
+                    return client;
+                }
+
+                client = ConstructSocketClient(
+                    _loggerFactory,
+                    SetSocketEnvironment(_socketOptions, environment));
+
+                _publicSocketClient[key] = client;
+                return client;
+            }
+        }
 
         /// <inheritdoc />
         public async Task<CallResult<TSocketClient>> TryGetSocketClientAsync(string userIdentifier, TEnvironment? environment = null, CancellationToken ct = default)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             if (_socketClients.TryGetValue(key, out var client) && !client.Disposed)
                 return CallResult.Ok(client);
 
@@ -267,7 +319,7 @@ namespace CryptoExchange.Net.Clients
 
         private async Task<CallResult<TSocketClient>> TryCreateSocketClientAsync(string userIdentifier, TEnvironment? environment, CancellationToken ct = default)
         {
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             if (_credentialResolver == null)
                 throw new InvalidOperationException("CredentialResolver not set");
 
@@ -287,7 +339,7 @@ namespace CryptoExchange.Net.Clients
         {
             var clientSocketOptions = SetSocketEnvironment(_socketOptions, environment);
             var client = ConstructSocketClient(_loggerFactory, clientSocketOptions);
-            _publicSocketClient[environment?.Name ?? "default"] = client;
+            _publicSocketClient[GetEnvironmentCacheKey(environment)] = client;
             return client;
         }
 
@@ -297,7 +349,7 @@ namespace CryptoExchange.Net.Clients
             var client = ConstructSocketClient(_loggerFactory, clientSocketOptions);
             if (credentials != null)
             {
-                var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+                var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
                 _socketClients[key] = client;
                 client.SetApiCredentials(credentials);
             }
@@ -316,7 +368,7 @@ namespace CryptoExchange.Net.Clients
         {
             base.ClearUserClients(userIdentifier, environment);
 
-            var key = new UserClientKey(userIdentifier, environment?.Name ?? "default");
+            var key = new UserClientKey(userIdentifier, GetEnvironmentCacheKey(environment));
             _socketClients.TryRemove(key, out var socketClient);
             socketClient?.Dispose();
         }
@@ -329,6 +381,16 @@ namespace CryptoExchange.Net.Clients
             foreach (var client in _socketClients.Values)
                 client.Dispose();
             _socketClients.Clear();
+            TSocketClient[] publicClients;
+
+            lock (_publicClientsLock)
+            {
+                publicClients = _publicSocketClient.Values.ToArray();
+                _publicSocketClient.Clear();
+            }
+
+            foreach (var client in publicClients)
+                client.Dispose();
         }
     }
 }
