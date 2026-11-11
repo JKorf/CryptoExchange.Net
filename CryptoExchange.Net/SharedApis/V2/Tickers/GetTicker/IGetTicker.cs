@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for retrieving a single ticker from an exchange.
     /// </summary>
-    public interface IGetTicker : ISharedApiCapability
+    public interface IGetTickerOperation
     {
         /// <summary>
         /// Ticker request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetTickerOptions GetTickerOptions { get; }
         /// <summary>
-        /// Get ticker for a specific symbol, see <see cref="GetTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get ticker for a specific symbol, see <see cref="GetTickerOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedTicker>> GetTickerAsync(
+            GetTickerRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for retrieving a single ticker from an exchange.
+    /// </summary>
+    /// <see cref="IGetTickerOperation"/>
+    public interface IGetTicker : IGetTickerOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>

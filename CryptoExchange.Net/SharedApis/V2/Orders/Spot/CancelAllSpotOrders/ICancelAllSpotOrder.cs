@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for canceling all spot orders on an exchange.
     /// </summary>
-    public interface ICancelAllSpotOrders : ISharedApiCapability
+    public interface ICancelAllSpotOrdersOperation
     {
         /// <summary>
         /// Spot cancel all orders request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         CancelAllSpotOrdersOptions CancelAllSpotOrdersOptions { get; }
         /// <summary>
-        /// Cancel all spot orders, see <see cref="SharedApis.CancelAllSpotOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Cancel all spot orders, see <see cref="SharedApis.CancelAllSpotOrdersOptions"/> for request options and
+        /// exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult> CancelAllSpotOrdersAsync(CancelAllOrdersRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult> CancelAllSpotOrdersAsync(
+            CancelAllOrdersRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for canceling all spot orders on an exchange.
+    /// </summary>
+    /// <see cref="ICancelAllSpotOrdersOperation"/>
+    public interface ICancelAllSpotOrders : ICancelAllSpotOrdersOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>

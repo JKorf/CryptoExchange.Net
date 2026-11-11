@@ -1,4 +1,3 @@
-using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Trackers.Sessions.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
@@ -21,9 +20,8 @@ namespace CryptoExchange.Net.Trackers.Sessions
     /// <summary>
     /// Trading session user
     /// </summary>
-    public abstract partial class TradingSessionUser : ITradingUser
+    public abstract class TradingSessionUser : ITradingUser
     {
-        private readonly ISharedUserClientProvider _provider;
         private readonly Func<IUserSpotDataTracker> _getSpotTracker;
         private readonly Func<TradingMode, IUserFuturesDataTracker> _getFuturesTracker;
         /// <summary>
@@ -52,12 +50,10 @@ namespace CryptoExchange.Net.Trackers.Sessions
         /// ctor
         /// </summary>
         protected TradingSessionUser(
-            TradingSessionUserContext context,
-            ISharedUserClientProvider provider)
+            TradingSessionUserContext context)
         {
             UserIdentifier = context.Definition.UserIdentifier;
             Environment = context.Definition.Environment;
-            _provider = provider;
             _getSpotTracker = context.GetSpotUserDataTracker;
             _getFuturesTracker = context.GetFuturesUserDataTracker;
         }

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for getting the current user position mode setting from an exchange.
     /// </summary>
-    public interface IGetPositionMode : ISharedApiCapability
+    public interface IGetPositionModeOperation
     {
         /// <summary>
         /// Position mode request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetPositionModeOptions GetPositionModeOptions { get; }
         /// <summary>
-        /// Get the current position mode setting, see <see cref="GetPositionModeOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get the current position mode setting, see <see cref="GetPositionModeOptions"/> for request options and
+        /// exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedPositionModeResult>> GetPositionModeAsync(
+            GetPositionModeRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for getting the current user position mode setting from an exchange.
+    /// </summary>
+    /// <see cref="IGetPositionModeOperation"/>
+    public interface IGetPositionMode : IGetPositionModeOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -32,6 +46,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetPositionModeRest : IGetPositionMode, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedPositionModeResult>> GetPositionModeAsync(
+            GetPositionModeRequest request,
+            CancellationToken ct = default);
     }
 }

@@ -29,11 +29,4 @@ public interface ITradingUser
     /// </summary>
     IUserFuturesDataTracker GetFuturesUserDataTracker(TradingMode tradingMode);
 
-    bool Supports<TCapability>(SharedCapabilityReference<TCapability> capability, TradingMode tradingMode)
-        where TCapability : ISharedApiCapability;
-
-    CapabilityOptions? GetOptions<TCapability>(
-        SharedCapabilityReference<TCapability> capability,
-        TradingMode tradingMode)
-        where TCapability : ISharedApiCapability;
 }

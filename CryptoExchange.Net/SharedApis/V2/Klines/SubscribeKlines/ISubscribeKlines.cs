@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Threading;
 using CryptoExchange.Net.Objects.Sockets;
@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for subscribing to kline/candlestick updates for a symbol
     /// </summary>
-    public interface ISubscribeKlinesSocket : ISharedSubscription
+    public interface ISubscribeKlinesOperation
     {
         /// <summary>
         /// Kline subscription options
@@ -23,6 +23,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToKlineUpdatesAsync(SubscribeKlineRequest request, Action<DataEvent<SharedKline>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToKlineUpdatesAsync(
+            SubscribeKlineRequest request,
+            Action<DataEvent<SharedKline>> handler,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for subscribing to kline/candlestick updates for a symbol
+    /// </summary>
+    /// <see cref="ISubscribeKlinesOperation"/>
+    public interface ISubscribeKlinesSocket : ISubscribeKlinesOperation, ISharedSubscription
+    {
     }
 }

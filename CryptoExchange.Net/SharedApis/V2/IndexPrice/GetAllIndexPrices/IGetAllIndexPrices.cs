@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for retrieving the index price for all symbols from an exchange.
     /// </summary>
-    public interface IGetAllIndexPrices : ISharedApiCapability
+    public interface IGetAllIndexPricesOperation
     {
         /// <summary>
         /// Index price request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetAllIndexPricesOptions GetAllIndexPricesOptions { get; }
         /// <summary>
-        /// Get the index price for a symbol, see <see cref="GetAllIndexPricesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get the index price for a symbol, see <see cref="GetAllIndexPricesOptions"/> for request options and
+        /// exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedIndexPrice[]>> GetAllIndexPricesAsync(GetAllIndexPricesRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedIndexPrice[]>> GetAllIndexPricesAsync(
+            GetAllIndexPricesRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for retrieving the index price for all symbols from an exchange.
+    /// </summary>
+    /// <see cref="IGetAllIndexPricesOperation"/>
+    public interface IGetAllIndexPrices : IGetAllIndexPricesOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -32,6 +46,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetAllIndexPricesRest : IGetAllIndexPrices, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedIndexPrice[]>> GetAllIndexPricesAsync(GetAllIndexPricesRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedIndexPrice[]>> GetAllIndexPricesAsync(
+            GetAllIndexPricesRequest request,
+            CancellationToken ct = default);
     }
 }

@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
         public static TBuilder AddKlineUpdates<TStrategy, TBuilder>(
             this TradingSessionSymbolBuilder<TStrategy, TBuilder> builder, SharedKlineInterval interval)
             where TStrategy : TradingStrategy, IKlineUpdateHandler
-            where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+            where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>, IKlineTrackingBuilder
         {
             var symbol = builder.Symbol;
             var environment = builder.Environment;

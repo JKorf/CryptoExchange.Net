@@ -46,7 +46,7 @@ public class TradingSessionBuilder<TStrategy, TSelf, TUser>
     /// <param name="symbol">The symbol</param>
     /// <param name="configure">The symbol configurator</param>
     /// <param name="environment">Trading environment</param>
-    public TSelf AddSymbolTracking(
+    protected TSelf AddSymbolTracking(
         SharedSymbol symbol,
         Action<TradingSessionSymbolBuilder<TStrategy>> configure,
         TradeEnvironment? environment = null)
@@ -158,7 +158,10 @@ public class TradingSessionBuilder<TStrategy, TSelf, TUser>
 /// Symbol configuration builder
 /// </summary>
 public class TradingSessionSymbolBuilder<TStrategy>
-    : TradingSessionSymbolBuilder<TStrategy, TradingSessionSymbolBuilder<TStrategy>>
+    : TradingSessionSymbolBuilder<TStrategy, TradingSessionSymbolBuilder<TStrategy>>,
+        ITradeTrackingBuilder,
+        ITickerTrackingBuilder,
+        IKlineTrackingBuilder
     where TStrategy : TradingStrategy
 {
     internal TradingSessionSymbolBuilder(SharedSymbol symbol, TradeEnvironment? environment = null)

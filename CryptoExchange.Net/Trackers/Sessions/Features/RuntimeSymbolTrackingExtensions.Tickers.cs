@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
         public static TBuilder AddTickerUpdates<TStrategy, TBuilder>(
             this TradingSessionSymbolBuilder<TStrategy, TBuilder> builder)
             where TStrategy : TradingStrategy, ITickerUpdateHandler
-            where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+            where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>, ITickerTrackingBuilder
         {
             var symbol = builder.Symbol;
             var environment = builder.Environment;

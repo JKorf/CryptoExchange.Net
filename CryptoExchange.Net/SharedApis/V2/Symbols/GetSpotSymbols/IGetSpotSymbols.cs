@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,10 +10,11 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for getting supported spot symbols from an exchange.
     /// </summary>
-    public interface IGetSpotSymbols: ISharedApiCapability
+    public interface IGetSpotSymbolsOperation
     {
         /// <summary>
-        /// Get the spot symbol catalog. Only available if <see cref="GetSpotSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
+        /// Get the spot symbol catalog. Only available if
+        /// <see cref="GetSpotSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
         /// </summary>
         SharedSymbolCatalog? SpotSymbolCatalog { get; }
 
@@ -37,17 +38,31 @@ namespace CryptoExchange.Net.SharedApis
 
         /// <summary>
         /// Spot symbols request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetSpotSymbolsOptions GetSpotSymbolsOptions { get; }
 
         /// <summary>
-        /// Get info on all available spot symbols on the exchange, see <see cref="GetSpotSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get info on all available spot symbols on the exchange, see <see cref="GetSpotSymbolsOptions"/> for request
+        /// options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(
+            GetSymbolsRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for getting supported spot symbols from an exchange.
+    /// </summary>
+    /// <see cref="IGetSpotSymbolsOperation"/>
+    public interface IGetSpotSymbols : IGetSpotSymbolsOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -56,6 +71,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetSpotSymbolsRest : IGetSpotSymbols, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(
+            GetSymbolsRequest request,
+            CancellationToken ct = default);
     }
 }
