@@ -9,30 +9,41 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Features
 {
-    public sealed class SpotUserDataFeature : ISessionFeature
+    /// <summary>
+    /// Spot user data tracking feature
+    /// </summary>
+    public sealed class SpotUserDataFeature : ITradingSessionFeature
     {
-        private IUserSpotDataTracker _tracker;
+        private IUserSpotDataTracker? _tracker;
         private readonly ISpotUserDataUpdateHandler _handler;
         private bool _attached;
         private bool _disposed;
 
         private readonly Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> _trackerFactory;
 
+        /// <summary>
+        /// The underlying tracker
+        /// </summary>
         public IUserSpotDataTracker? Tracker => _tracker;
+        /// <summary>
+        /// The user identifier
+        /// </summary>
         public string UserIdentifier { get; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SpotUserDataFeature(
             string userIdentifier,
             Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> trackerFactory,
             ISpotUserDataUpdateHandler handler)
         {
             UserIdentifier = userIdentifier;
-            _trackerFactory = trackerFactory
-                ?? throw new ArgumentNullException(nameof(trackerFactory));
-            _handler = handler
-                ?? throw new ArgumentNullException(nameof(handler));
+            _trackerFactory = trackerFactory ?? throw new ArgumentNullException(nameof(trackerFactory));
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
+        /// <inheritdoc />
         public async Task<CallResult> StartAsync(CancellationToken ct)
         {
             if (_disposed)
@@ -48,11 +59,11 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
 
                 _tracker.Balances.OnUpdate += HandleBalances;
                 _tracker.Orders.OnUpdate += HandleOrders;
-                if (_tracker.Trades != null)
-                    _tracker.Trades.OnUpdate += HandleTrades;
+                _tracker.Trades?.OnUpdate += HandleTrades;
                 _attached = true;
             }
-            return await _tracker.StartAsync(ct).ConfigureAwait(false);
+
+            return await _tracker!.StartAsync(ct).ConfigureAwait(false);
         }
 
 #warning only push if session is started
@@ -65,6 +76,7 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
         private Task HandleTrades(UserDataUpdate<SharedUserTrade[]> update)
             => _handler.HandleSpotTradesUpdateAsync(UserIdentifier, update);
 
+        /// <inheritdoc />
         public async Task StopAsync()
         {
             if (_disposed)
@@ -78,16 +90,16 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
             {
                 if (_attached)
                 {
-                    _tracker.Balances.OnUpdate -= HandleBalances;
+                    _tracker!.Balances.OnUpdate -= HandleBalances;
                     _tracker.Orders.OnUpdate -= HandleOrders;
-                    if (_tracker.Trades != null)
-                        _tracker.Trades.OnUpdate -= HandleTrades;
+                    _tracker.Trades?.OnUpdate -= HandleTrades;
                     _tracker = null;
                     _attached = false;
                 }
             }
         }
 
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (_disposed)

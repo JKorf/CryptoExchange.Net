@@ -54,6 +54,9 @@ namespace CryptoExchange.Net.Objects.Options
         where TApiCredentials: ApiCredentials
         where TEnvironment: TradeEnvironment
     {
+        /// <summary>
+        /// Credential resolver used in the user client provider to retrieve user credentials
+        /// </summary>
         public CredentialResolver<TApiCredentials, TEnvironment>? UserClientProviderCredentialResolver { get; set; }
 
         /// <summary>

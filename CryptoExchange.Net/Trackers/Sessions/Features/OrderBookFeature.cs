@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Features
 {
-    public sealed class OrderBookFeature : ISessionFeature
+    public sealed class OrderBookFeature : ITradingSessionFeature
     {
         private readonly ISymbolOrderBook _book;
         private readonly SharedSymbol _symbol;

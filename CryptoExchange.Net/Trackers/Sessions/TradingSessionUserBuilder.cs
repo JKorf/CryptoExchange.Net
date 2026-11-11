@@ -8,20 +8,27 @@ using System.Text;
 
 namespace CryptoExchange.Net.Trackers.Sessions
 {
-    public sealed class UserTrackingBuilder<TSession, TEnvironment>
-        where TSession : Session
+    /// <summary>
+    /// Trading session user configuration builder
+    /// </summary>
+    public sealed class TradingSessionUserBuilder<TSession, TEnvironment>
+        where TSession : TradingSession
         where TEnvironment : TradeEnvironment
     {
+        /// <summary>
+        /// The user identifier
+        /// </summary>
         public string UserIdentifier { get; }
+        /// <summary>
+        /// The trading environment
+        /// </summary>
         public TEnvironment? Environment { get; }
 
         internal ITrackerFactory TrackerFactory { get; }
 
-        internal Dictionary<string, Func<TSession, ISessionFeature>>
-            Features
-        { get; } = new();
+        internal Dictionary<string, Func<TSession, ITradingSessionFeature>> Features { get; } = new();
 
-        internal UserTrackingBuilder(
+        internal TradingSessionUserBuilder(
             string userIdentifier,
             TEnvironment? environment,
             ITrackerFactory trackerFactory)
@@ -31,15 +38,12 @@ namespace CryptoExchange.Net.Trackers.Sessions
             TrackerFactory = trackerFactory;
         }
 
-        internal UserTrackingBuilder<TSession, TEnvironment> RegisterFeature(
+        internal TradingSessionUserBuilder<TSession, TEnvironment> RegisterFeature(
             string name,
-            Func<TSession, ISessionFeature> create)
+            Func<TSession, ITradingSessionFeature> create)
         {
             if (Features.ContainsKey(name))
-            {
-                throw new InvalidOperationException(
-                    $"Feature '{name}' is already configured for this user.");
-            }
+                throw new InvalidOperationException($"Feature '{name}' is already configured for this user.");
 
             Features.Add(name, create);
             return this;

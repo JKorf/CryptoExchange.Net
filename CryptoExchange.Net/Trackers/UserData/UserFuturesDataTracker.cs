@@ -48,7 +48,9 @@ namespace CryptoExchange.Net.Trackers.UserData
         protected virtual bool WebsocketPositionUpdatesAreFullSnapshots
             => _websocketPositionUpdatesAreFullSnapshots;
 
-
+        /// <summary>
+        /// ctor
+        /// </summary>
         public UserFuturesDataTracker(
             ILogger logger,
             ISharedApiClientBase client,
@@ -61,7 +63,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 client,
                 userIdentifier,
                 config,
-                websocketPositionUpdatesAreFullSnapshots: true,
+                websocketPositionUpdatesAreFullSnapshots: false,
                 accountType: accountType,
                 exchangeParameters: exchangeParameters)
         {

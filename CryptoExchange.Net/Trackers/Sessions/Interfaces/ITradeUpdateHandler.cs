@@ -6,9 +6,16 @@ using System.Text;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Interfaces
 {
+    /// <summary>
+    /// Trade update handle capability
+    /// </summary>
     public interface ITradeUpdateHandler
     {
+        /// <summary>
+        /// Handle a trade update
+        /// </summary>
+        /// <param name="symbol">The symbol for which the trade update is received</param>
+        /// <param name="update">The trade update data</param>
         void HandleTradeUpdate(SharedSymbol symbol, DataEvent<SharedTrade[]> update);
-
     }
 }

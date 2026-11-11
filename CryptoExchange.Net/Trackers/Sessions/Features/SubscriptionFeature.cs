@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Features
 {
-    internal sealed class SubscriptionFeature : ISessionFeature
+    internal sealed class SubscriptionFeature : ITradingSessionFeature
     {
         private readonly Func<CancellationToken, Task<WebSocketResult<UpdateSubscription>>> _starter;
         private UpdateSubscription? _subscription;

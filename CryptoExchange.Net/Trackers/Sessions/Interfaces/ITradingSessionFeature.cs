@@ -7,9 +7,19 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Interfaces
 {
-    public interface ISessionFeature : IAsyncDisposable
+    /// <summary>
+    /// A trading session feature
+    /// </summary>
+    public interface ITradingSessionFeature : IAsyncDisposable
     {
+        /// <summary>
+        /// Start the feature
+        /// </summary>
         Task<CallResult> StartAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Stop the feature
+        /// </summary>
         Task StopAsync();
     }
 }

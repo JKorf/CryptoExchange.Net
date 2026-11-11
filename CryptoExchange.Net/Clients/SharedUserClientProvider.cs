@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Clients;
 
-public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSharedClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>
+/// <inheritdoc />
+public abstract class SharedUserClientProvider<TRestClient, TSocketClient, TSharedClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>
     : UserClientProvider<TRestClient, TSocketClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>, ISharedUserClientProvider<TSharedClient, TEnvironment>
     where TRestClient : class, IRestClient<TCredentials>
     where TSocketClient : class, ISocketClient<TCredentials>
@@ -30,6 +31,9 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
         (TRestClient RestClient, TSocketClient SocketClient, TSharedClient SharedClient)>
             _sharedClients = new();
 
+    /// <summary>
+    /// ctor
+    /// </summary>
     protected SharedUserClientProvider(
         HttpClient? httpClient,
         ILoggerFactory? loggerFactory,
@@ -45,52 +49,52 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
     {
     }
 
+    /// <summary>
+    /// Construct a Shared API client from the rest and socket client provided
+    /// </summary>
+    /// <param name="restClient">Rest client</param>
+    /// <param name="socketClient">Socket client</param>
     protected abstract TSharedClient ConstructSharedApiClient(
         TRestClient restClient,
         TSocketClient socketClient);
 
-    public TSharedClient GetPublicSharedApiClient(
-        TEnvironment? environment = null)
+    /// <summary>
+    /// Get a public Shared API client
+    /// </summary>
+    /// <param name="environment">Trading environment</param>
+    /// <returns></returns>
+    public TSharedClient GetPublicSharedApiClient(TEnvironment? environment = null)
     {
         var rest = GetPublicRestClient(environment);
         var socket = GetPublicSocketClient(environment);
 
-        return GetOrCreateSharedClient(
-            null, environment, rest, socket);
+        return GetOrCreateSharedClient(null, environment, rest, socket);
     }
 
-    public async Task<CallResult<TSharedClient>>
-        TryGetSharedApiClientAsync(
+    /// <summary>
+    /// Try getting a Shared API client for the user specified. 
+    /// Will call the CredentialResolver configured in the UserClientProviderCredentialResolver client options to get the credentials for the user.
+    /// </summary>
+    /// <param name="userIdentifier">The user identifier</param>
+    /// <param name="environment">The trading environment</param>
+    /// <param name="ct">Cancellation token</param>
+    public async Task<CallResult<TSharedClient>> TryGetSharedApiClientAsync(
             string userIdentifier,
             TEnvironment? environment = null,
             CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(userIdentifier))
-        {
-            throw new ArgumentException(
-                "A user identifier is required.",
-                nameof(userIdentifier));
-        }
+            throw new ArgumentException("A user identifier is required.", nameof(userIdentifier));
 
         ct.ThrowIfCancellationRequested();
 
-        var rest = await TryGetRestClientAsync(
-            userIdentifier, environment, ct).ConfigureAwait(false);
-
+        var rest = await TryGetRestClientAsync(userIdentifier, environment, ct).ConfigureAwait(false);
         if (!rest.Success)
-        {
-            return CallResult.Fail<TSharedClient>(
-                rest.Error, rest.OriginalData);
-        }
+            return CallResult.Fail<TSharedClient>(rest.Error, rest.OriginalData);
 
-        var socket = await TryGetSocketClientAsync(
-            userIdentifier, environment, ct).ConfigureAwait(false);
-
+        var socket = await TryGetSocketClientAsync(userIdentifier, environment, ct).ConfigureAwait(false);
         if (!socket.Success)
-        {
-            return CallResult.Fail<TSharedClient>(
-                socket.Error, socket.OriginalData);
-        }
+            return CallResult.Fail<TSharedClient>(socket.Error, socket.OriginalData);
 
         ct.ThrowIfCancellationRequested();
 
@@ -107,9 +111,7 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
         TRestClient rest,
         TSocketClient socket)
     {
-        var key = (
-            userIdentifier,
-            GetEnvironmentCacheKey(environment));
+        var key = (userIdentifier, GetEnvironmentCacheKey(environment));
 
         lock (_sharedClientsLock)
         {
@@ -126,25 +128,25 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
         }
     }
 
-    public override void InitializeUserClient(
-        string userIdentifier,
-        TCredentials credentials,
-        TEnvironment? environment = null)
+    /// <inheritdoc />
+    public override void InitializeUserClient(string userIdentifier, TCredentials credentials, TEnvironment? environment = null)
     {
-        base.InitializeUserClient(
-            userIdentifier, credentials, environment);
-
+        base.InitializeUserClient(userIdentifier, credentials, environment);
         RemoveSharedClient(userIdentifier, environment);
     }
 
-    public override void ClearUserClients(
-        string userIdentifier,
-        TEnvironment? environment = null)
+    /// <summary>
+    /// Clear user client cache for a user
+    /// </summary>
+    /// <param name="userIdentifier">User identifier</param>
+    /// <param name="environment">Trade environment</param>
+    public override void ClearUserClients(string userIdentifier, TEnvironment? environment = null)
     {
         base.ClearUserClients(userIdentifier, environment);
         RemoveSharedClient(userIdentifier, environment);
     }
 
+    /// <inheritdoc />
     public override void Clear()
     {
         base.Clear();
@@ -153,35 +155,21 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
             _sharedClients.Clear();
     }
 
-    private void RemoveSharedClient(
-        string userIdentifier,
-        TEnvironment? environment)
+    private void RemoveSharedClient(string userIdentifier, TEnvironment? environment)
     {
         lock (_sharedClientsLock)
-        {
-            _sharedClients.Remove((
-                userIdentifier,
-                GetEnvironmentCacheKey(environment)));
-        }
+            _sharedClients.Remove((userIdentifier, GetEnvironmentCacheKey(environment)));
     }
 
-    ISharedApiClientBase
-        ISharedUserClientProvider.GetPublicSharedApiClient(
-            TradeEnvironment? environment)
-        => GetPublicSharedApiClient(
-            GetTypedEnvironment(environment));
+    ISharedApiClientBase ISharedUserClientProvider.GetPublicSharedApiClient(TradeEnvironment? environment)
+        => GetPublicSharedApiClient(GetTypedEnvironment(environment));
 
-    async Task<CallResult<ISharedApiClientBase>>
-        ISharedUserClientProvider.TryGetSharedApiClientAsync(
-            string userIdentifier,
-            TradeEnvironment? environment,
-            CancellationToken ct)
+    async Task<CallResult<ISharedApiClientBase>> ISharedUserClientProvider.TryGetSharedApiClientAsync(
+        string userIdentifier,
+        TradeEnvironment? environment,
+        CancellationToken ct)
     {
-        var result = await TryGetSharedApiClientAsync(
-            userIdentifier,
-            GetTypedEnvironment(environment),
-            ct).ConfigureAwait(false);
-
+        var result = await TryGetSharedApiClientAsync(userIdentifier, GetTypedEnvironment(environment), ct).ConfigureAwait(false);
         return new CallResult<ISharedApiClientBase>
         {
             Data = result.Data,
@@ -190,8 +178,7 @@ public abstract class SharedUserClientProvider< TRestClient, TSocketClient, TSha
         };
     }
 
-    private static TEnvironment? GetTypedEnvironment(
-        TradeEnvironment? environment)
+    private static TEnvironment? GetTypedEnvironment(TradeEnvironment? environment)
     {
         if (environment == null)
             return null;

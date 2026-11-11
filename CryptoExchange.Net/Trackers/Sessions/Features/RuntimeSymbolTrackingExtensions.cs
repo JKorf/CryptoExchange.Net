@@ -5,6 +5,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.Trackers.Sessions.Features
 {
+    /// <summary>
+    /// Symbolc tracking extension methods
+    /// </summary>
     public static partial class RuntimeSymbolTrackingExtensions
     {
         private static NotSupportedException MissingCapability(

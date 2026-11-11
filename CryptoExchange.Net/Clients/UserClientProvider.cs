@@ -19,13 +19,22 @@ namespace CryptoExchange.Net.Clients
 {
     internal record UserClientKey(string UserIdentifier, string EnvironmentName);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// User client provider. Caches created client and resolves those on subsequent requests.
+    /// </summary>
+    /// <typeparam name="TRestClient">Rest client type</typeparam>
+    /// <typeparam name="TRestOptions">Rest client options type</typeparam>
+    /// <typeparam name="TCredentials">Credential type</typeparam>
+    /// <typeparam name="TEnvironment">Environment type</typeparam>
     public abstract class UserClientProvider<TRestClient, TRestOptions, TCredentials, TEnvironment>
         where TRestClient : IRestClient<TCredentials>
         where TRestOptions : RestExchangeOptions<TEnvironment, TCredentials>, new()
         where TCredentials : ApiCredentials
         where TEnvironment : TradeEnvironment
     {
+        /// <summary>
+        /// Get the identifier for the environment
+        /// </summary>
         protected static string GetEnvironmentCacheKey(TEnvironment? environment)
             => environment == null
                 ? "default"
@@ -33,15 +42,30 @@ namespace CryptoExchange.Net.Clients
 
         private ConcurrentDictionary<UserClientKey, TRestClient> _userRestClients = new();
         private ConcurrentDictionary<string, TRestClient> _publicRestClient = new();
+
+        /// <summary>
+        /// Rest options
+        /// </summary>
         protected readonly IOptions<TRestOptions> _restOptions;
+        /// <summary>
+        /// Http client
+        /// </summary>
         protected readonly HttpClient _httpClient;
+        /// <summary>
+        /// Public clients access lock
+        /// </summary>
         protected readonly object _publicClientsLock = new();
         /// <summary>
         /// Logger factory
         /// </summary>
         protected readonly ILoggerFactory? _loggerFactory;
-
+        /// <summary>
+        /// API user credentials resolver
+        /// </summary>
         protected readonly CredentialResolver<TCredentials, TEnvironment>? _credentialResolver; 
+        /// <summary>
+        /// Access semaphore
+        /// </summary>
         protected readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         /// <inheritdoc />
@@ -63,6 +87,9 @@ namespace CryptoExchange.Net.Clients
             _credentialResolver = credentialResolver;
         }
 
+        /// <summary>
+        /// Create options with the specified environment
+        /// </summary>
         protected IOptions<TRestOptions> SetRestEnvironment(IOptions<TRestOptions> options, TEnvironment? environment)
         {
             if (environment == null)
@@ -74,12 +101,18 @@ namespace CryptoExchange.Net.Clients
             return Options.Create(newRestClientOptions);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initialize the credentials for a user
+        /// </summary>
         public virtual void InitializeUserClient(string userIdentifier, TCredentials credentials, TEnvironment? environment = null)
         {
             CreateUserRestClient(userIdentifier, credentials, environment);
         }
 
+        /// <summary>
+        /// Get a public rest client
+        /// </summary>
+        /// <param name="environment">The environment</param>
         public TRestClient GetPublicRestClient(TEnvironment? environment = null)
         {
             var key = GetEnvironmentCacheKey(environment);
@@ -150,14 +183,6 @@ namespace CryptoExchange.Net.Clients
             return CallResult.Ok(client);
         }
 
-        private TRestClient CreatePublicRestClient(TEnvironment? environment)
-        {
-            var clientRestOptions = SetRestEnvironment(_restOptions, environment);
-            var client = ConstructRestClient(_httpClient, _loggerFactory, clientRestOptions);
-            _publicRestClient[GetEnvironmentCacheKey(environment)] = client;
-            return client;
-        }
-
         private TRestClient CreateUserRestClient(string userIdentifier, TCredentials? credentials, TEnvironment? environment)
         {
             var clientRestOptions = SetRestEnvironment(_restOptions, environment);
@@ -187,7 +212,9 @@ namespace CryptoExchange.Net.Clients
             restClient?.Dispose();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Clear and dispose all cached clients
+        /// </summary>
         public virtual void Clear()
         {
             foreach (var client in _userRestClients.Values)
@@ -228,6 +255,9 @@ namespace CryptoExchange.Net.Clients
     {
         private ConcurrentDictionary<UserClientKey, TSocketClient> _socketClients = new ConcurrentDictionary<UserClientKey, TSocketClient>();
         private ConcurrentDictionary<string, TSocketClient> _publicSocketClient = new();
+        /// <summary>
+        /// Socket client options
+        /// </summary>
         protected readonly IOptions<TSocketOptions> _socketOptions;
 
 
@@ -245,6 +275,9 @@ namespace CryptoExchange.Net.Clients
             _socketOptions = socketOptions;
         }
 
+        /// <summary>
+        /// Create options with the specified environment
+        /// </summary>
         protected IOptions<TSocketOptions> SetSocketEnvironment(IOptions<TSocketOptions> options, TEnvironment? environment)
         {
             if (environment == null)
@@ -273,6 +306,10 @@ namespace CryptoExchange.Net.Clients
             return client;
         }
 
+        /// <summary>
+        /// Get a public socket client
+        /// </summary>
+        /// <param name="environment">The environment</param>
         public TSocketClient GetPublicSocketClient(TEnvironment? environment = null)
         {
             var key = GetEnvironmentCacheKey(environment);
@@ -330,15 +367,6 @@ namespace CryptoExchange.Net.Clients
             client.SetApiCredentials(credentials);
             _socketClients[key] = client;
             return CallResult.Ok(client);
-        }
-
-
-        private TSocketClient CreatePublicSocketClient(TEnvironment? environment)
-        {
-            var clientSocketOptions = SetSocketEnvironment(_socketOptions, environment);
-            var client = ConstructSocketClient(_loggerFactory, clientSocketOptions);
-            _publicSocketClient[GetEnvironmentCacheKey(environment)] = client;
-            return client;
         }
 
         private TSocketClient CreateSocketClient(string userIdentifier, TCredentials? credentials, TEnvironment? environment)

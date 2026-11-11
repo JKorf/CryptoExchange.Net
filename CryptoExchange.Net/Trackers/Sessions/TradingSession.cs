@@ -16,39 +16,30 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sessions;
 
-
-public abstract class Session : IAsyncDisposable
+/// <summary>
+/// Trading session
+/// </summary>
+public abstract class TradingSession : ITradingSession
 {
     private Task? _updateLoopProcess;
     private CancellationTokenSource? _cts;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _featuresLock = new();
-    private readonly List<ISessionFeature> _activeFeatures = new();
-    private Func<ISessionFeature>[]? _factories;
-    private ILogger _logger;
-    public bool Started { get; private set; }
+    private readonly List<ITradingSessionFeature> _activeFeatures = new();
+    private Func<ITradingSessionFeature>[]? _factories;
+    private ILogger? _logger;
     private bool _disposed;
 
+    /// <inheritdoc />
+    public bool Started { get; private set; }
+    /// <inheritdoc />
     public string Exchange { get; private set; } = "";
+    /// <inheritdoc />
+    public TimeSpan UpdateLoopInterval { get; private set; }
 
-    public TimeSpan UpdateLoopInterval { get; set; }
-
+#warning TODO order book access
     protected IReadOnlyCollection<ISymbolOrderBook> OrderBooks
         => GetActiveFeatures<OrderBookFeature>().Select(feature => feature.OrderBook).ToArray();
-
-    protected IReadOnlyCollection<IUserSpotDataTracker> SpotUserDataTrackers =>
-        GetActiveFeatures<SpotUserDataFeature>()
-            .Select(feature => feature.Tracker)
-            .Where(tracker => tracker != null)
-            .Cast<IUserSpotDataTracker>()
-            .ToArray();
-
-    protected IReadOnlyCollection<IUserFuturesDataTracker> FuturesUserDataTrackers =>
-        GetActiveFeatures<FuturesUserDataFeature>()
-            .Select(feature => feature.Tracker)
-            .Where(tracker => tracker != null)
-            .Cast<IUserFuturesDataTracker>()
-            .ToArray();
 
     protected ISymbolOrderBook GetOrderBook(SharedSymbol symbol)
     {
@@ -60,8 +51,10 @@ public abstract class Session : IAsyncDisposable
             ?? throw new InvalidOperationException("No active order book exists for the requested symbol.");
     }
 
-    protected IUserSpotDataTracker GetSpotUserDataTracker(
-    string userIdentifier)
+    /// <summary>
+    /// Retrieve the spot user data tracker for a user
+    /// </summary>
+    protected IUserSpotDataTracker GetSpotUserDataTracker(string userIdentifier)
     {
         return GetActiveFeatures<SpotUserDataFeature>()
             .SingleOrDefault(feature =>
@@ -71,9 +64,10 @@ public abstract class Session : IAsyncDisposable
                 "No active spot tracker exists for this user.");
     }
 
-    protected IUserFuturesDataTracker GetFuturesUserDataTracker(
-        string userIdentifier,
-        TradingMode tradingMode)
+    /// <summary>
+    /// Retrieve the futures user data tracker for a user
+    /// </summary>
+    protected IUserFuturesDataTracker GetFuturesUserDataTracker(string userIdentifier, TradingMode tradingMode)
     {
         return GetActiveFeatures<FuturesUserDataFeature>()
             .SingleOrDefault(feature =>
@@ -84,7 +78,7 @@ public abstract class Session : IAsyncDisposable
                 "No active futures tracker exists for this user and trading mode.");
     }
 
-    private TFeature[] GetActiveFeatures<TFeature>() where TFeature : class, ISessionFeature
+    private TFeature[] GetActiveFeatures<TFeature>() where TFeature : class, ITradingSessionFeature
     {
         lock (_featuresLock)
             return _activeFeatures.OfType<TFeature>().ToArray();
@@ -93,7 +87,7 @@ public abstract class Session : IAsyncDisposable
     internal void Configure(
         string exchange,
         ILogger logger,
-        Func<ISessionFeature>[] factories,
+        Func<ITradingSessionFeature>[] factories,
         TimeSpan updateLoopInterval)
     {
         if (_factories != null || _disposed)
@@ -107,9 +101,10 @@ public abstract class Session : IAsyncDisposable
 
     internal virtual void ConfigureClientProvider(ISharedUserClientProvider provider)
     { }
-    internal virtual void ConfigureUsers(IReadOnlyCollection<SessionUserDefinition> users)
+    internal virtual void ConfigureUsers(IReadOnlyCollection<TradingSessionUserDefinition> users)
     { }
 
+    /// <inheritdoc />
     public async Task<CallResult> StartAsync(CancellationToken ct = default)
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -124,7 +119,7 @@ public abstract class Session : IAsyncDisposable
 
             if (_activeFeatures.Count != 0)
                 throw new InvalidOperationException("Retry StopAsync before restarting.");
-                        
+
             foreach (var create in _factories)
             {
                 ct.ThrowIfCancellationRequested();
@@ -168,7 +163,7 @@ public abstract class Session : IAsyncDisposable
 
     private async Task UpdateLoopAsync(CancellationToken ct)
     {
-        _logger.LogDebug("Starting session update loop with {Interval} interval", UpdateLoopInterval);
+        _logger?.LogDebug("Starting session update loop with {Interval} interval", UpdateLoopInterval);
         await Task.Yield();
         while (!ct.IsCancellationRequested)
         {
@@ -181,7 +176,7 @@ public abstract class Session : IAsyncDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Session update loop error");
+                    _logger?.LogError(ex, "Session update loop error");
                 }
 
                 if (ct.IsCancellationRequested)
@@ -189,16 +184,21 @@ public abstract class Session : IAsyncDisposable
 
                 await Task.Delay(UpdateLoopInterval, ct).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) 
+            catch (OperationCanceledException)
             {
             }
         }
     }
 
-    public virtual Task UpdateAsync(CancellationToken ct) => Task.CompletedTask;
+    /// <summary>
+    /// Update callback, only called when <see cref="UpdateLoopInterval"/> is set to a value greater than 0 by using <see cref="TradingSessionBuilder{TSession, TSelf}.AddUpdateLoop(TimeSpan)"/>.
+    /// </summary>
+    protected virtual Task UpdateAsync(CancellationToken ct) => Task.CompletedTask;
 
+    /// <inheritdoc/>
     public Task StopAsync() => ShutdownAsync(false);
 
+    /// <inheritdoc/>
     public ValueTask DisposeAsync() => new ValueTask(ShutdownAsync(true));
 
     private async Task ShutdownAsync(bool disposing)
@@ -243,14 +243,18 @@ public abstract class Session : IAsyncDisposable
         return errors;
     }
 
-    
+
 }
 
-public abstract class Session<TProvider> : Session
+/// <inheritdoc />
+public abstract class TradingSession<TProvider> : TradingSession
     where TProvider : class, ISharedUserClientProvider
 {
     private TProvider? _provider;
 
+    /// <summary>
+    /// The client instance provider
+    /// </summary>
     protected TProvider ClientProvider => _provider
         ?? throw new InvalidOperationException(
             "Build the session before accessing its clients.");
@@ -265,22 +269,29 @@ public abstract class Session<TProvider> : Session
     }
 }
 
-public abstract class Session<TProvider, TUser> : Session<TProvider>
+/// <inheritdoc />
+public abstract class TradingSession<TProvider, TUser> : TradingSession<TProvider>
     where TProvider : class, ISharedUserClientProvider
-    where TUser : SessionUser
+    where TUser : TradingSessionUser
 {
-    private SessionUsers<TUser>? _users;
+    private TradingSessionUsers<TUser>? _users;
 
-    protected SessionUsers<TUser> User => _users
+    /// <summary>
+    /// User access
+    /// </summary>
+    protected TradingSessionUsers<TUser> User => _users
         ?? throw new InvalidOperationException(
             "Build the session before accessing users.");
 
     internal override void ConfigureUsers(
-        IReadOnlyCollection<SessionUserDefinition> users)
+        IReadOnlyCollection<TradingSessionUserDefinition> users)
     {
-        _users = new SessionUsers<TUser>(
+        _users = new TradingSessionUsers<TUser>(
             users.Select(CreateUser));
     }
 
-    protected abstract TUser CreateUser(SessionUserDefinition definition);
+    /// <summary>
+    /// Create a session user
+    /// </summary>
+    protected abstract TUser CreateUser(TradingSessionUserDefinition definition);
 }
