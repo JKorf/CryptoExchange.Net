@@ -4,7 +4,7 @@ using CryptoExchange.Net.TradeSessions.Interfaces;
 
 namespace CryptoExchange.Net.TradeSessions.Features
 {
-    public static partial class RuntimeSymbolTrackingExtensions
+    public static partial class SymbolTrackingExtensions
     {
         /// <summary>
         /// Add live price ticker updates to <typeparamref name="TStrategy"/>. Requires <typeparamref name="TStrategy"/>
@@ -30,22 +30,8 @@ namespace CryptoExchange.Net.TradeSessions.Features
             where TStrategy : TradeSession, ITickerUpdateHandler
             where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>, ITickerTrackingBuilder
         {
-            var symbol = builder.Symbol;
-            var environment = builder.Environment;
-            return builder.AddFeature("tickers", clientProvider =>
-            {
-                var client = clientProvider.GetPublicSharedApiClient(environment);
-                var resolved = client.GetCapability(
-                    SharedCapabilities.Tickers.SubscribeTicker, symbol.TradingMode)
-                    ?? throw MissingCapability(client, symbol, "ticker subscriptions");
-
-                var api = resolved.Capability;
-                return strategy => new SubscriptionFeature(ct =>
-                    api.SubscribeToTickerUpdatesAsync(
-                        new SubscribeTickerRequest(symbol),
-                        update => strategy.Dispatch(() => strategy.HandleTickerUpdate(symbol, update)),
-                        ct));
-            });
+            return builder.AddFeature("tickers", provider =>
+                TickerTrackingFeature.Bind<TStrategy>(provider, builder.Symbol, builder.Environment));
         }
     }
 }

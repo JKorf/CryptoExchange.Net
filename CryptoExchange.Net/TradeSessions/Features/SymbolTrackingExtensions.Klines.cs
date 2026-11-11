@@ -4,7 +4,7 @@ using CryptoExchange.Net.TradeSessions.Interfaces;
 
 namespace CryptoExchange.Net.TradeSessions.Features
 {
-    public static partial class RuntimeSymbolTrackingExtensions
+    public static partial class SymbolTrackingExtensions
     {
         /// <summary>
         /// Add live kline updates to <typeparamref name="TStrategy"/>. Requires <typeparamref name="TStrategy"/> to
@@ -32,22 +32,8 @@ namespace CryptoExchange.Net.TradeSessions.Features
             where TStrategy : TradeSession, IKlineUpdateHandler
             where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>, IKlineTrackingBuilder
         {
-            var symbol = builder.Symbol;
-            var environment = builder.Environment;
-            return builder.AddFeature("klines", clientProvider =>
-            {
-                var client = clientProvider.GetPublicSharedApiClient(environment);
-                var resolved = client.GetCapability(
-                    SharedCapabilities.Klines.SubscribeKlines, symbol.TradingMode)
-                    ?? throw MissingCapability(client, symbol, "kline subscriptions");
-
-                var api = resolved.Capability;
-                return strategy => new SubscriptionFeature(ct =>
-                    api.SubscribeToKlineUpdatesAsync(
-                        new SubscribeKlineRequest(symbol, interval),
-                        update => strategy.Dispatch(() => strategy.HandleKlineUpdate(symbol, update)),
-                        ct));
-            });
+            return builder.AddFeature("klines", provider =>
+                KlineTrackingFeature.Bind<TStrategy>(provider, builder.Symbol, builder.Environment, interval));
         }
     }
 }

@@ -22,6 +22,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _featuresLock = new();
     private readonly List<ITradingSessionFeature> _activeFeatures = new();
+    private readonly Dictionary<SharedSymbol, ISymbolOrderBook> _orderBooks = new();
     private readonly TradeSessionDispatcher _dispatcher = new();
     private readonly Func<ITradingSessionFeature>[] _factories;
     private readonly ILogger _logger;
@@ -102,7 +103,18 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
                 var feature = create()
                     ?? throw new InvalidOperationException("Feature factory returned null.");
                 lock (_featuresLock)
+                {
                     _activeFeatures.Add(feature);
+                    if (feature is OrderBookFeature bookFeature)
+                    {
+                        if (_orderBooks.ContainsKey(bookFeature.Symbol))
+                        {
+                            throw new InvalidOperationException(
+                                $"Order book tracking is already active for {bookFeature.Symbol}.");
+                        }
+                        _orderBooks.Add(bookFeature.Symbol, bookFeature.OrderBook);
+                    }
+                }
 
                 var result = await feature.StartAsync(featuresCts.Token).ConfigureAwait(false);
                 if (!result.Success)
@@ -307,7 +319,15 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
             {
                 await _activeFeatures[i].DisposeAsync().ConfigureAwait(false);
                 lock (_featuresLock)
+                {
+                    if (_activeFeatures[i] is OrderBookFeature bookFeature
+                        && _orderBooks.TryGetValue(bookFeature.Symbol, out var book)
+                        && ReferenceEquals(book, bookFeature.OrderBook))
+                    {
+                        _orderBooks.Remove(bookFeature.Symbol);
+                    }
                     _activeFeatures.RemoveAt(i);
+                }
             }
             catch (Exception error)
             {
@@ -323,12 +343,17 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
             return _activeFeatures.OfType<TFeature>().ToArray();
     }
 
-    internal IReadOnlyCollection<ISymbolOrderBook> GetOrderBooks()
-        => GetFeatures<OrderBookFeature>().Select(feature => feature.OrderBook).ToArray();
+    internal IReadOnlyDictionary<SharedSymbol, ISymbolOrderBook> GetOrderBooks()
+    {
+        lock (_featuresLock)
+            return _orderBooks.ToDictionary(pair => pair.Key with { }, pair => pair.Value);
+    }
 
-    internal ISymbolOrderBook GetOrderBook(SharedSymbol symbol)
-        => GetFeatures<OrderBookFeature>().SingleOrDefault(feature => feature.Symbol == symbol)?.OrderBook
-            ?? throw new InvalidOperationException("No active order book exists for the requested symbol.");
+    internal ISymbolOrderBook? GetOrderBook(SharedSymbol symbol)
+    {
+        lock (_featuresLock)
+            return _orderBooks.TryGetValue(symbol, out var book) ? book : null;
+    }
 
     /// <summary>
     /// Retrieve the spot user data tracker for a user

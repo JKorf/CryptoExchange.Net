@@ -1,5 +1,3 @@
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.TradeSessions.Interfaces;
 using System;
 using System.Threading;
@@ -18,7 +16,10 @@ public abstract class TradeSession
     protected TradeSessionContext Context => _context
         ?? throw new InvalidOperationException("Build the strategy before accessing its context.");
 
-    protected ISymbolOrderBook GetOrderBook(SharedSymbol symbol) => Context.GetOrderBook(symbol);
+    /// <summary>
+    /// The active order books managed by the session
+    /// </summary>
+    protected TradeSessionOrderBooks OrderBooks => Context.OrderBooks;
 
     protected virtual Task OnStartedAsync(CancellationToken ct) => Task.CompletedTask;
 

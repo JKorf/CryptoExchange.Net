@@ -1,7 +1,7 @@
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
-using CryptoExchange.Net.Trackers.Sessions.Features;
+using CryptoExchange.Net.TradeSessions.Features;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using CryptoExchange.Net.TradeSessions.Interfaces;
 using System;

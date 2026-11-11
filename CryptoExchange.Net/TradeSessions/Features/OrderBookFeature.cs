@@ -1,7 +1,6 @@
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
-using CryptoExchange.Net.TradeSessions;
 using CryptoExchange.Net.TradeSessions.Interfaces;
 using System;
 using System.Threading;
@@ -13,21 +12,15 @@ namespace CryptoExchange.Net.TradeSessions.Features
     {
         private readonly ISymbolOrderBook _book;
         private readonly SharedSymbol _symbol;
-        private readonly IOrderBookUpdateHandler _handler;
-        private readonly TradeSession _strategy;
-        private bool _attached;
         private bool _disposed;
 
-        public SharedSymbol Symbol => _symbol;
+        public SharedSymbol Symbol => _symbol with { };
         public ISymbolOrderBook OrderBook => _book;
 
-        public OrderBookFeature(ISymbolOrderBook book, SharedSymbol symbol, IOrderBookUpdateHandler handler)
+        public OrderBookFeature(ISymbolOrderBook book, SharedSymbol symbol)
         {
             _book = book ?? throw new ArgumentNullException(nameof(book));
-            _symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-            _strategy = handler as TradeSession
-                ?? throw new ArgumentException("The handler must be a trading strategy.", nameof(handler));
+            _symbol = (symbol ?? throw new ArgumentNullException(nameof(symbol))) with { };
         }
 
         public Task<CallResult> StartAsync(CancellationToken ct)
@@ -35,37 +28,10 @@ namespace CryptoExchange.Net.TradeSessions.Features
             if (_disposed)
                 throw new ObjectDisposedException(nameof(OrderBookFeature));
 
-            if (!_attached)
-            {
-                _book.OnOrderBookUpdate += HandleUpdate;
-                _attached = true;
-            }
             return _book.StartAsync(ct);
         }
 
-        private void HandleUpdate((ISymbolOrderBookEntry[] Bids, ISymbolOrderBookEntry[] Asks) update)
-        {
-            if (_book.Status == OrderBookStatus.Synced)
-                _strategy.Dispatch(() => _handler.HandleOrderBookUpdate(_symbol, _book));
-        }
-
-        public async Task StopAsync()
-        {
-            if (_disposed)
-                return;
-            try
-            {
-                await _book.StopAsync().ConfigureAwait(false);
-            }
-            finally
-            {
-                if (_attached)
-                {
-                    _book.OnOrderBookUpdate -= HandleUpdate;
-                    _attached = false;
-                }
-            }
-        }
+        public Task StopAsync() => _disposed ? Task.CompletedTask : _book.StopAsync();
 
         public async ValueTask DisposeAsync()
         {

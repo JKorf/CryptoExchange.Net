@@ -8,29 +8,20 @@ namespace CryptoExchange.Net.TradeSessions;
 
 public class TradeSessionContext
 {
-    private readonly Func<IReadOnlyCollection<ISymbolOrderBook>> _getOrderBooks;
-    private readonly Func<SharedSymbol, ISymbolOrderBook> _getOrderBook;
-
     public string Exchange { get; }
 
-    public IReadOnlyCollection<ISymbolOrderBook> OrderBooks => _getOrderBooks();
+    /// <summary>
+    /// The active order books managed by the session
+    /// </summary>
+    public TradeSessionOrderBooks OrderBooks { get; }
 
     internal TradeSessionContext(
         string exchange,
-        Func<IReadOnlyCollection<ISymbolOrderBook>> getOrderBooks,
-        Func<SharedSymbol, ISymbolOrderBook> getOrderBook)
+        Func<IReadOnlyDictionary<SharedSymbol, ISymbolOrderBook>> getOrderBooks,
+        Func<SharedSymbol, ISymbolOrderBook?> getOrderBook)
     {
         Exchange = exchange;
-        _getOrderBooks = getOrderBooks;
-        _getOrderBook = getOrderBook;
-    }
-
-    public ISymbolOrderBook GetOrderBook(SharedSymbol symbol)
-    {
-        if (symbol == null)
-            throw new ArgumentNullException(nameof(symbol));
-
-        return _getOrderBook(symbol);
+        OrderBooks = new TradeSessionOrderBooks(getOrderBooks, getOrderBook);
     }
 }
 
@@ -42,8 +33,8 @@ public sealed class TradingContext<TUser> : TradeSessionContext
     internal TradingContext(
         string exchange,
         TradingSessionUsers<TUser> users,
-        Func<IReadOnlyCollection<ISymbolOrderBook>> getOrderBooks,
-        Func<SharedSymbol, ISymbolOrderBook> getOrderBook)
+        Func<IReadOnlyDictionary<SharedSymbol, ISymbolOrderBook>> getOrderBooks,
+        Func<SharedSymbol, ISymbolOrderBook?> getOrderBook)
         : base(exchange, getOrderBooks, getOrderBook)
     {
         User = users;
