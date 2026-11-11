@@ -1,0 +1,64 @@
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Trackers.Sessions;
+using CryptoExchange.Net.Trackers.Sessions.Interfaces;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace CryptoExchange.Net.Sessions;
+
+/// <summary>
+/// Trading strategy
+/// </summary>
+public abstract class TradingStrategy
+{
+    private TradingContext? _context;
+    private TradingStrategyDispatcher? _dispatcher;
+
+    protected TradingContext Context => _context
+        ?? throw new InvalidOperationException("Build the strategy before accessing its context.");
+
+    protected ISymbolOrderBook GetOrderBook(SharedSymbol symbol) => Context.GetOrderBook(symbol);
+
+    protected virtual Task OnStartedAsync(CancellationToken ct) => Task.CompletedTask;
+
+    /// <summary>
+    /// Update callback, only called when an interval greater than 0 is set by using
+    /// <see cref="TradingSessionBuilder{TStrategy, TSelf, TUser}.AddUpdateLoop(TimeSpan)"/>.
+    /// </summary>
+    protected virtual Task UpdateAsync(CancellationToken ct) => Task.CompletedTask;
+
+    protected virtual Task OnStoppingAsync(CancellationToken ct) => Task.CompletedTask;
+
+    internal void Attach(TradingContext context, TradingStrategyDispatcher dispatcher)
+    {
+        if (_context != null)
+            throw new InvalidOperationException("The strategy already belongs to a host.");
+
+        _context = context;
+        _dispatcher = dispatcher;
+    }
+
+    internal void Dispatch(Action callback) => _dispatcher!.Dispatch(callback);
+
+    internal Task DispatchAsync(Func<Task> callback) => _dispatcher!.DispatchAsync(callback);
+
+    internal Task InvokeStartedAsync(CancellationToken ct) => OnStartedAsync(ct);
+
+    internal Task InvokeUpdateAsync(CancellationToken ct) => UpdateAsync(ct);
+
+    internal Task InvokeStoppingAsync(CancellationToken ct) => OnStoppingAsync(ct);
+}
+
+/// <inheritdoc />
+public abstract class TradingStrategy<TUser> : TradingStrategy
+    where TUser : class, ITradingUser
+{
+    protected new TradingContext<TUser> Context => (TradingContext<TUser>)base.Context;
+
+    /// <summary>
+    /// User access
+    /// </summary>
+    protected TradingSessionUsers<TUser> User => Context.User;
+}

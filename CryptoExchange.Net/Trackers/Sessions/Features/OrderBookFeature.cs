@@ -1,5 +1,6 @@
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sessions;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.Sessions.Interfaces;
 using System;
@@ -13,6 +14,7 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
         private readonly ISymbolOrderBook _book;
         private readonly SharedSymbol _symbol;
         private readonly IOrderBookUpdateHandler _handler;
+        private readonly TradingStrategy _strategy;
         private bool _attached;
         private bool _disposed;
 
@@ -24,6 +26,8 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
             _book = book ?? throw new ArgumentNullException(nameof(book));
             _symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _strategy = handler as TradingStrategy
+                ?? throw new ArgumentException("The handler must be a trading strategy.", nameof(handler));
         }
 
         public Task<CallResult> StartAsync(CancellationToken ct)
@@ -41,9 +45,8 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
 
         private void HandleUpdate((ISymbolOrderBookEntry[] Bids, ISymbolOrderBookEntry[] Asks) update)
         {
-#warning only push if session is started
             if (_book.Status == OrderBookStatus.Synced)
-                _handler.HandleOrderBookUpdate(_symbol, _book);
+                _strategy.Dispatch(() => _handler.HandleOrderBookUpdate(_symbol, _book));
         }
 
         public async Task StopAsync()

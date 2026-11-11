@@ -1,4 +1,5 @@
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sessions;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.Sessions.Interfaces;
 using CryptoExchange.Net.Trackers.UserData.Interfaces;
@@ -16,10 +17,10 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
     {
         private IUserSpotDataTracker? _tracker;
         private readonly ISpotUserDataUpdateHandler _handler;
+        private readonly TradingStrategy _strategy;
+        private readonly Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> _trackerFactory;
         private bool _attached;
         private bool _disposed;
-
-        private readonly Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> _trackerFactory;
 
         /// <summary>
         /// The underlying tracker
@@ -41,6 +42,8 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
             UserIdentifier = userIdentifier;
             _trackerFactory = trackerFactory ?? throw new ArgumentNullException(nameof(trackerFactory));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _strategy = handler as TradingStrategy
+                ?? throw new ArgumentException("The handler must be a trading strategy.", nameof(handler));
         }
 
         /// <inheritdoc />
@@ -51,52 +54,56 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
 
             if (!_attached)
             {
-                var trackerResult = await _trackerFactory(ct).ConfigureAwait(false);
-                if (!trackerResult.Success)
-                    return trackerResult;
+                var result = await _trackerFactory(ct).ConfigureAwait(false);
+                if (!result.Success)
+                    return result;
 
-                _tracker = trackerResult.Data;
-
+                _tracker = result.Data;
                 _tracker.Balances.OnUpdate += HandleBalances;
                 _tracker.Orders.OnUpdate += HandleOrders;
-                _tracker.Trades?.OnUpdate += HandleTrades;
+                if (_tracker.Trades != null)
+                    _tracker.Trades.OnUpdate += HandleTrades;
                 _attached = true;
             }
 
             return await _tracker!.StartAsync(ct).ConfigureAwait(false);
         }
 
-#warning only push if session is started
         private Task HandleBalances(UserDataUpdate<SharedBalance[]> update)
-            => _handler.HandleSpotBalancesUpdateAsync(UserIdentifier, update);
+            => _strategy.DispatchAsync(() => _handler.HandleSpotBalancesUpdateAsync(
+                UserIdentifier, update));
 
         private Task HandleOrders(UserDataUpdate<SharedSpotOrder[]> update)
-            => _handler.HandleSpotOrdersUpdateAsync(UserIdentifier, update);
+            => _strategy.DispatchAsync(() => _handler.HandleSpotOrdersUpdateAsync(
+                UserIdentifier, update));
 
         private Task HandleTrades(UserDataUpdate<SharedUserTrade[]> update)
-            => _handler.HandleSpotTradesUpdateAsync(UserIdentifier, update);
+            => _strategy.DispatchAsync(() => _handler.HandleSpotTradesUpdateAsync(
+                UserIdentifier, update));
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            if (_disposed)
+            if (_disposed || _tracker == null)
                 return;
+
+            var tracker = _tracker;
             try
             {
-                if (_tracker != null)
-                    await _tracker.StopAsync().ConfigureAwait(false);
+                await tracker.StopAsync().ConfigureAwait(false);
             }
             finally
             {
                 if (_attached)
                 {
-                    _tracker!.Balances.OnUpdate -= HandleBalances;
-                    _tracker.Orders.OnUpdate -= HandleOrders;
-                    _tracker.Trades?.OnUpdate -= HandleTrades;
-                    _tracker = null;
+                    tracker.Balances.OnUpdate -= HandleBalances;
+                    tracker.Orders.OnUpdate -= HandleOrders;
+                    if (tracker.Trades != null)
+                        tracker.Trades.OnUpdate -= HandleTrades;
                     _attached = false;
                 }
             }
+            _tracker = null;
         }
 
         /// <inheritdoc />

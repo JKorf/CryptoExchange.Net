@@ -7,44 +7,43 @@ namespace CryptoExchange.Net.Trackers.Sessions.Features
     public static partial class RuntimeSymbolTrackingExtensions
     {
         /// <summary>
-        /// Add live trade updates to <typeparamref name="TSession"/>. Requires <typeparamref name="TSession"/> to implement <see cref="ITradeUpdateHandler"/>.
+        /// Add live trade updates to <typeparamref name="TStrategy"/>. Requires <typeparamref name="TStrategy"/> to
+        /// implement <see cref="ITradeUpdateHandler"/>.
         /// </summary>
-        /// <typeparam name="TSession">The implementation type.</typeparam>
+        /// <typeparam name="TStrategy">The implementation type.</typeparam>
         /// <param name="builder">The builder</param>
-        public static TradingSessionSymbolBuilder<TSession> AddTradeUpdates<TSession>(
-            this TradingSessionSymbolBuilder<TSession> builder)
-            where TSession : TradingSession, ITradeUpdateHandler
-            => AddTradeUpdates<TSession, TradingSessionSymbolBuilder<TSession>>(builder);
-
+        public static TradingSessionSymbolBuilder<TStrategy> AddTradeUpdates<TStrategy>(
+            this TradingSessionSymbolBuilder<TStrategy> builder)
+            where TStrategy : TradingStrategy, ITradeUpdateHandler
+            => AddTradeUpdates<TStrategy, TradingSessionSymbolBuilder<TStrategy>>(
+                builder);
 
         /// <summary>
-        /// Add live trade updates to <typeparamref name="TSession"/>. Requires <typeparamref name="TSession"/> to implement <see cref="ITradeUpdateHandler"/>.
+        /// Add live trade updates to <typeparamref name="TStrategy"/>. Requires <typeparamref name="TStrategy"/> to
+        /// implement <see cref="ITradeUpdateHandler"/>.
         /// </summary>
         /// <typeparam name="TBuilder">The builder type.</typeparam>
-        /// <typeparam name="TSession">The implementation type.</typeparam>
+        /// <typeparam name="TStrategy">The implementation type.</typeparam>
         /// <param name="builder">The builder</param>
-        public static TBuilder AddTradeUpdates<TSession, TBuilder>(
-            this TradingSessionSymbolBuilder<TSession, TBuilder> builder)
-            where TSession : TradingSession, ITradeUpdateHandler
-            where TBuilder : TradingSessionSymbolBuilder<TSession, TBuilder>
+        public static TBuilder AddTradeUpdates<TStrategy, TBuilder>(
+            this TradingSessionSymbolBuilder<TStrategy, TBuilder> builder)
+            where TStrategy : TradingStrategy, ITradeUpdateHandler
+            where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
         {
             var symbol = builder.Symbol;
             var environment = builder.Environment;
             return builder.AddFeature("trades", clientProvider =>
             {
                 var client = clientProvider.GetPublicSharedApiClient(environment);
-                var resolved = client.GetCapability(SharedCapabilities.Trades.SubscribeTrades, symbol.TradingMode)
+                var resolved = client.GetCapability(
+                    SharedCapabilities.Trades.SubscribeTrades, symbol.TradingMode)
                     ?? throw MissingCapability(client, symbol, "trade subscriptions");
 
                 var api = resolved.Capability;
-                return session => new SubscriptionFeature(ct =>
+                return strategy => new SubscriptionFeature(ct =>
                     api.SubscribeToTradeUpdatesAsync(
                         new SubscribeTradeRequest(symbol),
-                        update => 
-                        { 
-                            if (session.Started) 
-                                session.HandleTradeUpdate(symbol, update); 
-                        },
+                        update => strategy.Dispatch(() => strategy.HandleTradeUpdate(symbol, update)),
                         ct));
             });
         }

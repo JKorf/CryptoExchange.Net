@@ -1,11 +1,11 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sessions;
+using CryptoExchange.Net.Interfaces.Clients;
+using CryptoExchange.Net.Trackers.Sessions.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CryptoExchange.Net.Trackers.Sessions
 {
@@ -21,8 +21,9 @@ namespace CryptoExchange.Net.Trackers.Sessions
     /// <summary>
     /// Trading session user
     /// </summary>
-    public abstract class TradingSessionUser
+    public abstract partial class TradingSessionUser : ITradingUser
     {
+        private readonly ISharedUserClientProvider _provider;
         private readonly Func<IUserSpotDataTracker> _getSpotTracker;
         private readonly Func<TradingMode, IUserFuturesDataTracker> _getFuturesTracker;
         /// <summary>
@@ -51,14 +52,14 @@ namespace CryptoExchange.Net.Trackers.Sessions
         /// ctor
         /// </summary>
         protected TradingSessionUser(
-            TradingSessionUserDefinition definition,
-            Func<IUserSpotDataTracker> getSpotTracker,
-            Func<TradingMode, IUserFuturesDataTracker> getFuturesTracker)
+            TradingSessionUserContext context,
+            ISharedUserClientProvider provider)
         {
-            UserIdentifier = definition.UserIdentifier;
-            Environment = definition.Environment;
-            _getSpotTracker = getSpotTracker;
-            _getFuturesTracker = getFuturesTracker;
+            UserIdentifier = context.Definition.UserIdentifier;
+            Environment = context.Definition.Environment;
+            _provider = provider;
+            _getSpotTracker = context.GetSpotUserDataTracker;
+            _getFuturesTracker = context.GetFuturesUserDataTracker;
         }
     }
 
@@ -66,7 +67,7 @@ namespace CryptoExchange.Net.Trackers.Sessions
     /// Trading session user collection
     /// </summary>
     public sealed class TradingSessionUsers<TUser>
-        where TUser : TradingSessionUser
+        where TUser : class, ITradingUser
     {
         private readonly Dictionary<string, TUser> _users;
 

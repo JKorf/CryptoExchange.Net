@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sessions;
 using CryptoExchange.Net.SharedApis;
@@ -17,13 +17,15 @@ namespace CryptoExchange.Net.Trackers.Sessions
     public static class TradingSessionUserExtensions
     {
         /// <summary>
-        /// Add spot user data tracking for this user. This tracks the live spot trading data of a user, including balances and orders.
+        /// Add spot user data tracking for this user. This tracks the live spot trading data of a user, including
+        /// balances and orders.
         /// </summary>
         /// <param name="builder">Builder</param>
         /// <param name="config">The spot data tracking configuration</param>
-        public static TradingSessionUserBuilder<TSession, TEnvironment> AddSpotUserDataTracking<TSession, TEnvironment>(
-            this TradingSessionUserBuilder<TSession, TEnvironment> builder, SpotUserDataTrackerConfig? config = null)
-            where TSession : TradingSession, ISpotUserDataUpdateHandler
+        public static TradingSessionUserBuilder<TStrategy, TEnvironment>
+            AddSpotUserDataTracking<TStrategy, TEnvironment>(
+            this TradingSessionUserBuilder<TStrategy, TEnvironment> builder, SpotUserDataTrackerConfig? config = null)
+            where TStrategy : TradingStrategy, ISpotUserDataUpdateHandler
             where TEnvironment : TradeEnvironment
         {
             if (builder.TrackerFactory is not ISpotUserDataTrackerFactory<TEnvironment> factory)
@@ -40,18 +42,21 @@ namespace CryptoExchange.Net.Trackers.Sessions
         }
 
         /// <summary>
-        /// Add futures user data tracking for this user. This tracks the live futures trading data of a user, including balances, orders and positions.
+        /// Add futures user data tracking for this user. This tracks the live futures trading data of a user, including
+        /// balances, orders and positions.
         /// </summary>
-        /// <typeparam name="TSession"></typeparam>
+        /// <typeparam name="TStrategy"></typeparam>
         /// <typeparam name="TEnvironment"></typeparam>
         /// <param name="builder">The builder</param>
-        /// <param name="tradingMode">The trading mode, depending on the exchange multiple different futures API's might be available</param>
+        /// <param name="tradingMode">The trading mode, depending on the exchange multiple different futures API's might
+        /// be available</param>
         /// <param name="config">The futures data tracking configuration</param>
-        public static TradingSessionUserBuilder<TSession, TEnvironment> AddFuturesUserDataTracking<TSession, TEnvironment>(
-                this TradingSessionUserBuilder<TSession, TEnvironment> builder,
+        public static TradingSessionUserBuilder<TStrategy, TEnvironment>
+            AddFuturesUserDataTracking<TStrategy, TEnvironment>(
+                this TradingSessionUserBuilder<TStrategy, TEnvironment> builder,
                 TradingMode tradingMode,
                 FuturesUserDataTrackerConfig? config = null)
-            where TSession : TradingSession, IFuturesUserDataUpdateHandler
+            where TStrategy : TradingStrategy, IFuturesUserDataUpdateHandler
             where TEnvironment : TradeEnvironment
         {
             if (builder.TrackerFactory is not IFuturesUserDataTrackerFactory<TEnvironment> factory)
@@ -64,7 +69,8 @@ namespace CryptoExchange.Net.Trackers.Sessions
                 new FuturesUserDataFeature(
                     userIdentifier,
                     tradingMode,
-                    ct => factory.TryCreateUserFuturesDataTrackerAsync(userIdentifier, tradingMode, config, environment, ct),
+                    ct => factory.TryCreateUserFuturesDataTrackerAsync(
+                        userIdentifier, tradingMode, config, environment, ct),
                     session));
         }
     }

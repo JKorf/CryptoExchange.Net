@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sessions;
 using CryptoExchange.Net.Trackers.Sessions.Interfaces;
@@ -11,8 +11,8 @@ namespace CryptoExchange.Net.Trackers.Sessions
     /// <summary>
     /// Trading session user configuration builder
     /// </summary>
-    public sealed class TradingSessionUserBuilder<TSession, TEnvironment>
-        where TSession : TradingSession
+    public sealed class TradingSessionUserBuilder<TStrategy, TEnvironment>
+        where TStrategy : TradingStrategy
         where TEnvironment : TradeEnvironment
     {
         /// <summary>
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.Trackers.Sessions
 
         internal ITrackerFactory TrackerFactory { get; }
 
-        internal Dictionary<string, Func<TSession, ITradingSessionFeature>> Features { get; } = new();
+        internal Dictionary<string, Func<TStrategy, ITradingSessionFeature>> Features { get; } = new();
 
         internal TradingSessionUserBuilder(
             string userIdentifier,
@@ -38,9 +38,9 @@ namespace CryptoExchange.Net.Trackers.Sessions
             TrackerFactory = trackerFactory;
         }
 
-        internal TradingSessionUserBuilder<TSession, TEnvironment> RegisterFeature(
+        internal TradingSessionUserBuilder<TStrategy, TEnvironment> RegisterFeature(
             string name,
-            Func<TSession, ITradingSessionFeature> create)
+            Func<TStrategy, ITradingSessionFeature> create)
         {
             if (Features.ContainsKey(name))
                 throw new InvalidOperationException($"Feature '{name}' is already configured for this user.");
