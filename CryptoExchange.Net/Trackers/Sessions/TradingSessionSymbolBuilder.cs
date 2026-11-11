@@ -56,6 +56,24 @@ public class TradingSessionBuilder<TStrategy, TSelf, TUser>
     }
 
     /// <summary>
+    /// Add the same symbol tracking configuration for each symbol
+    /// </summary>
+    /// <param name="symbols">The symbols</param>
+    /// <param name="configure">The symbol configurator, called once for each symbol</param>
+    /// <param name="environment">Trading environment</param>
+    protected TSelf AddSymbolTracking(
+        IEnumerable<SharedSymbol> symbols,
+        Action<TradingSessionSymbolBuilder<TStrategy>> configure,
+        TradeEnvironment? environment = null)
+    {
+        RegisterSymbols(
+            symbols,
+            symbol => new TradingSessionSymbolBuilder<TStrategy>(symbol, environment),
+            configure);
+        return (TSelf)this;
+    }
+
+    /// <summary>
     /// Add an update callback at a set interval
     /// </summary>
     /// <param name="updateInterval">The interval at which the
@@ -80,6 +98,35 @@ public class TradingSessionBuilder<TStrategy, TSelf, TUser>
 
         configure(builder);
         _features.AddRange(builder.Features);
+    }
+
+    /// <summary>
+    /// Register symbol configurations, committing them after every symbol has been configured
+    /// </summary>
+    /// <param name="symbols">The symbols</param>
+    /// <param name="createBuilder">Creates a separate configuration builder for each symbol</param>
+    /// <param name="configure">The symbol configurator, called once for each symbol</param>
+    protected void RegisterSymbols<TBuilder>(
+        IEnumerable<SharedSymbol> symbols,
+        Func<SharedSymbol, TBuilder> createBuilder,
+        Action<TBuilder> configure)
+        where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+    {
+        if (symbols == null)
+            throw new ArgumentNullException(nameof(symbols));
+        if (createBuilder == null)
+            throw new ArgumentNullException(nameof(createBuilder));
+        if (configure == null)
+            throw new ArgumentNullException(nameof(configure));
+
+        var features = new List<Func<ISharedUserClientProvider, Func<TStrategy, ITradingSessionFeature>>>();
+        foreach (var symbol in symbols)
+        {
+            var builder = createBuilder(symbol);
+            configure(builder);
+            features.AddRange(builder.Features);
+        }
+        _features.AddRange(features);
     }
 
     /// <summary>
