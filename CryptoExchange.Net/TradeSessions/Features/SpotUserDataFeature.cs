@@ -13,10 +13,10 @@ namespace CryptoExchange.Net.TradeSessions.Features
     /// <summary>
     /// Spot user data tracking feature
     /// </summary>
-    public sealed class SpotUserDataFeature : ITradingSessionFeature
+    public sealed class SpotUserDataFeature : ITradeSessionFeature
     {
         private IUserSpotDataTracker? _tracker;
-        private readonly TradeSession _strategy;
+        private readonly TradeSession _session;
         private readonly Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> _trackerFactory;
         private bool _attached;
         private bool _disposed;
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.TradeSessions.Features
         {
             UserIdentifier = userIdentifier;
             _trackerFactory = trackerFactory ?? throw new ArgumentNullException(nameof(trackerFactory));
-            _strategy = session ?? throw new ArgumentNullException(nameof(session));
+            _session = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         /// <inheritdoc />
@@ -67,15 +67,15 @@ namespace CryptoExchange.Net.TradeSessions.Features
         }
 
         private Task HandleBalances(UserDataUpdate<SharedBalance[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeSpotBalancesUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeSpotBalancesUpdateAsync(
                 UserIdentifier, update));
 
         private Task HandleOrders(UserDataUpdate<SharedSpotOrder[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeSpotOrdersUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeSpotOrdersUpdateAsync(
                 UserIdentifier, update));
 
         private Task HandleTrades(UserDataUpdate<SharedUserTrade[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeSpotTradesUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeSpotTradesUpdateAsync(
                 UserIdentifier, update));
 
         /// <inheritdoc />
@@ -108,7 +108,9 @@ namespace CryptoExchange.Net.TradeSessions.Features
         {
             if (_disposed)
                 return;
+
             await StopAsync().ConfigureAwait(false);
+
             _disposed = true;
         }
     }

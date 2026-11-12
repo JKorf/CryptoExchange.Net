@@ -45,7 +45,9 @@ public sealed class TradeSessionOrderBooks : IReadOnlyDictionary<SharedSymbol, I
     public bool ContainsKey(SharedSymbol symbol) => TryGetValue(symbol, out _);
 
     /// <inheritdoc />
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
     public bool TryGetValue(SharedSymbol symbol, [MaybeNullWhen(false)] out ISymbolOrderBook book)
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
     {
         if (symbol == null)
             throw new ArgumentNullException(nameof(symbol));

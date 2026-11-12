@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.TradeSessions.Interfaces
+namespace CryptoExchange.Net.TradeSessions.Interfaces.Handlers
 {
     /// <summary>
     /// Ticker update handle capability

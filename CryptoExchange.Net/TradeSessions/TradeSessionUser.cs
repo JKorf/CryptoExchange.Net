@@ -9,18 +9,18 @@ using CryptoExchange.Net.TradeSessions.Interfaces;
 namespace CryptoExchange.Net.TradeSessions
 {
     /// <summary>
-    /// Trading session user reference
+    /// Trade session user reference
     /// </summary>
     /// <param name="UserIdentifier">The user identifier</param>
     /// <param name="Environment">The trading environment</param>
-    public sealed record TradingSessionUserDefinition(
+    public sealed record TradeSessionUserDefinition(
         string UserIdentifier,
         TradeEnvironment? Environment);
 
     /// <summary>
-    /// Trading session user
+    /// Trade session user
     /// </summary>
-    public abstract class TradingSessionUser : ITradingUser
+    public abstract class TradeSessionUser : ITradeSessionUser
     {
         private readonly Func<IUserSpotDataTracker> _getSpotTracker;
         private readonly Func<TradingMode, IUserFuturesDataTracker> _getFuturesTracker;
@@ -36,20 +36,19 @@ namespace CryptoExchange.Net.TradeSessions
         /// <summary>
         /// The registered spot user data tracker
         /// </summary>
-        public IUserSpotDataTracker SpotUserDataTracker
+        public IUserSpotDataTracker GetSpotUserDataTracker()
             => _getSpotTracker();
 
         /// <summary>
         /// Get the registered futured user data tracker
         /// </summary>
-        public IUserFuturesDataTracker GetFuturesUserDataTracker(
-            TradingMode tradingMode)
+        public IUserFuturesDataTracker GetFuturesUserDataTracker(TradingMode tradingMode)
             => _getFuturesTracker(tradingMode);
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected TradingSessionUser(
+        protected TradeSessionUser(
             TradeSessionUserContext context)
         {
             UserIdentifier = context.Definition.UserIdentifier;
@@ -60,17 +59,17 @@ namespace CryptoExchange.Net.TradeSessions
     }
 
     /// <summary>
-    /// Trading session user collection
+    /// Trade session user collection
     /// </summary>
-    public sealed class TradingSessionUsers<TUser>
-        where TUser : class, ITradingUser
+    public sealed class TradeSessionUsers<TUser>
+        where TUser : class, ITradeSessionUser
     {
         private readonly Dictionary<string, TUser> _users;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public TradingSessionUsers(IEnumerable<TUser> users)
+        public TradeSessionUsers(IEnumerable<TUser> users)
         {
             _users = users.ToDictionary(
                 user => user.UserIdentifier,

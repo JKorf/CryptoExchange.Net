@@ -5,9 +5,9 @@ using CryptoExchange.Net.Trackers.UserData.Interfaces;
 namespace CryptoExchange.Net.TradeSessions.Interfaces;
 
 /// <summary>
-/// User access within a trading strategy
+/// User access within a trade session
 /// </summary>
-public interface ITradingUser
+public interface ITradeSessionUser
 {
     /// <summary>
     /// User identifier
@@ -20,9 +20,9 @@ public interface ITradingUser
     TradeEnvironment? Environment { get; }
 
     /// <summary>
-    /// The registered spot user data tracker
+    /// Get the registered spot user data tracker
     /// </summary>
-    IUserSpotDataTracker SpotUserDataTracker { get; }
+    IUserSpotDataTracker GetSpotUserDataTracker();
 
     /// <summary>
     /// Get the registered futures user data tracker

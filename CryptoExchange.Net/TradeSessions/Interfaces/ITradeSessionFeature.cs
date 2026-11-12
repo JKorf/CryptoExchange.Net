@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.TradeSessions.Interfaces
 {
     /// <summary>
-    /// A trading session feature
+    /// A trade session feature
     /// </summary>
-    public interface ITradingSessionFeature : IAsyncDisposable
+    public interface ITradeSessionFeature : IAsyncDisposable
     {
         /// <summary>
         /// Start the feature

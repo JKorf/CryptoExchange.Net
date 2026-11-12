@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.TradeSessions.Interfaces;
 /// <summary>
 /// User-bound access to a specific exchange API surface
 /// </summary>
-public interface ITradingUserApi
+public interface ITradeSessionUserApi
 {
     /// <summary>
     /// User identifier
@@ -18,9 +18,15 @@ public interface ITradingUserApi
     /// </summary>
     TradeEnvironment? Environment { get; }
 
+    /// <summary>
+    /// Get whether the capability is supported
+    /// </summary>
     bool Supports<TCapability>(SharedCapabilityReference<TCapability> capability, TradingMode? tradingMode = null)
         where TCapability : ISharedApiCapability;
 
+    /// <summary>
+    /// Get the options for a capability
+    /// </summary>
     CapabilityOptions? GetOptions<TCapability>(
         SharedCapabilityReference<TCapability> capability,
         TradingMode? tradingMode = null)

@@ -16,26 +16,31 @@ namespace CryptoExchange.Net.TradeSessions;
 /// <summary>
 /// Trade session host
 /// </summary>
-public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
-    where TStrategy : TradeSession
+public sealed class TradeSessionHost<TTradeSession> : ITradeSessionHost<TTradeSession>
+    where TTradeSession : TradeSession
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _featuresLock = new();
-    private readonly List<ITradingSessionFeature> _activeFeatures = new();
+    private readonly List<ITradeSessionFeature> _activeFeatures = new();
     private readonly Dictionary<SharedSymbol, ISymbolOrderBook> _orderBooks = new();
-    private readonly TradeSessionDispatcher _dispatcher = new();
-    private readonly Func<ITradingSessionFeature>[] _factories;
+    private readonly TradeSessionDispatcher _dispatcher;
+    private readonly Func<ITradeSessionFeature>[] _factories;
     private readonly ILogger _logger;
     private CancellationTokenSource? _runCts;
     private CancellationTokenSource? _featuresCts;
     private CancellationTokenRegistration _lifetimeRegistration;
     private Task? _updateLoop;
     private volatile bool _started;
-    private bool _strategyStarted;
+    private bool _sessionStarted;
+    private bool _stoppedCallbackPending;
     private bool _attached;
     private bool _disposed;
+    private string SessionName { get; } = typeof(TTradeSession).Name;
 
-    public TStrategy Strategy { get; }
+    /// <summary>
+    /// The trade session instance
+    /// </summary>
+    public TTradeSession TradeSession { get; }
     /// <inheritdoc />
     public string Exchange { get; }
     /// <inheritdoc />
@@ -44,22 +49,23 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
     public TimeSpan UpdateLoopInterval { get; }
 
     internal TradeSessionHost(
-        TStrategy strategy,
+        TTradeSession session,
         string exchange,
         ILogger logger,
-        Func<ITradingSessionFeature>[] factories,
+        Func<ITradeSessionFeature>[] factories,
         TimeSpan updateLoopInterval)
     {
-        Strategy = strategy;
+        TradeSession = session;
         Exchange = exchange;
         _logger = logger;
+        _dispatcher = new TradeSessionDispatcher(logger);
         _factories = factories;
         UpdateLoopInterval = updateLoopInterval;
     }
 
     internal void Attach(TradeSessionContext context)
     {
-        Strategy.Attach(context, _dispatcher);
+        TradeSession.Attach(context, _dispatcher, _logger);
         _attached = true;
     }
 
@@ -71,7 +77,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         try
         {
             if (_disposed)
-                throw new ObjectDisposedException(nameof(TradeSessionHost<TStrategy>));
+                throw new ObjectDisposedException(nameof(TradeSessionHost<TTradeSession>));
             if (!_attached)
                 throw new InvalidOperationException("Build the host before starting it.");
             if (_started)
@@ -89,6 +95,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
 
     private async Task<CallResult> StartCoreAsync(CancellationToken ct)
     {
+        _logger.LogInformation("Starting TradeSessionHost for {Session}", SessionName);
         _runCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var runCts = _runCts;
         var token = runCts.Token;
@@ -97,6 +104,12 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         using var startupRegistration = ct.Register(() => featuresCts.Cancel());
         try
         {
+            token.ThrowIfCancellationRequested();
+            _stoppedCallbackPending = true;
+            await _dispatcher.InvokeLifecycleAsync(
+                () => TradeSession.InvokeStartingAsync(token)).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+
             foreach (var create in _factories)
             {
                 token.ThrowIfCancellationRequested();
@@ -124,9 +137,9 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
                 }
             }
 
-            _strategyStarted = true;
+            _sessionStarted = true;
             await _dispatcher.InvokeLifecycleAsync(
-                () => Strategy.InvokeStartedAsync(token)).ConfigureAwait(false);
+                () => TradeSession.InvokeStartedAsync(token)).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             startupRegistration.Dispose();
 
@@ -136,6 +149,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
                 _updateLoop = UpdateLoopAsync(token);
 
             _lifetimeRegistration = ct.Register(() => { _ = StopCanceledRunAsync(runCts); });
+            _logger.LogDebug("Started TradeSessionHost for {Session}", SessionName);
             return CallResult.Ok();
         }
         catch (OperationCanceledException)
@@ -148,7 +162,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         {
             startupRegistration.Dispose();
             return await FailStartupAsync(
-                CallResult.Fail(new UnknownError("Strategy startup failed.", error))).ConfigureAwait(false);
+                CallResult.Fail(new UnknownError("Session startup failed.", error))).ConfigureAwait(false);
         }
     }
 
@@ -163,18 +177,24 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
             return CallResult.Fail(new UnknownError(
                 $"Startup failed ({failure.Error}); cleanup also failed.", error));
         }
+        finally
+        {
+            _logger.LogError("Failed to start TradeSessionHost for {Session}: {Error}", SessionName, failure.Error);
+        }
         return failure;
     }
 
     private async Task UpdateLoopAsync(CancellationToken ct)
     {
         await Task.Yield();
+        _logger.LogDebug("Starting trade session update loop for {Session} at {Interval} interval", SessionName, UpdateLoopInterval);
         while (!ct.IsCancellationRequested)
         {
+            _logger.LogTrace("Triggering trade session update for {Session}", SessionName);
             try
             {
                 await _dispatcher.DispatchAsync(
-                    () => Strategy.InvokeUpdateAsync(ct)).ConfigureAwait(false);
+                    () => TradeSession.InvokeUpdateAsync(ct)).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -182,7 +202,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
             }
             catch (Exception error)
             {
-                _logger.LogError(error, "Trading strategy update failed");
+                _logger.LogError(error, "Trade session update failed for {Session}", SessionName);
             }
 
             try
@@ -218,6 +238,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
 
     private async Task ShutdownCoreAsync(bool disposing)
     {
+        _logger.LogInformation("Stopping TradeSessionHost for {Session}", SessionName);
         if (disposing)
             _disposed = true;
 
@@ -249,13 +270,13 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         }
         await draining.ConfigureAwait(false);
 
-        if (_strategyStarted)
+        if (_sessionStarted)
         {
-            _strategyStarted = false;
+            _sessionStarted = false;
             try
             {
                 await _dispatcher.InvokeLifecycleAsync(
-                    () => Strategy.InvokeStoppingAsync(CancellationToken.None)).ConfigureAwait(false);
+                    () => TradeSession.InvokeStoppingAsync(CancellationToken.None)).ConfigureAwait(false);
             }
             catch (Exception error)
             {
@@ -279,8 +300,28 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         _featuresCts?.Dispose();
         _featuresCts = null;
 
+        if (_stoppedCallbackPending && _activeFeatures.Count == 0)
+        {
+            _stoppedCallbackPending = false;
+            try
+            {
+                await _dispatcher.InvokeLifecycleAsync(
+                    () => TradeSession.InvokeStoppedAsync(CancellationToken.None)).ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                errors.Add(error);
+            }
+        }
+
         if (errors.Count != 0)
-            throw new AggregateException("Trading host cleanup failed.", errors);
+        {
+            var ex = new AggregateException("Trade session host cleanup failed.", errors);
+            _logger.LogError(ex, "Stopping TradeSessionHost for {Session} completed with errors", SessionName);
+            throw ex;
+        }
+
+        _logger.LogDebug("Stopped TradeSessionHost for {Session}", SessionName);
     }
 
     private async Task StopCanceledRunAsync(CancellationTokenSource runCts)
@@ -293,7 +334,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         }
         catch (Exception error)
         {
-            _logger.LogError(error, "Stopping a canceled trading host failed");
+            _logger.LogError(error, "Stopping a canceled trade session host failed");
         }
         finally
         {
@@ -306,7 +347,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         if (_dispatcher.IsExecuting)
         {
             throw new InvalidOperationException(
-                "Start and stop the host outside strategy callbacks.");
+                "Start and stop the host outside session callbacks.");
         }
     }
 
@@ -337,7 +378,7 @@ public sealed class TradeSessionHost<TStrategy> : ITradingHost<TStrategy>
         return errors;
     }
 
-    private TFeature[] GetFeatures<TFeature>() where TFeature : class, ITradingSessionFeature
+    private TFeature[] GetFeatures<TFeature>() where TFeature : class, ITradeSessionFeature
     {
         lock (_featuresLock)
             return _activeFeatures.OfType<TFeature>().ToArray();

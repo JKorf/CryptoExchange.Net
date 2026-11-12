@@ -1,4 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.TradeSessions;
+using CryptoExchange.Net.TradeSessions.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,9 +8,9 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.TradeSessions.Interfaces
 {
     /// <summary>
-    /// Trading session
+    /// Trade session host
     /// </summary>
-    public interface ITradingSession : IAsyncDisposable
+    public interface ITradeSessionHost : IAsyncDisposable
     {
         /// <summary>
         /// The exchange the session is for
@@ -33,4 +35,17 @@ namespace CryptoExchange.Net.TradeSessions.Interfaces
         /// </summary>
         Task StopAsync();
     }
+}
+
+/// <summary>
+/// Trade session host
+/// </summary>
+/// <typeparam name="TTradeSession"></typeparam>
+public interface ITradeSessionHost<out TTradeSession> : ITradeSessionHost
+    where TTradeSession : TradeSession
+{
+    /// <summary>
+    /// The trade session instance
+    /// </summary>
+    TTradeSession TradeSession { get; }
 }

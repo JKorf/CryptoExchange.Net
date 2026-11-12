@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Trackers.Sessions;
 /// <summary>
 /// Shared execution for user-bound operations within a specific API surface
 /// </summary>
-public abstract partial class TradingSessionUserApi : ITradingUserApi
+public abstract partial class TradeSessionUserApi : ITradeSessionUserApi
 {
     private readonly ISharedUserClientProvider _provider;
     private readonly Func<ISharedApiClientBase, ISharedApi[]> _selectApis;
@@ -22,7 +22,10 @@ public abstract partial class TradingSessionUserApi : ITradingUserApi
     /// <inheritdoc />
     public TradeEnvironment? Environment { get; }
 
-    protected TradingSessionUserApi(
+    /// <summary>
+    /// ctor
+    /// </summary>
+    protected TradeSessionUserApi(
         string userIdentifier,
         TradeEnvironment? environment,
         ISharedUserClientProvider provider,
@@ -48,12 +51,18 @@ public abstract partial class TradingSessionUserApi : ITradingUserApi
         where TCapability : ISharedApiCapability
         => GetPublicCapability(capability, tradingMode)?.Options;
 
+    /// <summary>
+    /// Get a capability using a public client
+    /// </summary>
     protected SharedCapabilityResolution<TCapability>? GetPublicCapability<TCapability>(
         SharedCapabilityReference<TCapability> capability,
         TradingMode? tradingMode = null)
         where TCapability : ISharedApiCapability
         => ResolveCapability(_provider.GetPublicSharedApiClient(Environment), capability, tradingMode);
 
+    /// <summary>
+    /// Get a required capability using a public client, or throw
+    /// </summary>
     protected TCapability GetRequiredPublicCapability<TCapability>(
         SharedCapabilityReference<TCapability> capability,
         TradingMode? tradingMode = null)
@@ -83,6 +92,9 @@ public abstract partial class TradingSessionUserApi : ITradingUserApi
             : scoped.GetCapability(capability);
     }
 
+    /// <summary>
+    /// Execute a capability
+    /// </summary>
     protected Task<IExchangeCallResult<TData>> ExecuteAsync<TCapability, TData>(
         SharedCapabilityReference<TCapability> capability,
         SharedRequest request,
@@ -97,6 +109,9 @@ public abstract partial class TradingSessionUserApi : ITradingUserApi
             error => HttpResult.Fail<TData>(_provider.ExchangeName, error),
             ct);
 
+    /// <summary>
+    /// Execute a capability
+    /// </summary>
     protected Task<IExchangeCallResult> ExecuteAsync<TCapability>(
         SharedCapabilityReference<TCapability> capability,
         SharedRequest request,
@@ -123,6 +138,7 @@ public abstract partial class TradingSessionUserApi : ITradingUserApi
     {
         if (request == null)
             throw new ArgumentNullException(nameof(request));
+
         if (GetPublicCapability(capability, tradingMode) == null)
             return fail(new InvalidOperationError(GetUnsupportedMessage(capability, tradingMode)));
 

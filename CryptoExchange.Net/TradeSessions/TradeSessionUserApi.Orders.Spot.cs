@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions;
 
-public abstract partial class TradingSessionUserApi
+public abstract partial class TradeSessionUserApi
 {
     /// <inheritdoc cref="ICancelAllSpotOrdersOperation.CancelAllSpotOrdersOptions" />
     protected CancelAllSpotOrdersOptions? CancelAllSpotOrdersOptions
@@ -16,12 +16,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult> CancelAllSpotOrdersAsync(
         CancelAllOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelAllSpotOrders, IExchangeCallResult>(
+        => ExecuteAsync<ICancelAllSpotOrders>(
             SharedCapabilities.Orders.Spot.CancelAllOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelAllSpotOrdersAsync(request, token),
-            error => HttpResult.Fail(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelAllSpotSymbolOrdersOperation.CancelAllSpotSymbolOrdersOptions" />
@@ -33,12 +31,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult> CancelAllSpotSymbolOrdersAsync(
         CancelAllSymbolOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelAllSpotSymbolOrders, IExchangeCallResult>(
+        => ExecuteAsync<ICancelAllSpotSymbolOrders>(
             SharedCapabilities.Orders.Spot.CancelAllSymbolOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelAllSpotSymbolOrdersAsync(request, token),
-            error => HttpResult.Fail(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelSpotOrderOperation.CancelSpotOrderOptions" />
@@ -50,12 +46,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> CancelSpotOrderAsync(
         CancelOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelSpotOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<ICancelSpotOrder, SharedId>(
             SharedCapabilities.Orders.Spot.CancelOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelSpotOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelSpotOrderByClientOrderIdOperation.CancelSpotOrderByClientOrderIdOptions" />
@@ -67,12 +61,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> CancelSpotOrderByClientOrderIdAsync(
         CancelOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelSpotOrderByClientOrderId, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<ICancelSpotOrderByClientOrderId, SharedId>(
             SharedCapabilities.Orders.Spot.CancelOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelSpotOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IEditSpotOrderOperation.EditSpotOrderOptions" />
@@ -84,12 +76,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> EditSpotOrderAsync(
         EditOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IEditSpotOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IEditSpotOrder, SharedId>(
             SharedCapabilities.Orders.Spot.EditOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.EditSpotOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IEditSpotOrderByClientOrderIdOperation.EditSpotOrderByClientOrderIdOptions" />
@@ -101,12 +91,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> EditSpotOrderByClientOrderIdAsync(
         EditOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IEditSpotOrderByClientOrderId, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IEditSpotOrderByClientOrderId, SharedId>(
             SharedCapabilities.Orders.Spot.EditOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.EditSpotOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetClosedSpotOrdersOperation.GetClosedSpotOrdersOptions" />
@@ -119,12 +107,10 @@ public abstract partial class TradingSessionUserApi
         GetClosedOrdersRequest request,
         PageRequest? nextPageToken = null,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetClosedSpotOrders, IExchangeCallResult<SharedSpotOrder[]>>(
+        => ExecuteAsync<IGetClosedSpotOrders, SharedSpotOrder[]>(
             SharedCapabilities.Orders.Spot.GetClosedOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetClosedSpotOrdersAsync(request, nextPageToken, token),
-            error => HttpResult.Fail<SharedSpotOrder[]>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetOpenSpotOrdersOperation.GetOpenSpotOrdersOptions" />
@@ -136,12 +122,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(
         GetOpenOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetOpenSpotOrders, IExchangeCallResult<SharedSpotOrder[]>>(
+        => ExecuteAsync<IGetOpenSpotOrders, SharedSpotOrder[]>(
             SharedCapabilities.Orders.Spot.GetOpenOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetOpenSpotOrdersAsync(request, token),
-            error => HttpResult.Fail<SharedSpotOrder[]>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetSpotOrderOperation.GetSpotOrderOptions" />
@@ -153,12 +137,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedSpotOrder>> GetSpotOrderAsync(
         GetOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetSpotOrder, IExchangeCallResult<SharedSpotOrder>>(
+        => ExecuteAsync<IGetSpotOrder, SharedSpotOrder>(
             SharedCapabilities.Orders.Spot.GetOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetSpotOrderAsync(request, token),
-            error => HttpResult.Fail<SharedSpotOrder>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetSpotOrderByClientOrderIdOperation.GetSpotOrderByClientOrderIdOptions" />
@@ -170,12 +152,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedSpotOrder>> GetSpotOrderByClientOrderIdAsync(
         GetOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetSpotOrderByClientOrderId, IExchangeCallResult<SharedSpotOrder>>(
+        => ExecuteAsync<IGetSpotOrderByClientOrderId, SharedSpotOrder>(
             SharedCapabilities.Orders.Spot.GetOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetSpotOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedSpotOrder>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IPlaceMultipleSpotOrdersOperation.PlaceMultipleSpotOrdersOptions" />
@@ -187,12 +167,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<CallResult<SharedId>[]>> PlaceMultipleSpotOrdersAsync(
         PlaceMultipleSpotOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IPlaceMultipleSpotOrders, IExchangeCallResult<CallResult<SharedId>[]>>(
+        => ExecuteAsync<IPlaceMultipleSpotOrders, CallResult<SharedId>[]>(
             SharedCapabilities.Orders.Spot.PlaceMultipleOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.PlaceMultipleSpotOrdersAsync(request, token),
-            error => HttpResult.Fail<CallResult<SharedId>[]>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IPlaceSpotOrderOperation.PlaceSpotOrderOptions" />
@@ -204,11 +182,9 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> PlaceSpotOrderAsync(
         PlaceSpotOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IPlaceSpotOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IPlaceSpotOrder, SharedId>(
             SharedCapabilities.Orders.Spot.PlaceOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.PlaceSpotOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 }

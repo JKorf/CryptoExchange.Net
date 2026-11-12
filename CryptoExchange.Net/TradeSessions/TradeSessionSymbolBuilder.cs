@@ -10,19 +10,25 @@ using System.Linq;
 
 namespace CryptoExchange.Net.TradeSessions;
 
+public enum UpdateTiming
+{
+    SinceLast,
+    Exact
+}
+
 /// <summary>
-/// Trading session builder
+/// Trade session builder
 /// </summary>
-public class TradeSessionBuilder<TStrategy, TSelf, TUser>
-    where TStrategy : TradingStrategy<TUser>
-    where TSelf : TradeSessionBuilder<TStrategy, TSelf, TUser>
-    where TUser : class, ITradingUser
+public class TradeSessionBuilder<TTradeSession, TSelf, TUser>
+    where TTradeSession : TradeSession<TUser>
+    where TSelf : TradeSessionBuilder<TTradeSession, TSelf, TUser>
+    where TUser : class, ITradeSessionUser
 {
     private readonly HashSet<string> _names = new();
-    private readonly List<Func<ISharedUserClientProvider, Func<TStrategy, ITradingSessionFeature>>> _features = new();
-    private readonly Dictionary<string, TradingSessionUserDefinition> _users = new(StringComparer.Ordinal);
+    private readonly List<Func<ISharedUserClientProvider, Func<TTradeSession, ITradeSessionFeature>>> _features = new();
+    private readonly Dictionary<string, TradeSessionUserDefinition> _users = new(StringComparer.Ordinal);
     private readonly ISharedUserClientProvider _clientProvider;
-    private readonly ILogger _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly Func<TradeSessionUserContext, TUser> _userFactory;
     private TimeSpan _updateLoopInterval;
 
@@ -31,11 +37,11 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// </summary>
     protected TradeSessionBuilder(
         ISharedUserClientProvider clientProvider,
-        ILogger logger,
+        ILoggerFactory loggerFactory,
         Func<TradeSessionUserContext, TUser> userFactory)
     {
         _clientProvider = clientProvider ?? throw new ArgumentNullException(nameof(clientProvider));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         _userFactory = userFactory ?? throw new ArgumentNullException(nameof(userFactory));
     }
 
@@ -47,10 +53,10 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// <param name="environment">Trading environment</param>
     protected TSelf AddSymbolTracking(
         SharedSymbol symbol,
-        Action<TradeSessionSymbolBuilder<TStrategy>> configure,
+        Action<TradeSessionSymbolBuilder<TTradeSession>> configure,
         TradeEnvironment? environment = null)
     {
-        RegisterSymbol(new TradeSessionSymbolBuilder<TStrategy>(symbol, environment), configure);
+        RegisterSymbol(new TradeSessionSymbolBuilder<TTradeSession>(symbol, environment), configure);
         return (TSelf)this;
     }
 
@@ -62,12 +68,12 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// <param name="environment">Trading environment</param>
     protected TSelf AddSymbolTracking(
         IEnumerable<SharedSymbol> symbols,
-        Action<TradeSessionSymbolBuilder<TStrategy>> configure,
+        Action<TradeSessionSymbolBuilder<TTradeSession>> configure,
         TradeEnvironment? environment = null)
     {
         RegisterSymbols(
             symbols,
-            symbol => new TradeSessionSymbolBuilder<TStrategy>(symbol, environment),
+            symbol => new TradeSessionSymbolBuilder<TTradeSession>(symbol, environment),
             configure);
         return (TSelf)this;
     }
@@ -77,7 +83,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// </summary>
     /// <param name="updateInterval">The interval at which the
     /// <see cref="TradeSession.UpdateAsync(System.Threading.CancellationToken)"/> method should be called</param>
-    public TSelf AddUpdateLoop(TimeSpan updateInterval)
+    public TSelf AddUpdateLoop(TimeSpan updateInterval, UpdateTiming)
     {
         if (updateInterval <= TimeSpan.Zero || updateInterval.TotalMilliseconds > int.MaxValue)
             throw new ArgumentOutOfRangeException(nameof(updateInterval));
@@ -90,7 +96,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// Register a symbol config
     /// </summary>
     protected void RegisterSymbol<TBuilder>(TBuilder builder, Action<TBuilder> configure)
-        where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+        where TBuilder : TradeSessionSymbolBuilder<TTradeSession, TBuilder>
     {
         if (configure == null)
             throw new ArgumentNullException(nameof(configure));
@@ -109,7 +115,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
         IEnumerable<SharedSymbol> symbols,
         Func<SharedSymbol, TBuilder> createBuilder,
         Action<TBuilder> configure)
-        where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+        where TBuilder : TradeSessionSymbolBuilder<TTradeSession, TBuilder>
     {
         if (symbols == null)
             throw new ArgumentNullException(nameof(symbols));
@@ -118,7 +124,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
         if (configure == null)
             throw new ArgumentNullException(nameof(configure));
 
-        var features = new List<Func<ISharedUserClientProvider, Func<TStrategy, ITradingSessionFeature>>>();
+        var features = new List<Func<ISharedUserClientProvider, Func<TTradeSession, ITradeSessionFeature>>>();
         foreach (var symbol in symbols)
         {
             var builder = createBuilder(symbol);
@@ -131,7 +137,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// <summary>
     /// Register a feature config
     /// </summary>
-    protected void RegisterFeature(string name, Func<TStrategy, ITradingSessionFeature> create)
+    protected void RegisterFeature(string name, Func<TTradeSession, ITradeSessionFeature> create)
     {
         if (create == null)
             throw new ArgumentNullException(nameof(create));
@@ -146,7 +152,7 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
     /// </summary>
     protected void RegisterUser<TEnvironment>(
         string userIdentifier,
-        Action<TradeSessionUserBuilder<TStrategy, TEnvironment>> configure,
+        Action<TradeSessionUserBuilder<TTradeSession, TEnvironment>> configure,
         ITrackerFactory trackerFactory,
         TEnvironment? environment = null)
         where TEnvironment : TradeEnvironment
@@ -160,40 +166,40 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
         if (_users.ContainsKey(userIdentifier))
             throw new InvalidOperationException($"User '{userIdentifier}' is already configured.");
 
-        var builder = new TradeSessionUserBuilder<TStrategy, TEnvironment>(
+        var builder = new TradeSessionUserBuilder<TTradeSession, TEnvironment>(
             userIdentifier, environment, trackerFactory);
         configure(builder);
         foreach (var create in builder.Features.Values)
             _features.Add(_ => create);
 
-        _users.Add(userIdentifier, new TradingSessionUserDefinition(userIdentifier, environment));
+        _users.Add(userIdentifier, new TradeSessionUserDefinition(userIdentifier, environment));
     }
 
     /// <summary>
-    /// Build the trading host with the provided configuration.
+    /// Build the trade session host with the provided configuration.
     /// </summary>
-    /// <param name="factory">The factory function to create a new instance of <typeparamref name="TStrategy"/>.</param>
-    /// <returns>The configured trading host which can be started</returns>
-    public TradeSessionHost<TStrategy> Build(Func<TStrategy> factory)
+    /// <param name="factory">The factory function to create a new instance of <typeparamref name="TTradeSession"/>.</param>
+    /// <returns>The configured trade session host which can be started</returns>
+    public TradeSessionHost<TTradeSession> Build(Func<TTradeSession> factory)
     {
         if (factory == null)
             throw new ArgumentNullException(nameof(factory));
 
         var factories = _features.Select(bind => bind(_clientProvider)).ToArray();
-        var strategy = factory() ?? throw new InvalidOperationException("Factory returned null.");
-        var host = new TradeSessionHost<TStrategy>(
-            strategy,
+        var session = factory() ?? throw new InvalidOperationException("Factory returned null.");
+        var host = new TradeSessionHost<TTradeSession>(
+            session,
             _clientProvider.ExchangeName,
-            _logger,
-            factories.Select(create => new Func<ITradingSessionFeature>(() => create(strategy))).ToArray(),
+            _loggerFactory.CreateLogger($"{_clientProvider.ExchangeName}.{typeof(TTradeSession).Name}"),
+            factories.Select(create => new Func<ITradeSessionFeature>(() => create(session))).ToArray(),
             _updateLoopInterval);
 
-        var users = new TradingSessionUsers<TUser>(_users.Values.Select(definition =>
+        var users = new TradeSessionUsers<TUser>(_users.Values.Select(definition =>
             _userFactory(new TradeSessionUserContext(
                 definition,
                 () => host.GetSpotUserDataTracker(definition.UserIdentifier),
                 mode => host.GetFuturesUserDataTracker(definition.UserIdentifier, mode)))));
-        host.Attach(new TradingContext<TUser>(
+        host.Attach(new TradeSessionContext<TUser>(
             _clientProvider.ExchangeName, users, host.GetOrderBooks, host.GetOrderBook));
 
         return host;
@@ -203,12 +209,12 @@ public class TradeSessionBuilder<TStrategy, TSelf, TUser>
 /// <summary>
 /// Symbol configuration builder
 /// </summary>
-public class TradeSessionSymbolBuilder<TStrategy>
-    : TradingSessionSymbolBuilder<TStrategy, TradeSessionSymbolBuilder<TStrategy>>,
+public class TradeSessionSymbolBuilder<TTradeSession>
+    : TradeSessionSymbolBuilder<TTradeSession, TradeSessionSymbolBuilder<TTradeSession>>,
         ITradeTrackingBuilder,
         ITickerTrackingBuilder,
         IKlineTrackingBuilder
-    where TStrategy : TradeSession
+    where TTradeSession : TradeSession
 {
     internal TradeSessionSymbolBuilder(SharedSymbol symbol, TradeEnvironment? environment = null)
         : base(symbol, environment)
@@ -219,9 +225,9 @@ public class TradeSessionSymbolBuilder<TStrategy>
 /// <summary>
 /// Symbol configuration builder
 /// </summary>
-public abstract class TradingSessionSymbolBuilder<TStrategy, TBuilder>
-    where TStrategy : TradeSession
-    where TBuilder : TradingSessionSymbolBuilder<TStrategy, TBuilder>
+public abstract class TradeSessionSymbolBuilder<TTradeSession, TBuilder>
+    where TTradeSession : TradeSession
+    where TBuilder : TradeSessionSymbolBuilder<TTradeSession, TBuilder>
 {
     private readonly HashSet<string> _names = new();
 
@@ -234,12 +240,12 @@ public abstract class TradingSessionSymbolBuilder<TStrategy, TBuilder>
     /// </summary>
     public TradeEnvironment? Environment { get; }
 
-    internal List<Func<ISharedUserClientProvider, Func<TStrategy, ITradingSessionFeature>>> Features { get; } = new();
+    internal List<Func<ISharedUserClientProvider, Func<TTradeSession, ITradeSessionFeature>>> Features { get; } = new();
 
     /// <summary>
     /// ctor
     /// </summary>
-    protected TradingSessionSymbolBuilder(SharedSymbol symbol, TradeEnvironment? environment = null)
+    protected TradeSessionSymbolBuilder(SharedSymbol symbol, TradeEnvironment? environment = null)
     {
         Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
         Environment = environment;
@@ -248,7 +254,7 @@ public abstract class TradingSessionSymbolBuilder<TStrategy, TBuilder>
     /// <summary>
     /// Register a feature configuration
     /// </summary>
-    protected TBuilder RegisterFeature(string name, Func<TStrategy, ITradingSessionFeature> create)
+    protected TBuilder RegisterFeature(string name, Func<TTradeSession, ITradeSessionFeature> create)
     {
         if (create == null)
             throw new ArgumentNullException(nameof(create));
@@ -261,7 +267,7 @@ public abstract class TradingSessionSymbolBuilder<TStrategy, TBuilder>
     /// </summary>
     internal TBuilder AddFeature(
         string name,
-        Func<ISharedUserClientProvider, Func<TStrategy, ITradingSessionFeature>> bind)
+        Func<ISharedUserClientProvider, Func<TTradeSession, ITradeSessionFeature>> bind)
     {
         if (!_names.Add(name))
             throw new InvalidOperationException($"Feature '{name}' was already configured for this symbol.");

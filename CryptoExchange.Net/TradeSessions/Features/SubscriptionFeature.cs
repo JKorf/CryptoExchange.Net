@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.TradeSessions.Features
 {
-    internal sealed class SubscriptionFeature : ITradingSessionFeature
+    internal sealed class SubscriptionFeature : ITradeSessionFeature
     {
         private readonly Func<CancellationToken, Task<WebSocketResult<UpdateSubscription>>> _starter;
         private UpdateSubscription? _subscription;
@@ -22,6 +22,7 @@ namespace CryptoExchange.Net.TradeSessions.Features
             var result = await _starter(ct).ConfigureAwait(false);
             if (result.Success)
                 _subscription = result.Data;
+
             return result.Success ? CallResult.Ok() : CallResult.Fail(result.Error);
         }
 

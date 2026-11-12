@@ -4,15 +4,21 @@ using System;
 
 namespace CryptoExchange.Net.TradeSessions;
 
+/// <summary>
+/// Trade session user context
+/// </summary>
 public sealed class TradeSessionUserContext
 {
     private readonly Func<IUserSpotDataTracker> _getSpotTracker;
     private readonly Func<TradingMode, IUserFuturesDataTracker> _getFuturesTracker;
 
-    public TradingSessionUserDefinition Definition { get; }
+    /// <summary>
+    /// The user definition
+    /// </summary>
+    public TradeSessionUserDefinition Definition { get; }
 
     internal TradeSessionUserContext(
-        TradingSessionUserDefinition definition,
+        TradeSessionUserDefinition definition,
         Func<IUserSpotDataTracker> getSpotTracker,
         Func<TradingMode, IUserFuturesDataTracker> getFuturesTracker)
     {
@@ -21,7 +27,13 @@ public sealed class TradeSessionUserContext
         _getFuturesTracker = getFuturesTracker;
     }
 
+    /// <summary>
+    /// Get spot user data tracker
+    /// </summary>
     public IUserSpotDataTracker GetSpotUserDataTracker() => _getSpotTracker();
 
+    /// <summary>
+    /// Get futures user data tracker
+    /// </summary>
     public IUserFuturesDataTracker GetFuturesUserDataTracker(TradingMode mode) => _getFuturesTracker(mode);
 }

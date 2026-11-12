@@ -13,10 +13,10 @@ namespace CryptoExchange.Net.TradeSessions.Features
     /// <summary>
     /// Futures user data tracking feature
     /// </summary>
-    public sealed class FuturesUserDataFeature : ITradingSessionFeature
+    public sealed class FuturesUserDataFeature : ITradeSessionFeature
     {
         private IUserFuturesDataTracker? _tracker;
-        private readonly TradeSession _strategy;
+        private readonly TradeSession _session;
         private readonly Func<CancellationToken, Task<CallResult<IUserFuturesDataTracker>>> _trackerFactory;
         private bool _attached;
         private bool _disposed;
@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.TradeSessions.Features
             UserIdentifier = userIdentifier;
             TradingMode = tradingMode;
             _trackerFactory = trackerFactory ?? throw new ArgumentNullException(nameof(trackerFactory));
-            _strategy = session ?? throw new ArgumentNullException(nameof(session));
+            _session = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         /// Initializes the user data tracker if needed, attaches update handlers, and starts the tracker.
@@ -78,19 +78,19 @@ namespace CryptoExchange.Net.TradeSessions.Features
         }
 
         private Task HandleBalances(UserDataUpdate<SharedBalance[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeFuturesBalancesUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeFuturesBalancesUpdateAsync(
                 UserIdentifier, TradingMode, update));
 
         private Task HandleOrders(UserDataUpdate<SharedFuturesOrder[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeFuturesOrdersUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeFuturesOrdersUpdateAsync(
                 UserIdentifier, TradingMode, update));
 
         private Task HandleTrades(UserDataUpdate<SharedUserTrade[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeFuturesTradesUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeFuturesTradesUpdateAsync(
                 UserIdentifier, TradingMode, update));
 
         private Task HandlePositions(UserDataUpdate<SharedPosition[]> update)
-            => _strategy.DispatchAsync(() => _strategy.InvokeFuturesPositionsUpdateAsync(
+            => _session.DispatchAsync(() => _session.InvokeFuturesPositionsUpdateAsync(
                 UserIdentifier, TradingMode, update));
 
         /// <inheritdoc />

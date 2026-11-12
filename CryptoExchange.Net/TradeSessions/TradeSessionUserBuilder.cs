@@ -8,10 +8,10 @@ using System.Text;
 namespace CryptoExchange.Net.TradeSessions
 {
     /// <summary>
-    /// Trading session user configuration builder
+    /// Trade session user configuration builder
     /// </summary>
-    public sealed class TradeSessionUserBuilder<TStrategy, TEnvironment>
-        where TStrategy : TradeSession
+    public sealed class TradeSessionUserBuilder<TTradeSession, TEnvironment>
+        where TTradeSession : TradeSession
         where TEnvironment : TradeEnvironment
     {
         /// <summary>
@@ -25,7 +25,10 @@ namespace CryptoExchange.Net.TradeSessions
 
         internal ITrackerFactory TrackerFactory { get; }
 
-        internal Dictionary<string, Func<TStrategy, ITradingSessionFeature>> Features { get; } = new();
+        /// <summary>
+        /// Configured features
+        /// </summary>
+        internal Dictionary<string, Func<TTradeSession, ITradeSessionFeature>> Features { get; } = new();
 
         internal TradeSessionUserBuilder(
             string userIdentifier,
@@ -37,9 +40,9 @@ namespace CryptoExchange.Net.TradeSessions
             TrackerFactory = trackerFactory;
         }
 
-        internal TradeSessionUserBuilder<TStrategy, TEnvironment> RegisterFeature(
+        internal TradeSessionUserBuilder<TTradeSession, TEnvironment> RegisterFeature(
             string name,
-            Func<TStrategy, ITradingSessionFeature> create)
+            Func<TTradeSession, ITradeSessionFeature> create)
         {
             if (Features.ContainsKey(name))
                 throw new InvalidOperationException($"Feature '{name}' is already configured for this user.");

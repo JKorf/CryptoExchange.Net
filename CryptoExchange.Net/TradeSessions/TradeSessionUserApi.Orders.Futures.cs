@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Sessions;
 
-public abstract partial class TradingSessionUserApi
+public abstract partial class TradeSessionUserApi
 {
     /// <inheritdoc cref="ICancelAllFuturesOrdersOperation.CancelAllFuturesOrdersOptions" />
     protected CancelAllFuturesOrdersOptions? CancelAllFuturesOrdersOptions
@@ -16,12 +16,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult> CancelAllFuturesOrdersAsync(
         CancelAllOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelAllFuturesOrders, IExchangeCallResult>(
+        => ExecuteAsync<ICancelAllFuturesOrders>(
             SharedCapabilities.Orders.Futures.CancelAllOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelAllFuturesOrdersAsync(request, token),
-            error => HttpResult.Fail(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelAllFuturesSymbolOrdersOperation.CancelAllFuturesSymbolOrdersOptions" />
@@ -33,12 +31,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult> CancelAllFuturesSymbolOrdersAsync(
         CancelAllSymbolOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelAllFuturesSymbolOrders, IExchangeCallResult>(
+        => ExecuteAsync<ICancelAllFuturesSymbolOrders>(
             SharedCapabilities.Orders.Futures.CancelAllSymbolOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelAllFuturesSymbolOrdersAsync(request, token),
-            error => HttpResult.Fail(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelFuturesOrderOperation.CancelFuturesOrderOptions" />
@@ -50,12 +46,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> CancelFuturesOrderAsync(
         CancelOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelFuturesOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<ICancelFuturesOrder, SharedId>(
             SharedCapabilities.Orders.Futures.CancelOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelFuturesOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="ICancelFuturesOrderByClientOrderIdOperation.CancelFuturesOrderByClientOrderIdOptions" />
@@ -67,12 +61,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> CancelFuturesOrderByClientOrderIdAsync(
         CancelOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<ICancelFuturesOrderByClientOrderId, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<ICancelFuturesOrderByClientOrderId, SharedId>(
             SharedCapabilities.Orders.Futures.CancelOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.CancelFuturesOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IEditFuturesOrderOperation.EditFuturesOrderOptions" />
@@ -84,12 +76,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> EditFuturesOrderAsync(
         EditOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IEditFuturesOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IEditFuturesOrder, SharedId>(
             SharedCapabilities.Orders.Futures.EditOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.EditFuturesOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IEditFuturesOrderByClientOrderIdOperation.EditFuturesOrderByClientOrderIdOptions" />
@@ -101,12 +91,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> EditFuturesOrderByClientOrderIdAsync(
         EditOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IEditFuturesOrderByClientOrderId, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IEditFuturesOrderByClientOrderId, SharedId>(
             SharedCapabilities.Orders.Futures.EditOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.EditFuturesOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetClosedFuturesOrdersOperation.GetClosedFuturesOrdersOptions" />
@@ -119,12 +107,10 @@ public abstract partial class TradingSessionUserApi
         GetClosedOrdersRequest request,
         PageRequest? nextPageToken = null,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetClosedFuturesOrders, IExchangeCallResult<SharedFuturesOrder[]>>(
+        => ExecuteAsync<IGetClosedFuturesOrders, SharedFuturesOrder[]>(
             SharedCapabilities.Orders.Futures.GetClosedOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetClosedFuturesOrdersAsync(request, nextPageToken, token),
-            error => HttpResult.Fail<SharedFuturesOrder[]>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetFuturesOrderOperation.GetFuturesOrderOptions" />
@@ -136,12 +122,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedFuturesOrder>> GetFuturesOrderAsync(
         GetOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetFuturesOrder, IExchangeCallResult<SharedFuturesOrder>>(
+        => ExecuteAsync<IGetFuturesOrder, SharedFuturesOrder>(
             SharedCapabilities.Orders.Futures.GetOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetFuturesOrderAsync(request, token),
-            error => HttpResult.Fail<SharedFuturesOrder>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetFuturesOrderByClientOrderIdOperation.GetFuturesOrderByClientOrderIdOptions" />
@@ -153,12 +137,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedFuturesOrder>> GetFuturesOrderByClientOrderIdAsync(
         GetOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetFuturesOrderByClientOrderId, IExchangeCallResult<SharedFuturesOrder>>(
+        => ExecuteAsync<IGetFuturesOrderByClientOrderId, SharedFuturesOrder>(
             SharedCapabilities.Orders.Futures.GetOrderByClientOrderId,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetFuturesOrderByClientOrderIdAsync(request, token),
-            error => HttpResult.Fail<SharedFuturesOrder>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IGetOpenFuturesOrdersOperation.GetOpenFuturesOrdersOptions" />
@@ -170,12 +152,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(
         GetOpenOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IGetOpenFuturesOrders, IExchangeCallResult<SharedFuturesOrder[]>>(
+        => ExecuteAsync<IGetOpenFuturesOrders, SharedFuturesOrder[]>(
             SharedCapabilities.Orders.Futures.GetOpenOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.GetOpenFuturesOrdersAsync(request, token),
-            error => HttpResult.Fail<SharedFuturesOrder[]>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IPlaceFuturesOrderOperation.PlaceFuturesOrderOptions" />
@@ -187,12 +167,10 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<SharedId>> PlaceFuturesOrderAsync(
         PlaceFuturesOrderRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IPlaceFuturesOrder, IExchangeCallResult<SharedId>>(
+        => ExecuteAsync<IPlaceFuturesOrder, SharedId>(
             SharedCapabilities.Orders.Futures.PlaceOrder,
             request,
-            GetTradingMode(request),
             (api, token) => api.PlaceFuturesOrderAsync(request, token),
-            error => HttpResult.Fail<SharedId>(_provider.ExchangeName, error),
             ct);
 
     /// <inheritdoc cref="IPlaceMultipleFuturesOrdersOperation.PlaceMultipleFuturesOrdersOptions" />
@@ -204,11 +182,9 @@ public abstract partial class TradingSessionUserApi
     protected Task<IExchangeCallResult<CallResult<SharedId>[]>> PlaceMultipleFuturesOrdersAsync(
         PlaceMultipleFuturesOrdersRequest request,
         CancellationToken ct = default)
-        => ExecuteAsync<IPlaceMultipleFuturesOrders, IExchangeCallResult<CallResult<SharedId>[]>>(
+        => ExecuteAsync<IPlaceMultipleFuturesOrders, CallResult<SharedId>[]>(
             SharedCapabilities.Orders.Futures.PlaceMultipleOrders,
             request,
-            GetTradingMode(request),
             (api, token) => api.PlaceMultipleFuturesOrdersAsync(request, token),
-            error => HttpResult.Fail<CallResult<SharedId>[]>(_provider.ExchangeName, error),
             ct);
 }

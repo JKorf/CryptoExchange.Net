@@ -1,11 +1,16 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.TradeSessions;
 
+/// <summary>
+/// Dispatcher from the host to the actual session
+/// </summary>
 internal sealed class TradeSessionDispatcher
 {
+    private readonly ILogger _logger;
     private readonly object _sync = new();
     private readonly AsyncLocal<bool> _executing = new();
     private bool _enabled;
@@ -13,6 +18,14 @@ internal sealed class TradeSessionDispatcher
     private TaskCompletionSource<bool>? _drained;
 
     internal bool IsExecuting => _executing.Value;
+
+    internal TradeSessionDispatcher(ILogger logger)
+    {
+        _logger = logger;
+    }
+
+    internal void ReportException(Exception error)
+        => _logger.LogError(error, "Asynchronous symbol update handler failed");
 
     internal void Enable()
     {

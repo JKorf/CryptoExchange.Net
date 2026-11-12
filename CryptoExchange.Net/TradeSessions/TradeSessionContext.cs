@@ -6,8 +6,14 @@ using System.Collections.Generic;
 
 namespace CryptoExchange.Net.TradeSessions;
 
+/// <summary>
+/// Trade session context
+/// </summary>
 public class TradeSessionContext
 {
+    /// <summary>
+    /// Exchange name
+    /// </summary>
     public string Exchange { get; }
 
     /// <summary>
@@ -25,14 +31,18 @@ public class TradeSessionContext
     }
 }
 
-public sealed class TradingContext<TUser> : TradeSessionContext
-    where TUser : class, ITradingUser
+/// <inheritdoc />
+public sealed class TradeSessionContext<TUser> : TradeSessionContext
+    where TUser : class, ITradeSessionUser
 {
-    public TradingSessionUsers<TUser> User { get; }
+    /// <summary>
+    /// User access
+    /// </summary>
+    public TradeSessionUsers<TUser> User { get; }
 
-    internal TradingContext(
+    internal TradeSessionContext(
         string exchange,
-        TradingSessionUsers<TUser> users,
+        TradeSessionUsers<TUser> users,
         Func<IReadOnlyDictionary<SharedSymbol, ISymbolOrderBook>> getOrderBooks,
         Func<SharedSymbol, ISymbolOrderBook?> getOrderBook)
         : base(exchange, getOrderBooks, getOrderBook)
