@@ -10,12 +10,6 @@ using System.Linq;
 
 namespace CryptoExchange.Net.TradeSessions;
 
-public enum UpdateTiming
-{
-    SinceLast,
-    Exact
-}
-
 /// <summary>
 /// Trade session builder
 /// </summary>
@@ -83,7 +77,7 @@ public class TradeSessionBuilder<TTradeSession, TSelf, TUser>
     /// </summary>
     /// <param name="updateInterval">The interval at which the
     /// <see cref="TradeSession.UpdateAsync(System.Threading.CancellationToken)"/> method should be called</param>
-    public TSelf AddUpdateLoop(TimeSpan updateInterval, UpdateTiming)
+    public TSelf AddUpdateLoop(TimeSpan updateInterval)
     {
         if (updateInterval <= TimeSpan.Zero || updateInterval.TotalMilliseconds > int.MaxValue)
             throw new ArgumentOutOfRangeException(nameof(updateInterval));
