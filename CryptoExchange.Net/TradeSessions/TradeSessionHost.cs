@@ -53,12 +53,13 @@ public sealed class TradeSessionHost<TTradeSession> : ITradeSessionHost<TTradeSe
         string exchange,
         ILogger logger,
         Func<ITradeSessionFeature>[] factories,
-        TimeSpan updateLoopInterval)
+        TimeSpan updateLoopInterval,
+        bool externallyDriven = false)
     {
         TradeSession = session;
         Exchange = exchange;
         _logger = logger;
-        _dispatcher = new TradeSessionDispatcher(logger);
+        _dispatcher = new TradeSessionDispatcher(logger, externallyDriven);
         _factories = factories;
         UpdateLoopInterval = updateLoopInterval;
     }
@@ -145,7 +146,7 @@ public sealed class TradeSessionHost<TTradeSession> : ITradeSessionHost<TTradeSe
 
             _started = true;
             _dispatcher.Enable();
-            if (UpdateLoopInterval > TimeSpan.Zero)
+            if (UpdateLoopInterval > TimeSpan.Zero && !_dispatcher.ExternallyDriven)
                 _updateLoop = UpdateLoopAsync(token);
 
             _lifetimeRegistration = ct.Register(() => { _ = StopCanceledRunAsync(runCts); });
@@ -218,6 +219,40 @@ public sealed class TradeSessionHost<TTradeSession> : ITradeSessionHost<TTradeSe
 
     /// <inheritdoc/>
     public Task StopAsync() => ShutdownAsync(false);
+
+    /// <summary>
+    /// Process queued callbacks in registration order until no work remains in an externally driven session.
+    /// </summary>
+    public Task ProcessPendingCallbacksAsync(CancellationToken ct = default)
+        => ProcessExternalAsync(false, ct);
+
+    /// <summary>
+    /// Run one scheduled update and its resulting callbacks in an externally driven session.
+    /// </summary>
+    public Task RunUpdateAsync(CancellationToken ct = default)
+        => ProcessExternalAsync(true, ct);
+
+    private async Task ProcessExternalAsync(bool update, CancellationToken ct)
+    {
+        EnsureExternalLifecycle();
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (!_dispatcher.ExternallyDriven || !_started)
+                throw new InvalidOperationException("Start an externally driven host before processing callbacks.");
+            await _dispatcher.ProcessPendingAsync(ct).ConfigureAwait(false);
+            if (update)
+            {
+                await _dispatcher.InvokeLifecycleAsync(
+                    () => TradeSession.InvokeUpdateAsync(ct)).ConfigureAwait(false);
+                await _dispatcher.ProcessPendingAsync(ct).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
 
     /// <inheritdoc/>
     public ValueTask DisposeAsync() => new ValueTask(ShutdownAsync(true));

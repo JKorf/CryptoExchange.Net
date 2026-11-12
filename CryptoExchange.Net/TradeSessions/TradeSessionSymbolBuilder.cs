@@ -25,6 +25,25 @@ public class TradeSessionBuilder<TTradeSession, TSelf, TUser>
     private readonly ILoggerFactory _loggerFactory;
     private readonly Func<TradeSessionUserContext, TUser> _userFactory;
     private TimeSpan _updateLoopInterval;
+    private Func<DateTime>? _externalClock;
+
+    /// <summary>
+    /// Use externally driven, serial callback processing and update scheduling with the supplied UTC clock.
+    /// </summary>
+    protected void UseExternalExecution(Func<DateTime> getUtcNow)
+        => _externalClock = getUtcNow ?? throw new ArgumentNullException(nameof(getUtcNow));
+
+    /// <summary>
+    /// Register a user without configuring a data tracker.
+    /// </summary>
+    protected void RegisterUser(string userIdentifier, TradeEnvironment? environment = null)
+    {
+        if (string.IsNullOrWhiteSpace(userIdentifier))
+            throw new ArgumentException("A user identifier is required.", nameof(userIdentifier));
+        if (_users.ContainsKey(userIdentifier))
+            throw new InvalidOperationException($"User '{userIdentifier}' is already configured.");
+        _users.Add(userIdentifier, new TradeSessionUserDefinition(userIdentifier, environment));
+    }
 
     /// <summary>
     /// ctor
@@ -186,7 +205,8 @@ public class TradeSessionBuilder<TTradeSession, TSelf, TUser>
             _clientProvider.ExchangeName,
             _loggerFactory.CreateLogger($"{_clientProvider.ExchangeName}.{typeof(TTradeSession).Name}"),
             factories.Select(create => new Func<ITradeSessionFeature>(() => create(session))).ToArray(),
-            _updateLoopInterval);
+            _updateLoopInterval,
+            _externalClock != null);
 
         var users = new TradeSessionUsers<TUser>(_users.Values.Select(definition =>
             _userFactory(new TradeSessionUserContext(
@@ -194,7 +214,7 @@ public class TradeSessionBuilder<TTradeSession, TSelf, TUser>
                 () => host.GetSpotUserDataTracker(definition.UserIdentifier),
                 mode => host.GetFuturesUserDataTracker(definition.UserIdentifier, mode)))));
         host.Attach(new TradeSessionContext<TUser>(
-            _clientProvider.ExchangeName, users, host.GetOrderBooks, host.GetOrderBook));
+            _clientProvider.ExchangeName, users, host.GetOrderBooks, host.GetOrderBook, _externalClock));
 
         return host;
     }

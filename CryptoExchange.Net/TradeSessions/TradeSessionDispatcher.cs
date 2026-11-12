@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,12 +17,16 @@ internal sealed class TradeSessionDispatcher
     private bool _enabled;
     private int _activeCallbacks;
     private TaskCompletionSource<bool>? _drained;
+    private readonly Queue<Func<Task>> _pending = new();
+
+    internal bool ExternallyDriven { get; }
 
     internal bool IsExecuting => _executing.Value;
 
-    internal TradeSessionDispatcher(ILogger logger)
+    internal TradeSessionDispatcher(ILogger logger, bool externallyDriven = false)
     {
         _logger = logger;
+        ExternallyDriven = externallyDriven;
     }
 
     internal void ReportException(Exception error)
@@ -38,12 +43,19 @@ internal sealed class TradeSessionDispatcher
         lock (_sync)
         {
             _enabled = false;
+            _pending.Clear();
             return _activeCallbacks == 0 ? Task.CompletedTask : _drained!.Task;
         }
     }
 
     internal void Dispatch(Action callback)
     {
+        if (ExternallyDriven)
+        {
+            Enqueue(() => { callback(); return Task.CompletedTask; });
+            return;
+        }
+
         if (!TryEnter(false))
             return;
 
@@ -60,7 +72,40 @@ internal sealed class TradeSessionDispatcher
         }
     }
 
-    internal Task DispatchAsync(Func<Task> callback) => InvokeAsync(callback, false);
+    internal Task DispatchAsync(Func<Task> callback)
+    {
+        if (!ExternallyDriven)
+            return InvokeAsync(callback, false);
+
+        Enqueue(callback);
+        return Task.CompletedTask;
+    }
+
+    private void Enqueue(Func<Task> callback)
+    {
+        lock (_sync)
+        {
+            if (_enabled)
+                _pending.Enqueue(callback);
+        }
+    }
+
+    internal async Task ProcessPendingAsync(CancellationToken ct)
+    {
+        while (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            Func<Task> callback;
+            lock (_sync)
+            {
+                if (_pending.Count == 0)
+                    return;
+                callback = _pending.Dequeue();
+            }
+
+            await InvokeAsync(callback, false).ConfigureAwait(false);
+        }
+    }
 
     internal Task InvokeLifecycleAsync(Func<Task> callback) => InvokeAsync(callback, true);
 

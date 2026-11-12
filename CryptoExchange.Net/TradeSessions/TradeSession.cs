@@ -67,6 +67,8 @@ public abstract partial class TradeSession
 
     internal void Dispatch(Action callback) => _dispatcher!.Dispatch(callback);
 
+    internal bool ExternallyDriven => _dispatcher!.ExternallyDriven;
+
     internal Task DispatchAsync(Func<Task> callback) => _dispatcher!.DispatchAsync(callback);
 
     internal void ReportException(Exception error) => _dispatcher!.ReportException(error);

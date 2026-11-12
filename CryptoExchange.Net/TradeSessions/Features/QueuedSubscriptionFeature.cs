@@ -36,6 +36,19 @@ internal sealed class QueuedSubscriptionFeature<TUpdate> : ITradeSessionFeature
 
     public async Task<CallResult> StartAsync(CancellationToken ct)
     {
+        if (_session.ExternallyDriven)
+        {
+            if (_maxQueuedItems != null)
+                throw new NotSupportedException("Externally driven sessions require lossless, unbounded callbacks.");
+
+            var externalResult = await _starter(
+                update => { _ = _session.DispatchAsync(() => _handler(update)); }, ct).ConfigureAwait(false);
+            if (!externalResult.Success)
+                return CallResult.Fail(externalResult.Error);
+            _subscription = externalResult.Data;
+            return CallResult.Ok();
+        }
+
         var queue = new ProcessQueue<TUpdate>(
             update => _session.DispatchAsync(() => _handler(update)), _maxQueuedItems, _fullBehavior);
         _queue = queue;
