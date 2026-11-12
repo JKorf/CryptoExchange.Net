@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.TradeSessions
         public static TradeSessionUserBuilder<TStrategy, TEnvironment>
             AddSpotUserDataTracking<TStrategy, TEnvironment>(
             this TradeSessionUserBuilder<TStrategy, TEnvironment> builder, SpotUserDataTrackerConfig? config = null)
-            where TStrategy : TradeSession, ISpotUserDataUpdateHandler
+            where TStrategy : TradeSession
             where TEnvironment : TradeEnvironment
         {
             if (builder.TrackerFactory is not ISpotUserDataTrackerFactory<TEnvironment> factory)
@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.TradeSessions
                 this TradeSessionUserBuilder<TStrategy, TEnvironment> builder,
                 TradingMode tradingMode,
                 FuturesUserDataTrackerConfig? config = null)
-            where TStrategy : TradeSession, IFuturesUserDataUpdateHandler
+            where TStrategy : TradeSession
             where TEnvironment : TradeEnvironment
         {
             if (builder.TrackerFactory is not IFuturesUserDataTrackerFactory<TEnvironment> factory)

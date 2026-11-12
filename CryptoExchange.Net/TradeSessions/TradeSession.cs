@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.TradeSessions;
 /// <summary>
 /// Trading strategy
 /// </summary>
-public abstract class TradeSession
+public abstract partial class TradeSession
 {
     private TradeSessionContext? _context;
     private TradeSessionDispatcher? _dispatcher;

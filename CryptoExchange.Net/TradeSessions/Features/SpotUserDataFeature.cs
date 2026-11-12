@@ -16,7 +16,6 @@ namespace CryptoExchange.Net.TradeSessions.Features
     public sealed class SpotUserDataFeature : ITradingSessionFeature
     {
         private IUserSpotDataTracker? _tracker;
-        private readonly ISpotUserDataUpdateHandler _handler;
         private readonly TradeSession _strategy;
         private readonly Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> _trackerFactory;
         private bool _attached;
@@ -37,13 +36,11 @@ namespace CryptoExchange.Net.TradeSessions.Features
         public SpotUserDataFeature(
             string userIdentifier,
             Func<CancellationToken, Task<CallResult<IUserSpotDataTracker>>> trackerFactory,
-            ISpotUserDataUpdateHandler handler)
+            TradeSession session)
         {
             UserIdentifier = userIdentifier;
             _trackerFactory = trackerFactory ?? throw new ArgumentNullException(nameof(trackerFactory));
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
-            _strategy = handler as TradeSession
-                ?? throw new ArgumentException("The handler must be a trading strategy.", nameof(handler));
+            _strategy = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         /// <inheritdoc />
@@ -70,15 +67,15 @@ namespace CryptoExchange.Net.TradeSessions.Features
         }
 
         private Task HandleBalances(UserDataUpdate<SharedBalance[]> update)
-            => _strategy.DispatchAsync(() => _handler.HandleSpotBalancesUpdateAsync(
+            => _strategy.DispatchAsync(() => _strategy.InvokeSpotBalancesUpdateAsync(
                 UserIdentifier, update));
 
         private Task HandleOrders(UserDataUpdate<SharedSpotOrder[]> update)
-            => _strategy.DispatchAsync(() => _handler.HandleSpotOrdersUpdateAsync(
+            => _strategy.DispatchAsync(() => _strategy.InvokeSpotOrdersUpdateAsync(
                 UserIdentifier, update));
 
         private Task HandleTrades(UserDataUpdate<SharedUserTrade[]> update)
-            => _strategy.DispatchAsync(() => _handler.HandleSpotTradesUpdateAsync(
+            => _strategy.DispatchAsync(() => _strategy.InvokeSpotTradesUpdateAsync(
                 UserIdentifier, update));
 
         /// <inheritdoc />
