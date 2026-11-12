@@ -45,6 +45,10 @@ public sealed class TradeSessionHost<TTradeSession> : ITradeSessionHost<TTradeSe
     public string Exchange { get; }
     /// <inheritdoc />
     public bool Started => _started;
+    /// <summary>
+    /// Whether callbacks and update scheduling are driven by an external coordinator.
+    /// </summary>
+    public bool ExternallyDriven => _dispatcher.ExternallyDriven;
     /// <inheritdoc />
     public TimeSpan UpdateLoopInterval { get; }
 
