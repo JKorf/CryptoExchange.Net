@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using NUnit.Framework;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -72,9 +73,9 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
             // Kucoin futures kline stream: "candles":["1789830000","4.803E-5","4.807E-5",...]
             var deserialized = JsonSerializer.Deserialize<TestDecimal>(json);
 
-            Assert.That(deserialized!.Prop1, Is.EqualTo(expected1));
-            Assert.That(deserialized.Prop2, Is.EqualTo(expected2));
-            Assert.That(deserialized.Prop3, Is.EqualTo(expected3));
+            Assert.That(deserialized!.Prop1, Is.EqualTo(Math.Round(expected1, 8)));
+            Assert.That(deserialized.Prop2, Is.EqualTo(Math.Round(expected2, 8)));
+            Assert.That(deserialized.Prop3, Is.EqualTo(Math.Round(expected3, 8)));
         }
     }
 

@@ -64,34 +64,35 @@ namespace CryptoExchange.Net
         /// <param name="roundingType">How to round</param>
         /// <param name="value">The input value</param>
         /// <returns></returns>
-        public static decimal AdjustValueStep(decimal min, decimal max, decimal? step, RoundingType roundingType, decimal value)
+        public static decimal AdjustValueStep(
+             decimal min,
+             decimal max,
+             decimal? step,
+             RoundingType roundingType,
+             decimal value)
         {
-            if(step == 0)
-                throw new ArgumentException($"0 not allowed for parameter {nameof(step)}, pass in null to ignore the step size", nameof(step));
+            if (min > max)
+                throw new ArgumentException("Minimum cannot exceed maximum.");
 
-            value = Math.Min(max, value);
-            value = Math.Max(min, value);
-            if (step == null)
+            value = ClampValue(min, max, value);
+
+            if (!step.HasValue)
                 return value;
 
-            var offset = value % step.Value;
-            if(roundingType == RoundingType.Down)
-            {
-                value -= offset;
-            }
-            else if(roundingType == RoundingType.Up)
-            {
-                if (offset != 0)
-                    value += (step.Value - offset);
-            }
-            else
-            {
-                if (offset < step / 2)
-                    value -= offset;
-                else value += (step.Value - offset);
-            }
-                
-            return value.Normalize();
+            if (step.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(step));
+
+            // Find the valid step-aligned interval.
+            decimal alignedMin = RoundToStep(min, step.Value, RoundingType.Up);
+            decimal alignedMax = RoundToStep(max, step.Value, RoundingType.Down);
+
+            if (alignedMin > alignedMax)
+                throw new ArgumentException("No step-aligned value exists within the bounds.");
+
+            // Clamp before rounding to avoid rounding beyond decimal's range.
+            value = ClampValue(alignedMin, alignedMax, value);
+
+            return RoundToStep(value, step.Value, roundingType).Normalize();
         }
 
         /// <summary>
@@ -103,14 +104,97 @@ namespace CryptoExchange.Net
         /// <param name="roundingType">How to round</param>
         /// <param name="value">The input value</param>
         /// <returns></returns>
-        public static decimal AdjustValuePrecision(decimal min, decimal max, int? precision, RoundingType roundingType, decimal value)
+        public static decimal AdjustValuePrecision(
+            decimal min,
+            decimal max,
+            int? precision,
+            RoundingType roundingType,
+            decimal value)
         {
-            value = Math.Min(max, value);
-            value = Math.Max(min, value);
-            if (precision == null)
+            if (min > max)
+                throw new ArgumentException("Minimum cannot exceed maximum.");
+
+            value = ClampValue(min, max, value);
+
+            if (!precision.HasValue)
                 return value;
 
-            return RoundToSignificantDigits(value, precision.Value, roundingType);
+            if (precision.Value < 1)
+                throw new ArgumentOutOfRangeException(nameof(precision));
+
+            decimal alignedMin = RoundToSignificantDigits(
+                min, precision.Value, RoundingType.Up);
+
+            decimal alignedMax = RoundToSignificantDigits(
+                max, precision.Value, RoundingType.Down);
+
+            if (alignedMin > alignedMax)
+                throw new ArgumentException(
+                    "No value with the requested precision exists within the bounds.");
+
+            value = ClampValue(alignedMin, alignedMax, value);
+
+            return RoundToSignificantDigits(
+                value, precision.Value, roundingType);
+        }
+
+        private static decimal GetDecimalStep(double decimalPlaces)
+        {
+            if (double.IsNaN(decimalPlaces) ||
+                decimalPlaces < 0 ||
+                decimalPlaces > 28 ||
+                decimalPlaces != Math.Truncate(decimalPlaces))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(decimalPlaces),
+                    "Decimal places must be an integer between 0 and 28.");
+            }
+
+            decimal step = 1m;
+            for (int i = 0; i < (int)decimalPlaces; i++)
+                step /= 10m;
+
+            return step;
+        }
+
+        private static decimal RoundToStep(
+            decimal value,
+            decimal step,
+            RoundingType roundingType)
+        {
+            if (step <= 0)
+                throw new ArgumentOutOfRangeException(nameof(step));
+
+            if (roundingType != RoundingType.Down &&
+                roundingType != RoundingType.Up &&
+                roundingType != RoundingType.Closest)
+            {
+                throw new ArgumentOutOfRangeException(nameof(roundingType));
+            }
+
+            decimal remainder = value % step;
+            if (remainder == 0)
+                return value;
+
+            decimal truncated = value - remainder;
+
+            switch (roundingType)
+            {
+                case RoundingType.Down:
+                    return value < 0 ? truncated - step : truncated;
+
+                case RoundingType.Up:
+                    return value > 0 ? truncated + step : truncated;
+
+                default:
+                    decimal distance = Math.Abs(remainder);
+
+                    // Avoid step / 2, which can underflow for tiny steps.
+                    if (distance >= step - distance)
+                        return truncated + (value > 0 ? step : -step);
+
+                    return truncated;
+            }
         }
 
         /// <summary>
@@ -125,18 +209,22 @@ namespace CryptoExchange.Net
             int? decimals = null,
             decimal? valueStep = null)
         {
+            decimal? decimalStep = decimals.HasValue
+                ? GetDecimalStep(decimals.Value)
+                : (decimal?)null;
+
             if (valueStep.HasValue)
+                value = RoundToStep(value, valueStep.Value, RoundingType.Closest);
+
+            if (decimalStep.HasValue)
+                value = Math.Round(value, decimals!.Value, MidpointRounding.ToEven);
+
+            // Decimal-place rounding must not invalidate the step requirement.
+            if (valueStep.HasValue && value % valueStep.Value != 0)
             {
-                var offset = value % valueStep.Value;
-                if (offset != 0)
-                {
-                    if (offset < valueStep.Value / 2)
-                        value -= offset;
-                    else value += (valueStep.Value - offset);
-                }
+                throw new ArgumentException(
+                    "Decimal-place rounding produced a value that violates the step requirement.");
             }
-            if (decimals.HasValue)
-                value = Math.Round(value, decimals.Value);
 
             return value;
         }
@@ -150,15 +238,71 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static decimal RoundToSignificantDigits(decimal value, int digits, RoundingType roundingType)
         {
-            var val = (double)value;
+            if (digits < 1)
+                throw new ArgumentOutOfRangeException(nameof(digits));
+
             if (value == 0)
                 return 0;
 
-            double scale = Math.Pow(10, Math.Floor(Math.Log10(Math.Abs(val))) + 1);
-            if(roundingType == RoundingType.Closest)
-                return (decimal)(scale * Math.Round(val / scale, digits));
-            else
-                return (decimal)(scale * (double)RoundDown((decimal)(val / scale), digits));
+            // Determine the decimal exponent without converting to double.
+            decimal magnitude = Math.Abs(value);
+            int exponent = 0;
+
+            while (magnitude >= 10m)
+            {
+                magnitude /= 10m;
+                exponent++;
+            }
+
+            while (magnitude < 1m)
+            {
+                magnitude *= 10m;
+                exponent--;
+            }
+
+            // Decimal cannot represent a step smaller than 10^-28.
+            // At that precision, the original value already fits.
+            if (digits >= exponent + 30)
+                return value;
+
+            int stepExponent = exponent - digits + 1;
+            decimal step = 1m;
+
+            for (int i = 0; i < stepExponent; i++)
+                step *= 10m;
+
+            for (int i = 0; i > stepExponent; i--)
+                step /= 10m;
+
+            decimal remainder = value % step;
+            if (remainder == 0)
+                return value;
+
+            decimal truncated = value - remainder;
+
+            switch (roundingType)
+            {
+                case RoundingType.Down:
+                    return value < 0 ? truncated - step : truncated;
+
+                case RoundingType.Up:
+                    return value > 0 ? truncated + step : truncated;
+
+                case RoundingType.Closest:
+                    decimal distance = Math.Abs(remainder);
+                    decimal halfway = step / 2m;
+
+                    if (distance > halfway ||
+                        (distance == halfway && (truncated / step) % 2m != 0))
+                    {
+                        return truncated + (value > 0 ? step : -step);
+                    }
+
+                    return truncated;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(roundingType));
+            }
         }
 
         /// <summary>
@@ -166,17 +310,18 @@ namespace CryptoExchange.Net
         /// </summary>
         public static decimal RoundDown(decimal i, double decimalPlaces)
         {
-            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
-            return Math.Floor(i * power) / power;
+            return RoundToStep(
+                i, GetDecimalStep(decimalPlaces), RoundingType.Down);
         }
+
 
         /// <summary>
         /// Rounds a value up
         /// </summary>
         public static decimal RoundUp(decimal i, double decimalPlaces)
         {
-            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
-            return Math.Ceiling(i * power) / power;
+            return RoundToStep(
+                i, GetDecimalStep(decimalPlaces), RoundingType.Up);
         }
 
         /// <summary>

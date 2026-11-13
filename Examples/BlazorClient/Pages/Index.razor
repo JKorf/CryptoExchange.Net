@@ -42,7 +42,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var asterTask = asterClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var asterTask = asterClient.SpotV3Api.ExchangeData.GetTickerAsync("BTCUSDT");
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bitfinexTask = bitfinexClient.ExchangeApi.ExchangeData.GetTickerAsync("tBTCUSD");
