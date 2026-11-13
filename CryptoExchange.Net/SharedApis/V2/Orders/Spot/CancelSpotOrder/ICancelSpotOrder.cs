@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for canceling a spot order on an exchange.
     /// </summary>
-    public interface ICancelSpotOrder : ISharedApiCapability
+    public interface ICancelSpotOrderOperation
     {
         /// <summary>
         /// Spot cancel order request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         CancelSpotOrderOptions CancelSpotOrderOptions { get; }
         /// <summary>
-        /// Cancel a spot order, see <see cref="CancelSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Cancel a spot order, see <see cref="CancelSpotOrderOptions"/> for request options and exchange specific
+        /// required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedId>> CancelSpotOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedId>> CancelSpotOrderAsync(
+            CancelOrderRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for canceling a spot order on an exchange.
+    /// </summary>
+    /// <see cref="ICancelSpotOrderOperation"/>
+    public interface ICancelSpotOrder : ICancelSpotOrderOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -41,7 +55,9 @@ namespace CryptoExchange.Net.SharedApis
     public interface ICancelSpotOrderSocket : ICancelSpotOrder, ISharedSocket
     {
         /// <inheritdoc />
-        new Task<QueryResult<SharedId>> CancelSpotOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
+        new Task<QueryResult<SharedId>> CancelSpotOrderAsync(
+            CancelOrderRequest request,
+            CancellationToken ct = default);
 
     }
 }

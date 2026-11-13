@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,22 +10,36 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for placing a futures trigger order on an exchange.
     /// </summary>
-    public interface IPlaceFuturesTriggerOrder : ISharedApiCapability
+    public interface IPlaceFuturesTriggerOrderOperation
     {
         /// <summary>
         /// Place futures trigger order options.<br />
-        /// Use  <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         PlaceFuturesTriggerOrderOptions PlaceFuturesTriggerOrderOptions { get; }
 
         /// <summary>
-        /// Place a new trigger order, see <see cref="PlaceFuturesTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Place a new trigger order, see <see cref="PlaceFuturesTriggerOrderOptions"/> for request options and
+        /// exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<IExchangeCallResult<SharedId>> PlaceFuturesTriggerOrderAsync(PlaceFuturesTriggerOrderRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedId>> PlaceFuturesTriggerOrderAsync(
+            PlaceFuturesTriggerOrderRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for placing a futures trigger order on an exchange.
+    /// </summary>
+    /// <see cref="IPlaceFuturesTriggerOrderOperation"/>
+    public interface IPlaceFuturesTriggerOrder : IPlaceFuturesTriggerOrderOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -34,6 +48,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IPlaceFuturesTriggerOrderRest : IPlaceFuturesTriggerOrder, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedId>> PlaceFuturesTriggerOrderAsync(PlaceFuturesTriggerOrderRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedId>> PlaceFuturesTriggerOrderAsync(
+            PlaceFuturesTriggerOrderRequest request,
+            CancellationToken ct = default);
     }
 }

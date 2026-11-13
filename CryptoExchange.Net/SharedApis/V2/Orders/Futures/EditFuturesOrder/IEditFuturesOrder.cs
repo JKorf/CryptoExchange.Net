@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,23 +10,35 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for editing an open Futures order on an exchange.
     /// </summary>
-    public interface IEditFuturesOrder : ISharedApiCapability
+    public interface IEditFuturesOrderOperation
     {
         /// <summary>
         /// Futures edit order request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         EditFuturesOrderOptions EditFuturesOrderOptions { get; }
-        
+
         /// <summary>
-        /// Edit an existing Futures order, see <see cref="EditFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Edit an existing Futures order, see <see cref="EditFuturesOrderOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         Task<IExchangeCallResult<SharedId>> EditFuturesOrderAsync(
             EditOrderRequest request,
             CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for editing an open Futures order on an exchange.
+    /// </summary>
+    /// <see cref="IEditFuturesOrderOperation"/>
+    public interface IEditFuturesOrder : IEditFuturesOrderOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>

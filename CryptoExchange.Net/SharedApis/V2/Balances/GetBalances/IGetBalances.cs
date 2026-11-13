@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,22 +10,36 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for retrieving user asset balances from an exchange.
     /// </summary>
-    public interface IGetBalances : ISharedApiCapability
+    public interface IGetBalancesOperation
     {
         /// <summary>
         /// Balances request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetBalancesOptions GetBalancesOptions { get; }
 
         /// <summary>
-        /// Get balances for the user, see <see cref="GetBalancesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get balances for the user, see <see cref="GetBalancesOptions"/> for request options and exchange specific
+        /// required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<IExchangeCallResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedBalance[]>> GetBalancesAsync(
+            GetBalancesRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for retrieving user asset balances from an exchange.
+    /// </summary>
+    /// <see cref="IGetBalancesOperation"/>
+    public interface IGetBalances : IGetBalancesOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -34,6 +48,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetBalancesRest : IGetBalances, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedBalance[]>> GetBalancesAsync(
+            GetBalancesRequest request,
+            CancellationToken ct = default);
     }
 }
