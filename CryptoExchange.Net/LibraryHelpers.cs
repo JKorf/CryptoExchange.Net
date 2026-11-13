@@ -229,6 +229,12 @@ namespace CryptoExchange.Net
         public static HttpMessageHandler CreateHttpClientMessageHandler(RestExchangeOptions options)
         {
 #if NET5_0_OR_GREATER
+            if (OperatingSystem.IsBrowser()) 
+            {
+                var httpHandler = new HttpClientHandler();
+                return httpHandler;
+            }
+
             var socketHandler = new SocketsHttpHandler();
             try
             {
