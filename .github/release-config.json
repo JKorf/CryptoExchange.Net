@@ -1,0 +1,28 @@
+{
+  "baseBranch": "master",
+  "sdk": "11.0.100",
+  "packages": [
+    {
+      "key": "cryptoexchange-web3",
+      "project": "CryptoExchange.Net.Web3/CryptoExchange.Net.Web3.csproj",
+      "testProjects": [],
+      "packageId": "CryptoExchange.Net.Web3",
+      "readme": "CryptoExchange.Net.Web3/README.md",
+      "tagPrefix": "CryptoExchange.Net.Web3.",
+      "releaseIntegrationTests": false,
+      "publishToGitHubPackages": true
+    },
+    {
+      "key": "cryptoexchange",
+      "project": "CryptoExchange.Net/CryptoExchange.Net.csproj",
+      "testProjects": [
+        "CryptoExchange.Net.UnitTests/CryptoExchange.Net.UnitTests.csproj"
+      ],
+      "packageId": "CryptoExchange.Net",
+      "readme": "README.md",
+      "tagPrefix": "CryptoExchange.Net.",
+      "releaseIntegrationTests": false,
+      "publishToGitHubPackages": true
+    }
+  ]
+}
