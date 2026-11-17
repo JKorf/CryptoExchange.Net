@@ -116,6 +116,13 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.3.0 - 17 Nov 2026
+    * Added cancellation of subsequent subscribe requests if the first one fails in UserDataTracker
+    * Updated KlineTracker and TradeTracker to work with Shared APIs V2
+    * Fixed browser support
+    * Fixed some issues in trackers
+    * Fixed some decimal/double precision issues for dotnet 11 in helpers
+
 * Version 13.2.3 - 03 Nov 2026
     * Added additional constructor for NoApiCredentialsError
     * Updated test error messages
