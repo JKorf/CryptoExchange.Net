@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,11 +9,23 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Testing
 {
+    /// <summary>
+    /// Shared API config
+    /// </summary>
     public class SharedApiTestConfig
     {
+        /// <summary>
+        /// Symbol to use
+        /// </summary>
         public SharedSymbol Symbol { get; }
+        /// <summary>
+        /// Asset to use
+        /// </summary>
         public string? Asset { get; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SharedApiTestConfig(SharedSymbol symbol, string? asset = null)
         {
             Symbol = symbol;
@@ -20,206 +33,106 @@ namespace CryptoExchange.Net.Testing
         }
     }
 
+    /// <summary>
+    /// Rest integration test
+    /// </summary>
     public abstract class SharedApiRestIntegrationTest
     {
-        public abstract bool ManualRun { get; }
+        /// <summary>
+        /// Whether to run the test in a manual run
+        /// </summary>
+        protected abstract bool ManualRun { get; }
 
-        private Dictionary<ISharedApi, SharedApiTestConfig> _apis;
+        /// <summary>
+        /// Get config for a client
+        /// </summary>
+        protected abstract SharedApiTestConfig GetConfig(ISharedRest client);
 
-        public abstract Dictionary<ISharedApi, SharedApiTestConfig> GetApis();
+        /// <summary>
+        /// Get client
+        /// </summary>
+        protected abstract ISharedApiClientBase GetClient();
 
+        /// <summary>
+        /// Run the test, should call <see cref="ExecuteAsync"/>
+        /// </summary>
         public abstract Task RunAsync();
 
-        public async Task ExecuteAsync()
+        /// <summary>
+        /// Execute the test
+        /// </summary>
+        protected async Task ExecuteAsync()
         {
             if (!ManualRun)
                 // Integration test flag
                 return;
 
-            _apis = GetApis();
-
             var results = new List<Exception>();
-            results.AddRange(await TestGetAssetAsync().ConfigureAwait(false));
-            results.AddRange(await TestGetAllAssetsAsync().ConfigureAwait(false));
-            results.AddRange(await TestGetBookTickerAsync().ConfigureAwait(false));
-            results.AddRange(await TestGetFeesAsync().ConfigureAwait(false));
-            results.AddRange(await TestGetFundingInfo().ConfigureAwait(false));
-            results.AddRange(await TestGetFundingRateHistory().ConfigureAwait(false));
-            results.AddRange(await TestGetIndexPrice().ConfigureAwait(false));
-            results.AddRange(await TestGetAllIndexPrices().ConfigureAwait(false));
-            results.AddRange(await TestGetKlines().ConfigureAwait(false));
+
+            await TestCapability<IGetAssetRest, SharedAsset>(results, (config, cap) =>
+                cap.GetAssetAsync(new GetAssetRequest(config.Asset ?? throw new InvalidOperationException("Asset is not configured")))).ConfigureAwait(false);
+            await TestCapability<IGetAllAssetsRest, SharedAsset[]>(results, (config, cap) =>
+                cap.GetAllAssetsAsync(new GetAssetsRequest())).ConfigureAwait(false);
+            await TestCapability<IGetFeesRest, SharedFee>(results, (config, cap) =>
+                cap.GetFeesAsync(new GetFeeRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetFundingInfoRest, SharedFundingInfo>(results, (config, cap) =>
+                cap.GetFundingInfoAsync(new GetFundingInfoRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetIndexPriceRest, SharedIndexPrice>(results, (config, cap) =>
+                cap.GetIndexPriceAsync(new GetIndexPriceRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetAllIndexPricesRest, SharedIndexPrice[]>(results, (config, cap) =>
+                cap.GetAllIndexPricesAsync(new GetAllIndexPricesRequest())).ConfigureAwait(false);
+            await TestCapability<IGetKlinesRest, SharedKline[]>(results, (config, cap) =>
+                cap.GetKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+            await TestCapability<IGetMarkPriceKlinesRest, SharedFuturesKline[]>(results, (config, cap) =>
+                cap.GetMarkPriceKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+            await TestCapability<IGetIndexPriceKlinesRest, SharedFuturesKline[]>(results, (config, cap) =>
+                cap.GetIndexPriceKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+            await TestCapability<IGetMarkPriceRest, SharedMarkPrice>(results, (config, cap) =>
+                cap.GetMarkPriceAsync(new GetMarkPriceRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetAllMarkPricesRest, SharedMarkPrice[]>(results, (config, cap) =>
+                cap.GetAllMarkPricesAsync(new GetAllMarkPricesRequest())).ConfigureAwait(false);
+            await TestCapability<IGetOpenInterestRest, SharedOpenInterest>(results, (config, cap) =>
+                cap.GetOpenInterestAsync(new GetOpenInterestRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetBookTickerRest, SharedBookTicker>(results, (config, cap) =>
+                cap.GetBookTickerAsync(new GetBookTickerRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetOrderBookRest, SharedOrderBook>(results, (config, cap) =>
+                cap.GetOrderBookAsync(new GetOrderBookRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetSpotSymbolsRest, SharedSpotSymbol[]>(results, (config, cap) =>
+                cap.GetSpotSymbolsAsync(new GetSymbolsRequest())).ConfigureAwait(false);
+            await TestCapability<IGetFuturesSymbolsRest, SharedFuturesSymbol[]>(results, (config, cap) =>
+                cap.GetFuturesSymbolsAsync(new GetSymbolsRequest())).ConfigureAwait(false);
+            await TestCapability<IGetTickerRest, SharedTicker>(results, (config, cap) =>
+                cap.GetTickerAsync(new GetTickerRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetAllTickersRest, SharedTicker[]>(results, (config, cap) =>
+                cap.GetAllTickersAsync(new GetTickersRequest())).ConfigureAwait(false);
+            await TestCapability<IGetRecentTradesRest, SharedTrade[]>(results, (config, cap) =>
+                cap.GetRecentTradesAsync(new GetRecentTradesRequest(config.Symbol))).ConfigureAwait(false);
+            await TestCapability<IGetTradeHistoryRest, SharedTrade[]>(results, (config, cap) =>
+                cap.GetTradeHistoryAsync(new GetTradeHistoryRequest(config.Symbol, DateTime.UtcNow.AddHours(-1)))).ConfigureAwait(false);
 
             if (results.Count > 0)
                 throw new AggregateException(results);
         }
 
-        protected virtual async Task<List<Exception>> TestGetBookTickerAsync()
+        private async Task TestCapability<TCapability, TResult>(
+            List<Exception> output,
+            Func<SharedApiTestConfig, TCapability, Task<HttpResult<TResult>>> method)
+            where TCapability : ISharedRest
         {
-            var results = new List<Exception>();
-            foreach(var api in _apis)
+            var capability = GetClient().GetCapabilities<TCapability>();
+            foreach(var capabilityItem in capability)
             {
-                if (api.Key is not IGetBookTickerRest client || client.GetBookTickerOptions.NeedsAuthentication)
+                if (capabilityItem.Options.NeedsAuthentication)
                     continue;
 
-                LogTest(client.GetBookTickerOptions, client);
-                var result = await client!.GetBookTickerAsync(new GetBookTickerRequest(api.Value.Symbol)).ConfigureAwait(false);
+                Debug.WriteLine($"Testing {capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}]");
+                var config = GetConfig(capabilityItem.Capability);
+                var result = await method(config, capabilityItem.Capability).ConfigureAwait(false);
                 if (!result.Success)
-                    results.Add(Fail(client.GetBookTickerOptions, client, result));
+                    output.Add(new Exception($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] failed: {result.Error}"));
+                if (result.Data is Array arr && arr.Length == 0)
+                    output.Add(new Exception($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] returned empty array"));
             }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetAssetAsync()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetAsset client || client.GetAssetOptions.NeedsAuthentication || api.Value.Asset == null)
-                    continue;
-
-                LogTest(client.GetAssetOptions, client);
-                var result = await client!.GetAssetAsync(new GetAssetRequest(api.Value.Asset)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetAssetOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetFeesAsync()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetFeesRest client || client.GetFeeOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetFeeOptions, client);
-                var result = await client!.GetFeesAsync(new GetFeeRequest(api.Value.Symbol)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetFeeOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetFundingInfo()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetFundingInfoRest client 
-                    || client.GetFundingInfoOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetFundingInfoOptions, client);
-                var result = await client!.GetFundingInfoAsync(new GetFundingInfoRequest(api.Value.Symbol)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetFundingInfoOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetFundingRateHistory()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetFundingRateHistoryRest client
-                    || client.GetFundingRateHistoryOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetFundingRateHistoryOptions, client);
-                var result = await client!.GetFundingRateHistoryAsync(new GetFundingRateHistoryRequest(api.Value.Symbol)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetFundingRateHistoryOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetIndexPrice()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetIndexPriceRest client
-                    || client.GetIndexPriceOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetIndexPriceOptions, client);
-                var result = await client!.GetIndexPriceAsync(new GetIndexPriceRequest(api.Value.Symbol)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetIndexPriceOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetAllIndexPrices()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetAllIndexPricesRest client
-                    || client.GetAllIndexPricesOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetAllIndexPricesOptions, client);
-                var result = await client!.GetAllIndexPricesAsync(new GetAllIndexPricesRequest()).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetAllIndexPricesOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetKlines()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetKlinesRest client
-                    || client.GetKlinesOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetKlinesOptions, client);
-                var result = await client!.GetKlinesAsync(new GetKlinesRequest(api.Value.Symbol, SharedKlineInterval.OneHour)).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetKlinesOptions, client, result));
-            }
-
-            return results;
-        }
-
-        protected virtual async Task<List<Exception>> TestGetAllAssetsAsync()
-        {
-            var results = new List<Exception>();
-            foreach (var api in _apis)
-            {
-                if (api.Key is not IGetAllAssetsRest client || client.GetAllAssetsOptions.NeedsAuthentication)
-                    continue;
-
-                LogTest(client.GetAllAssetsOptions, client);
-                var result = await client!.GetAllAssetsAsync(new GetAssetsRequest()).ConfigureAwait(false);
-                if (!result.Success)
-                    results.Add(Fail(client.GetAllAssetsOptions, client, result));
-            }
-
-            return results;
-        }
-
-
-        private void LogTest(CapabilityOptions options, ISharedApi api)
-        {
-            Debug.WriteLine($"Testing {options.OperationName} - [{string.Join(", ", api.SupportedTradingModes)}]");
-        }
-
-        private Exception Fail(CapabilityOptions options, ISharedApi api, ICallResult result)
-        {
-            return new Exception($"{options.OperationName} - [{string.Join(", ", api.SupportedTradingModes)}] failed: {result.Error}");
         }
     }
 }
