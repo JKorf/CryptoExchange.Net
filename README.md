@@ -116,6 +116,9 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.3.1 - 20 Nov 2026
+    * Added SharedApiRestIntegrationTest and SharedApiSocketIntegrationTest testing base classes
+
 * Version 13.3.0 - 17 Nov 2026
     * Added cancellation of subsequent subscribe requests if the first one fails in UserDataTracker
     * Updated KlineTracker and TradeTracker to work with Shared APIs V2
