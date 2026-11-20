@@ -79,7 +79,8 @@ namespace CryptoExchange.Net.Testing
             Func<SharedApiTestConfig, TCapability, Action<DataEvent<TResult>>, Task<WebSocketResult<UpdateSubscription>>> method)
             where TCapability : ISharedSocket
         {
-            var capability = GetClient().GetCapabilities<TCapability>();
+            var client = GetClient();
+            var capability = client.GetCapabilities<TCapability>();
             foreach(var capabilityItem in capability)
             {
                 if (capabilityItem.Options.NeedsAuthentication)
@@ -96,6 +97,8 @@ namespace CryptoExchange.Net.Testing
                 if (dataEvent == null)
                     output.Add(new OperationCanceledException($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] did not receive any data"));
             }
+
+            await client.UnsubscribeAllAsync().ConfigureAwait(false);
         }
     }
 }
