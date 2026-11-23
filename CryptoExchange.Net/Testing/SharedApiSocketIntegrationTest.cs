@@ -24,24 +24,41 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get config for a client
         /// </summary>
-        protected abstract SharedApiTestConfig GetConfig(ISharedSocket client);
+        protected abstract SharedApiTestConfig GetConfig(ISharedSocket client, CapabilityOptions options);
         /// <summary>
         /// Get client
         /// </summary>
         protected abstract ISharedApiClientBase GetClient();
 
         /// <summary>
+        /// Check if integration tests should be executed
+        /// </summary>
+        /// <returns></returns>
+        protected bool ShouldRun()
+        {
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
+            if (!ManualRun && integrationTests != "1")
+                return false;
+
+            return true;
+        }
+        
+        /// <summary>
         /// Run the test, should call <see cref="ExecuteAsync"/>
         /// </summary>
         public abstract Task RunAsync();
+
+        /// <summary>
+        /// Kline interval to subscribe
+        /// </summary>
+        public virtual SharedKlineInterval KlineInterval { get; } = SharedKlineInterval.OneHour;
 
         /// <summary>
         /// Execute the test
         /// </summary>
         protected async Task<List<Exception>> ExecuteAsync()
         {
-            if (!ManualRun)
-                // Integration test flag
+            if (!ShouldRun())
                 return new();
 
             var results = new List<Exception>();
@@ -51,7 +68,7 @@ namespace CryptoExchange.Net.Testing
             await TestCapability<ISubscribeIndexPriceSocket, SharedIndexPrice>(results, (config, cap, handler) =>
                 cap.SubscribeToIndexPriceUpdatesAsync(new SubscribeIndexPriceRequest(config.Symbol), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeKlinesSocket, SharedKline>(results, (config, cap, handler) =>
-                cap.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(config.Symbol, SharedKlineInterval.OneHour), handler)).ConfigureAwait(false);
+                cap.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(config.Symbol, KlineInterval), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeMarkPriceSocket, SharedMarkPrice>(results, (config, cap, handler) =>
                 cap.SubscribeToMarkPriceUpdatesAsync(new SubscribeMarkPriceRequest(config.Symbol), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeOrderBookSocket, SharedOrderBook>(results, (config, cap, handler) =>
@@ -61,7 +78,7 @@ namespace CryptoExchange.Net.Testing
             await TestCapability<ISubscribeTickerSocket, SharedTicker>(results, (config, cap, handler) =>
                 cap.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(config.Symbol), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeAllTickersSocket, SharedTicker[]>(results, (config, cap, handler) =>
-                cap.SubscribeToAllTickersUpdatesAsync(new SubscribeAllTickersRequest(), handler)).ConfigureAwait(false);
+                cap.SubscribeToAllTickersUpdatesAsync(new SubscribeAllTickersRequest(cap.SubscribeAllTickersOptions.SupportedTradingModes[0]), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeBookTickerSocket, SharedBookTicker>(results, (config, cap, handler) =>
                 cap.SubscribeToBookTickerUpdatesAsync(new SubscribeBookTickerRequest(config.Symbol), handler)).ConfigureAwait(false);
             await TestCapability<ISubscribeTradesSocket, SharedTrade[]>(results, (config, cap, handler) =>
@@ -87,15 +104,20 @@ namespace CryptoExchange.Net.Testing
                     continue;
 
                 Debug.WriteLine($"Testing {capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}]");
-                var config = GetConfig(capabilityItem.Capability);
+                var config = GetConfig(capabilityItem.Capability, capabilityItem.Options);
                 DataEvent<TResult>? dataEvent = null;
                 var wait = new AsyncResetEvent(false, false);
                 var result = await method(config, capabilityItem.Capability, x => { dataEvent = x; wait.Set(); }).ConfigureAwait(false);
                 if (!result.Success)
+                {
                     output.Add(new Exception($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] failed: {result.Error}"));
-                await wait.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-                if (dataEvent == null)
-                    output.Add(new OperationCanceledException($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] did not receive any data"));
+                }
+                else
+                {
+                    await wait.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                    if (dataEvent == null)
+                        output.Add(new OperationCanceledException($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] did not receive any data"));
+                }
             }
 
             await client.UnsubscribeAllAsync().ConfigureAwait(false);

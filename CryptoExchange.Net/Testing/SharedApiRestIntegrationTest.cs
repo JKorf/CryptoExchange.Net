@@ -46,12 +46,30 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get config for a client
         /// </summary>
-        protected abstract SharedApiTestConfig GetConfig(ISharedRest client);
+        protected abstract SharedApiTestConfig GetConfig(ISharedRest client, CapabilityOptions options);
 
         /// <summary>
         /// Get client
         /// </summary>
         protected abstract ISharedApiClientBase GetClient();
+
+        /// <summary>
+        /// Kline interval to request
+        /// </summary>
+        public virtual SharedKlineInterval KlineInterval { get; } = SharedKlineInterval.OneHour;
+
+        /// <summary>
+        /// Check if integration tests should be executed
+        /// </summary>
+        /// <returns></returns>
+        protected bool ShouldRun()
+        {
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
+            if (!ManualRun && integrationTests != "1")
+                return false;
+
+            return true;
+        }
 
         /// <summary>
         /// Run the test, should call <see cref="ExecuteAsync"/>
@@ -63,8 +81,7 @@ namespace CryptoExchange.Net.Testing
         /// </summary>
         protected async Task ExecuteAsync()
         {
-            if (!ManualRun)
-                // Integration test flag
+            if (!ShouldRun())
                 return;
 
             var results = new List<Exception>();
@@ -80,17 +97,17 @@ namespace CryptoExchange.Net.Testing
             await TestCapability<IGetIndexPriceRest, SharedIndexPrice>(results, (config, cap) =>
                 cap.GetIndexPriceAsync(new GetIndexPriceRequest(config.Symbol))).ConfigureAwait(false);
             await TestCapability<IGetAllIndexPricesRest, SharedIndexPrice[]>(results, (config, cap) =>
-                cap.GetAllIndexPricesAsync(new GetAllIndexPricesRequest())).ConfigureAwait(false);
+                cap.GetAllIndexPricesAsync(new GetAllIndexPricesRequest(cap.GetAllIndexPricesOptions.SupportedTradingModes[0]))).ConfigureAwait(false);
             await TestCapability<IGetKlinesRest, SharedKline[]>(results, (config, cap) =>
-                cap.GetKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+                cap.GetKlinesAsync(new GetKlinesRequest(config.Symbol, KlineInterval))).ConfigureAwait(false);
             await TestCapability<IGetMarkPriceKlinesRest, SharedFuturesKline[]>(results, (config, cap) =>
-                cap.GetMarkPriceKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+                cap.GetMarkPriceKlinesAsync(new GetKlinesRequest(config.Symbol, KlineInterval))).ConfigureAwait(false);
             await TestCapability<IGetIndexPriceKlinesRest, SharedFuturesKline[]>(results, (config, cap) =>
-                cap.GetIndexPriceKlinesAsync(new GetKlinesRequest(config.Symbol, SharedKlineInterval.OneHour))).ConfigureAwait(false);
+                cap.GetIndexPriceKlinesAsync(new GetKlinesRequest(config.Symbol, KlineInterval))).ConfigureAwait(false);
             await TestCapability<IGetMarkPriceRest, SharedMarkPrice>(results, (config, cap) =>
                 cap.GetMarkPriceAsync(new GetMarkPriceRequest(config.Symbol))).ConfigureAwait(false);
             await TestCapability<IGetAllMarkPricesRest, SharedMarkPrice[]>(results, (config, cap) =>
-                cap.GetAllMarkPricesAsync(new GetAllMarkPricesRequest())).ConfigureAwait(false);
+                cap.GetAllMarkPricesAsync(new GetAllMarkPricesRequest(cap.GetAllMarkPricesOptions.SupportedTradingModes[0]))).ConfigureAwait(false);
             await TestCapability<IGetOpenInterestRest, SharedOpenInterest>(results, (config, cap) =>
                 cap.GetOpenInterestAsync(new GetOpenInterestRequest(config.Symbol))).ConfigureAwait(false);
             await TestCapability<IGetBookTickerRest, SharedBookTicker>(results, (config, cap) =>
@@ -100,11 +117,11 @@ namespace CryptoExchange.Net.Testing
             await TestCapability<IGetSpotSymbolsRest, SharedSpotSymbol[]>(results, (config, cap) =>
                 cap.GetSpotSymbolsAsync(new GetSymbolsRequest())).ConfigureAwait(false);
             await TestCapability<IGetFuturesSymbolsRest, SharedFuturesSymbol[]>(results, (config, cap) =>
-                cap.GetFuturesSymbolsAsync(new GetSymbolsRequest())).ConfigureAwait(false);
+                cap.GetFuturesSymbolsAsync(new GetSymbolsRequest(cap.GetFuturesSymbolsOptions.SupportedTradingModes[0]))).ConfigureAwait(false);
             await TestCapability<IGetTickerRest, SharedTicker>(results, (config, cap) =>
                 cap.GetTickerAsync(new GetTickerRequest(config.Symbol))).ConfigureAwait(false);
             await TestCapability<IGetAllTickersRest, SharedTicker[]>(results, (config, cap) =>
-                cap.GetAllTickersAsync(new GetTickersRequest())).ConfigureAwait(false);
+                cap.GetAllTickersAsync(new GetTickersRequest(cap.GetAllTickersOptions.SupportedTradingModes[0]))).ConfigureAwait(false);
             await TestCapability<IGetRecentTradesRest, SharedTrade[]>(results, (config, cap) =>
                 cap.GetRecentTradesAsync(new GetRecentTradesRequest(config.Symbol))).ConfigureAwait(false);
             await TestCapability<IGetTradeHistoryRest, SharedTrade[]>(results, (config, cap) =>
@@ -114,7 +131,10 @@ namespace CryptoExchange.Net.Testing
                 throw new AggregateException(results);
         }
 
-        private async Task TestCapability<TCapability, TResult>(
+        /// <summary>
+        /// Test a capability
+        /// </summary>
+        protected virtual async Task TestCapability<TCapability, TResult>(
             List<Exception> output,
             Func<SharedApiTestConfig, TCapability, Task<HttpResult<TResult>>> method)
             where TCapability : ISharedRest
@@ -126,7 +146,7 @@ namespace CryptoExchange.Net.Testing
                     continue;
 
                 Debug.WriteLine($"Testing {capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}]");
-                var config = GetConfig(capabilityItem.Capability);
+                var config = GetConfig(capabilityItem.Capability, capabilityItem.Options);
                 var result = await method(config, capabilityItem.Capability).ConfigureAwait(false);
                 if (!result.Success)
                     output.Add(new Exception($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] failed: {result.Error}"));

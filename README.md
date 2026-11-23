@@ -116,6 +116,10 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.3.2 - 23 Nov 2026
+    * Updated Shared integration test logic
+    * Fixed xml documentation for different runtimes
+
 * Version 13.3.1 - 20 Nov 2026
     * Added SharedApiRestIntegrationTest and SharedApiSocketIntegrationTest testing base classes
 
