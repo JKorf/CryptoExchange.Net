@@ -131,6 +131,9 @@ namespace CryptoExchange.Net.Testing
                 throw new AggregateException(results);
         }
 
+        /// <summary>
+        /// Test a capability
+        /// </summary>
         protected virtual async Task TestCapability<TCapability, TResult>(
             List<Exception> output,
             Func<SharedApiTestConfig, TCapability, Task<HttpResult<TResult>>> method)
