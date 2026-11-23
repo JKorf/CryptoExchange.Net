@@ -56,7 +56,20 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Kline interval to request
         /// </summary>
-        public virtual SharedKlineInterval KlineInterval { get; }
+        public virtual SharedKlineInterval KlineInterval { get; } = SharedKlineInterval.OneHour;
+
+        /// <summary>
+        /// Check if integration tests should be executed
+        /// </summary>
+        /// <returns></returns>
+        protected bool ShouldRun()
+        {
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
+            if (!ManualRun && integrationTests != "1")
+                return false;
+
+            return true;
+        }
 
         /// <summary>
         /// Run the test, should call <see cref="ExecuteAsync"/>
@@ -68,8 +81,7 @@ namespace CryptoExchange.Net.Testing
         /// </summary>
         protected async Task ExecuteAsync()
         {
-            if (!ManualRun)
-                // Integration test flag
+            if (!ShouldRun())
                 return;
 
             var results = new List<Exception>();
@@ -119,7 +131,7 @@ namespace CryptoExchange.Net.Testing
                 throw new AggregateException(results);
         }
 
-        private async Task TestCapability<TCapability, TResult>(
+        protected virtual async Task TestCapability<TCapability, TResult>(
             List<Exception> output,
             Func<SharedApiTestConfig, TCapability, Task<HttpResult<TResult>>> method)
             where TCapability : ISharedRest

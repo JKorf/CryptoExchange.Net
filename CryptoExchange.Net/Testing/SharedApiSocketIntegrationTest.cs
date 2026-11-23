@@ -31,6 +31,19 @@ namespace CryptoExchange.Net.Testing
         protected abstract ISharedApiClientBase GetClient();
 
         /// <summary>
+        /// Check if integration tests should be executed
+        /// </summary>
+        /// <returns></returns>
+        protected bool ShouldRun()
+        {
+            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
+            if (!ManualRun && integrationTests != "1")
+                return false;
+
+            return true;
+        }
+        
+        /// <summary>
         /// Run the test, should call <see cref="ExecuteAsync"/>
         /// </summary>
         public abstract Task RunAsync();
@@ -38,15 +51,14 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Kline interval to subscribe
         /// </summary>
-        public virtual SharedKlineInterval KlineInterval { get; }
+        public virtual SharedKlineInterval KlineInterval { get; } = SharedKlineInterval.OneHour;
 
         /// <summary>
         /// Execute the test
         /// </summary>
         protected async Task<List<Exception>> ExecuteAsync()
         {
-            if (!ManualRun)
-                // Integration test flag
+            if (!ShouldRun())
                 return new();
 
             var results = new List<Exception>();
@@ -97,10 +109,15 @@ namespace CryptoExchange.Net.Testing
                 var wait = new AsyncResetEvent(false, false);
                 var result = await method(config, capabilityItem.Capability, x => { dataEvent = x; wait.Set(); }).ConfigureAwait(false);
                 if (!result.Success)
+                {
                     output.Add(new Exception($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] failed: {result.Error}"));
-                await wait.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
-                if (dataEvent == null)
-                    output.Add(new OperationCanceledException($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] did not receive any data"));
+                }
+                else
+                {
+                    await wait.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                    if (dataEvent == null)
+                        output.Add(new OperationCanceledException($"{capabilityItem.Options.OperationName} - [{string.Join(", ", capabilityItem.Options.SupportedTradingModes)}] did not receive any data"));
+                }
             }
 
             await client.UnsubscribeAllAsync().ConfigureAwait(false);
