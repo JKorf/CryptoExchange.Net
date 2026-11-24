@@ -1,37 +1,14 @@
 # CryptoExchange.Net
 
-> Base C#/.NET library used by 28+ cryptocurrency exchange clients. It standardizes REST, WebSocket, authentication, rate limiting, results, and exchange-agnostic Shared APIs.
+Shared infrastructure and portable contracts for .NET exchange clients.
 
-CryptoExchange.Net is not an exchange client by itself. Install exchange-specific packages such as Binance.Net, Bybit.Net, JK.OKX.Net, Kraken.Net, or Coinbase.Net, or install `CryptoClients.Net` for the bundle. Current release: 13.2.2. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, and net10.0; Native AOT is supported.
-
-## Shared API V2
-
-For new cross-exchange code, use fine-grained capability interfaces from `CryptoExchange.Net.SharedApis` through each API surface's `.SharedApi` property. Examples: `IGetTickerRest`, `IGetOrderBookRest`, `IPlaceSpotOrderRest`, and `ISubscribeTradesSocket`.
-
-Use `SharedSymbol` to normalize symbols and `Task.WhenAll` for independent calls across exchanges. Use an exchange-wide `I[Exchange]SharedApiClient` plus `SharedCapabilities` and `GetCapability` when selecting operations dynamically. A resolution can be `null`; its `Options` describes supported trading modes and request/exchange parameter rules.
-
-Transport-agnostic capabilities return `IExchangeCallResult<T>`. REST capabilities return `HttpResult<T>`, socket commands return `QueryResult<T>`, and socket subscriptions return `WebSocketResult<UpdateSubscription>`. Always check `.Success` before `.Data`.
-
-V1 broad interfaces remain accessible through `.SharedClient` for incremental migration. Prefer `.SharedApi` for new code. V2 ticker calls use `GetTickerAsync`/`GetAllTickersAsync` and the common `SharedTicker` model.
-
-## Documentation
-
-- [README](https://github.com/JKorf/CryptoExchange.Net/blob/master/README.md): ecosystem overview, packages, and release notes
-- [Shared API V2 migration](https://github.com/JKorf/CryptoExchange.Net/blob/master/docs/SHARED_API_V2_MIGRATION.md): V1-to-V2 mapping, capability selection, transports, and parameter discovery
-- [Documentation site](https://cryptoexchange.jkorf.dev/): complete library documentation
-- [Shared API documentation](https://cryptoexchange.jkorf.dev/CryptoExchange.Net/idocs_shared.html): cross-exchange API guide
-- [AI API map](https://github.com/JKorf/CryptoExchange.Net/blob/master/docs/ai-api-map.md): concise V2 interface and selection map
-
-## AI context files
-
-- [AGENTS.md](https://github.com/JKorf/CryptoExchange.Net/blob/master/AGENTS.md): practical generation rules and examples
-- [llms-full.txt](https://github.com/JKorf/CryptoExchange.Net/blob/master/llms-full.txt): expanded library and Shared API V2 context
-- [.github/copilot-instructions.md](https://github.com/JKorf/CryptoExchange.Net/blob/master/.github/copilot-instructions.md): compact repository conventions
-- [.cursor/rules/CryptoExchange-Net.mdc](https://github.com/JKorf/CryptoExchange.Net/blob/master/.cursor/rules/CryptoExchange-Net.mdc): Cursor rules for cross-exchange C# code
-
-## Related projects
-
-- [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): bundle and cross-exchange capability lookup
-- [CryptoManager.Net](https://github.com/JKorf/CryptoManager.Net): full demo application
-- [NuGet](https://www.nuget.org/packages/CryptoExchange.Net): package releases
-- [Discord](https://discord.gg/MSpeEtSY8t): maintainer-supported community
+- [Consumer skill](.claude/skills/cryptoexchange-net/SKILL.md)
+- [API routing and ecosystem packages](.claude/skills/cryptoexchange-net/references/api-surfaces.md)
+- [Consumer examples](.claude/skills/cryptoexchange-net/references/usage.md)
+- [Operational considerations](.claude/skills/cryptoexchange-net/references/safety.md)
+- [Project overview](README.md)
+- [Repository development](AGENTS.md)
+- [Public base client interfaces](CryptoExchange.Net/Interfaces/Clients)
+- [Public Shared API capabilities](CryptoExchange.Net/SharedApis/V2)
+- [Library project](CryptoExchange.Net/CryptoExchange.Net.csproj)
+- [Complete examples](Examples/README.md)

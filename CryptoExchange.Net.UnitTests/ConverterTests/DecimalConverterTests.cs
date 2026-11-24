@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Converters.SystemTextJson;
 using NUnit.Framework;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -23,7 +24,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDecimalConverterString(string value, decimal? expected)
         {
             var result = JsonSerializer.Deserialize<STJDecimalObject>("{ \"test\": \"" + value + "\"}");
-            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MinValue : expected == 999 ? decimal.MaxValue : expected));
+            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MinValue : expected == 999 ? decimal.MaxValue : expected == null ? null : Math.Round(expected.Value, 4)));
         }
 
         [TestCase("1", 1)]
@@ -36,7 +37,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDecimalConverterNumber(string value, decimal? expected)
         {
             var result = JsonSerializer.Deserialize<STJDecimalObject>("{ \"test\": " + value + "}");
-            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MaxValue : expected));
+            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MaxValue : expected == null ? null :Math.Round(expected.Value, 4)));
         }
     }
 

@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="13.6.0" />
-    <PackageReference Include="Bybit.Net" Version="7.6.0" />
+    <PackageReference Include="Binance.Net" Version="13.8.0" />
+    <PackageReference Include="Bybit.Net" Version="7.7.0" />
   </ItemGroup>
 
 </Project>

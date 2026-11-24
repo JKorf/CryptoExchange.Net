@@ -1,4 +1,4 @@
-# ![.CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/blob/ffcb7db8ff597c2f14982d68464015a748815580/CryptoExchange.Net/Icon/icon.png) CryptoExchange.Net  
+# ![.CryptoExchange.Net](https://raw.githubusercontent.com/JKorf/CryptoExchange.Net/master/CryptoExchange.Net/Icon/icon.png) CryptoExchange.Net  
 
 [![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/CryptoExchange.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg?style=for-the-badge)](https://www.nuget.org/packages/CryptoExchange.Net) ![License](https://img.shields.io/github/license/JKorf/CryptoExchange.Net?style=for-the-badge)
 ![Since](https://img.shields.io/badge/since-2018-brightgreen?style=for-the-badge)
@@ -10,22 +10,10 @@ For more information on what CryptoExchange.Net and it's client libraries offers
 
 ### For AI Coding Assistants
 
-This library and the entire CryptoExchange.Net ecosystem provide first-class support for AI coding assistants. The relevant skill files are in this repository:
-
-- **Agents**: `AGENTS.md` (auto-detected at repo root)
-- **Cursor**: `.cursor/rules/cryptoexchange-net.mdc`
-- **GitHub Copilot**: `.github/copilot-instructions.md`
-- **Other tools** (Windsurf, Codex, Continue, Aider, etc.): `llms.txt` at repo root
-- **Compilable examples**: `Examples/ai-friendly/`
-
-For single-exchange code, see also the AI files in each exchange's repository (Binance.Net, Bybit.Net, OKX.Net, ...) — they cover exchange-specific patterns.
-
-See [cryptoexchange-skills-hub](https://github.com/JKorf/cryptoexchange-skills-hub) for installable skills.
-
-**Quick prompt to verify your assistant is using these:**
-> "Show me how to fetch BTC/USDT spot tickers from Binance and OKX concurrently in C# using the SharedApis V2 pattern."
-
-The expected output should use `.SharedApi` properties, `SharedSymbol`, `IGetTickerRest`, and `Task.WhenAll`.
+- [Consumer skill](.claude/skills/cryptoexchange-net/SKILL.md): Shared API contracts and exchange-agnostic usage.
+- [Repository development](AGENTS.md): source layout, implementation conventions, and validation.
+- [AI documentation index](llms.txt).
+- [Compilable examples](Examples/README.md).
 
 ### CryptoExchange.Net Ecosystem
 Full list of all libraries part of the CryptoExchange.Net ecosystem. Consider using a referral link to support development, as well as potentially get some trading fee discount!
@@ -128,6 +116,20 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.3.2 - 23 Nov 2026
+    * Updated Shared integration test logic
+    * Fixed xml documentation for different runtimes
+
+* Version 13.3.1 - 20 Nov 2026
+    * Added SharedApiRestIntegrationTest and SharedApiSocketIntegrationTest testing base classes
+
+* Version 13.3.0 - 17 Nov 2026
+    * Added cancellation of subsequent subscribe requests if the first one fails in UserDataTracker
+    * Updated KlineTracker and TradeTracker to work with Shared APIs V2
+    * Fixed browser support
+    * Fixed some issues in trackers
+    * Fixed some decimal/double precision issues for dotnet 11 in helpers
+
 * Version 13.2.3 - 03 Nov 2026
     * Added additional constructor for NoApiCredentialsError
     * Updated test error messages
