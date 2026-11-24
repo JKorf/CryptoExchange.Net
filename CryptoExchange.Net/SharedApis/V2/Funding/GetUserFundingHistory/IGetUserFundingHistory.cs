@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,22 +10,40 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for retrieving funding history for a user on an exchange.
     /// </summary>
-    public interface IGetUserFundingHistory : ISharedApiCapability
+    public interface IGetUserFundingHistoryOperation
     {
         /// <summary>
         /// Funding history request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetUserFundingHistoryOptions GetUserFundingHistoryOptions { get; }
         /// <summary>
-        /// Get funding history records, see <see cref="GetUserFundingHistoryOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
+        /// Get funding history records, see <see cref="GetUserFundingHistoryOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the
+        /// <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be
+        /// used for the next request to continue pagination.
         /// </summary>
         /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
+        /// <param name="nextPageToken"> The pagination request from the previous request result
+        /// <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination </param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedFundingFee[]>> GetUserFundingHistoryAsync(GetUserFundingHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedFundingFee[]>> GetUserFundingHistoryAsync(
+            GetUserFundingHistoryRequest request,
+            PageRequest? nextPageToken = null,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for retrieving funding history for a user on an exchange.
+    /// </summary>
+    /// <see cref="IGetUserFundingHistoryOperation"/>
+    public interface IGetUserFundingHistory : IGetUserFundingHistoryOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -34,6 +52,9 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetUserFundingHistoryRest : IGetUserFundingHistory, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedFundingFee[]>> GetUserFundingHistoryAsync(GetUserFundingHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        new Task<HttpResult<SharedFundingFee[]>> GetUserFundingHistoryAsync(
+            GetUserFundingHistoryRequest request,
+            PageRequest? nextPageToken = null,
+            CancellationToken ct = default);
     }
 }

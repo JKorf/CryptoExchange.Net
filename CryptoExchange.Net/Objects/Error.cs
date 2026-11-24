@@ -365,4 +365,25 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         protected InvalidOperationError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
+
+    /// <summary>
+    /// Uknown error
+    /// </summary>
+    public class UnknownError : Error
+    {
+        /// <summary>
+        /// Default error info
+        /// </summary>
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.Unknown, false, "Unknown error");
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public UnknownError(string message, Exception? exception = null) : base(null, _errorInfo with { Message = message }, exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected UnknownError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
+    }
 }

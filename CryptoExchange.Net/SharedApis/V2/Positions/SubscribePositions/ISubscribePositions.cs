@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Threading;
 using CryptoExchange.Net.Objects.Sockets;
@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for subscribing to position updates
     /// </summary>
-    public interface ISubscribePositionsSocket : ISharedSubscription
+    public interface ISubscribePositionsOperation
     {
         /// <summary>
         /// Position subscription options
@@ -23,6 +23,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToPositionUpdatesAsync(SubscribePositionRequest request, Action<DataEvent<SharedPosition[]>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToPositionUpdatesAsync(
+            SubscribePositionRequest request,
+            Action<DataEvent<SharedPosition[]>> handler,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for subscribing to position updates
+    /// </summary>
+    /// <see cref="ISubscribePositionsOperation"/>
+    public interface ISubscribePositionsSocket : ISubscribePositionsOperation, ISharedSubscription
+    {
     }
 }

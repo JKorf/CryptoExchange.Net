@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
 using System.Threading;
@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for subscribing to user spot order updates
     /// </summary>
-    public interface ISubscribeSpotOrdersSocket : ISharedSubscription
+    public interface ISubscribeSpotOrdersOperation
     {
         /// <summary>
         /// Spot orders subscription options
@@ -23,6 +23,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToSpotOrderUpdatesAsync(SubscribeSpotOrderRequest request, Action<DataEvent<SharedSpotOrderUpdate[]>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToSpotOrderUpdatesAsync(
+            SubscribeSpotOrderRequest request,
+            Action<DataEvent<SharedSpotOrderUpdate[]>> handler,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for subscribing to user spot order updates
+    /// </summary>
+    /// <see cref="ISubscribeSpotOrdersOperation"/>
+    public interface ISubscribeSpotOrdersSocket : ISubscribeSpotOrdersOperation, ISharedSubscription
+    {
     }
 }

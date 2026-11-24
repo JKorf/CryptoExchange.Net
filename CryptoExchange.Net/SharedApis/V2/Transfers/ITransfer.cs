@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,21 +10,33 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for transferring funds between account types on an exchange.
     /// </summary>
-    public interface ITransfer : ISharedApiCapability
+    public interface ITransferOperation
     {
         /// <summary>
         /// Transfer request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         TransferOptions TransferOptions { get; }
 
         /// <summary>
-        /// Transfer funds between account types, see <see cref="TransferOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Transfer funds between account types, see <see cref="TransferOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         Task<IExchangeCallResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for transferring funds between account types on an exchange.
+    /// </summary>
+    /// <see cref="ITransferOperation"/>
+    public interface ITransfer : ITransferOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>

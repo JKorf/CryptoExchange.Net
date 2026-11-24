@@ -17,7 +17,6 @@ namespace CryptoExchange.Net.Objects
         private readonly Func<T, Task> _processor;
         private Task? _processTask;
         private CancellationTokenSource? _cts;
-        private bool _processTillEmpty;
 
         /// <summary>
         /// Event for when an exception is thrown in the processing handler
@@ -68,30 +67,55 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public Task StartAsync()
         {
-            _cts = new CancellationTokenSource();
-            _processTask = Task.Run(async () =>
-            {
-                try
-                {
-                    await foreach (var item in _channel.Reader.ReadAllAsync(_cts.Token).ConfigureAwait(false))
-                    {
-                        if (_cts.IsCancellationRequested && !_processTillEmpty) // Items might still be processed even if CT is canceled
-                            return;
+            var cts = new CancellationTokenSource();
+            _cts = cts;
+            _processTask = Task.Run(() => ProcessAsync(cts.Token));
 
+            return Task.CompletedTask;
+        }
+
+        private async Task ProcessAsync(CancellationToken ct)
+        {
+            Exception? failure = null;
+
+            try
+            {
+                await foreach (var item in _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await _processor(item).ConfigureAwait(false);
+                    }
+                    catch (Exception processingError)
+                    {
                         try
                         {
-                            await _processor.Invoke(item).ConfigureAwait(false);
+                            Exception?.Invoke(processingError);
                         }
-                        catch (Exception ex)
+                        catch (Exception notificationError)
                         {
-                            Exception?.Invoke(ex);
+                            throw new AggregateException(
+                                "Reporting a queue processor exception failed.",
+                                processingError,
+                                notificationError);
                         }
                     }
                 }
-                catch (OperationCanceledException) { }                
-            });
-
-            return Task.CompletedTask;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
+            catch (Exception error)
+            {
+                failure = error;
+                throw;
+            }
+            finally
+            {
+                _channel.Writer.TryComplete(failure);
+            }
         }
 
         /// <summary>
@@ -101,14 +125,16 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public async Task StopAsync(bool discardPending = true)
         {
-            if (_processTask == null)
+            var processTask = _processTask;
+            if (processTask == null)
                 return;
 
-            _processTillEmpty = !discardPending;
-            _cts!.Cancel();
+            _channel.Writer.TryComplete();
 
-            await _processTask.ConfigureAwait(false);
-            _channel.Writer.TryComplete(_processTask.Exception);
+            if (discardPending)
+                _cts!.Cancel();
+
+            await processTask.ConfigureAwait(false);
         }
 
         /// <summary>

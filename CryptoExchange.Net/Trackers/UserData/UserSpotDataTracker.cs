@@ -34,42 +34,52 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserSpotDataTracker(
             ILogger logger,
-            IGetSpotSymbolsRest symbolRestClient,
-
-            IGetBalancesRest balanceRestClient,
-            ISubscribeBalancesSocket? balanceSocketClient,
-
-            IGetOpenSpotOrdersRest openOrderRestClient,
-            IGetClosedSpotOrdersRest closedOrderRestClient,
-            ISubscribeSpotOrdersSocket? subscribeSpotOrdersOperation,
-
-            IGetSpotUserTradeHistoryRest? getSpotUserTradeHistoryRestClient,
-            ISubscribeUserTradesSocket? userTradeSocketClient,
-
+            ISharedApiClientBase client,
             string? userIdentifier,
             SpotUserDataTrackerConfig config,
-            ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
+            ExchangeParameters? exchangeParameters = null) : base(logger, client.Exchange, config, userIdentifier)
         {
             // create trackers
-            _symbolClient = symbolRestClient;
+            _symbolClient = client.GetCapability<IGetSpotSymbolsRest>()?.Capability ?? throw new ArgumentException("No Spot symbols capability available");
             _exchangeParameters = exchangeParameters;
 
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, SymbolTracker, balanceRestClient, balanceSocketClient, SharedAccountType.Spot, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(
+                logger,
+                SymbolTracker,
+                client.GetCapability<IGetBalancesRest>(TradingMode.Spot)?.Capability ?? throw new ArgumentException("No Spot balances capability available"),
+                client.GetCapability<ISubscribeBalancesSocket>(TradingMode.Spot)?.Capability,
+                SharedAccountType.Spot,
+                config.BalancesConfig, 
+                exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, openOrderRestClient, closedOrderRestClient, subscribeSpotOrdersOperation, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new SpotOrderTracker(
+                logger, 
+                SymbolTracker,
+                client.GetCapability<IGetOpenSpotOrdersRest>()?.Capability ?? throw new ArgumentException("No Spot open orders capability available"),
+                client.GetCapability<IGetClosedSpotOrdersRest>()?.Capability ?? throw new ArgumentException("No Spot closed orders capability available"),
+                client.GetCapability<ISubscribeSpotOrdersSocket>()?.Capability, 
+                config.OrdersConfig, 
+                config.TrackedSymbols,
+                config.OnlyTrackProvidedSymbols,
+                exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
             if (config.TrackTrades)
             {
-                if (getSpotUserTradeHistoryRestClient == null)
-                    throw new ArgumentException("Trade tracking is enabled, but no user trade API client is available");
-
-                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, getSpotUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new SpotUserTradeTracker(
+                    logger,
+                    SymbolTracker,
+                    client.GetCapability<IGetSpotUserTradeHistoryRest>()?.Capability ?? throw new ArgumentException("No Spot user trade history capability available"),
+                    client.GetCapability<ISubscribeUserTradesSocket>(TradingMode.Spot)?.Capability,
+                    config.UserTradesConfig,
+                    config.TrackedSymbols,
+                    config.OnlyTrackProvidedSymbols,
+                    exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

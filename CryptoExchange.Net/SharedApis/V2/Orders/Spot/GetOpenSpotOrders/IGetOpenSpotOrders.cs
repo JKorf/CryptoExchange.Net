@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,20 +10,34 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for retrieving open spot orders from an exchange.
     /// </summary>
-    public interface IGetOpenSpotOrders : ISharedApiCapability
+    public interface IGetOpenSpotOrdersOperation
     {
         /// <summary>
         /// Spot get open orders request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         GetOpenSpotOrdersOptions GetOpenSpotOrdersOptions { get; }
         /// <summary>
-        /// Get info on a open spot orders, see <see cref="GetOpenSpotOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get info on a open spot orders, see <see cref="GetOpenSpotOrdersOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(
+            GetOpenOrdersRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for retrieving open spot orders from an exchange.
+    /// </summary>
+    /// <see cref="IGetOpenSpotOrdersOperation"/>
+    public interface IGetOpenSpotOrders : IGetOpenSpotOrdersOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -32,6 +46,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface IGetOpenSpotOrdersRest : IGetOpenSpotOrders, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(
+            GetOpenOrdersRequest request,
+            CancellationToken ct = default);
     }
 }

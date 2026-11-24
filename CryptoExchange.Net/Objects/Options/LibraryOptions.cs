@@ -55,6 +55,11 @@ namespace CryptoExchange.Net.Objects.Options
         where TEnvironment: TradeEnvironment
     {
         /// <summary>
+        /// Credential resolver used in the user client provider to retrieve user credentials
+        /// </summary>
+        public CredentialResolver<TApiCredentials, TEnvironment>? UserClientProviderCredentialResolver { get; set; }
+
+        /// <summary>
         /// The api credentials used for signing requests.
         /// </summary>
         public TApiCredentials? ApiCredentials { get; set; }
@@ -66,6 +71,7 @@ namespace CryptoExchange.Net.Objects.Options
         {
             targetOptions = base.Set(targetOptions);
             targetOptions.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
+            targetOptions.UserClientProviderCredentialResolver = UserClientProviderCredentialResolver;
             return targetOptions;
         }
     }

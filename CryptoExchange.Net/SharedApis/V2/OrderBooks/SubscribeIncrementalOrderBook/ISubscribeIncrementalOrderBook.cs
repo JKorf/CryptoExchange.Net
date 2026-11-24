@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
 using System.Threading;
@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for subscribing to incremental order book updates for a symbol
     /// </summary>
-    public interface ISubscribeIncrementalOrderBookSocket : ISharedSubscription
+    public interface ISubscribeIncrementalOrderBookOperation
     {
         /// <summary>
         /// Order book subscription options
@@ -23,6 +23,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToIncrementalOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<DataEvent<SharedIncrementalOrderBook>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToIncrementalOrderBookUpdatesAsync(
+            SubscribeOrderBookRequest request,
+            Action<DataEvent<SharedIncrementalOrderBook>> handler,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for subscribing to incremental order book updates for a symbol
+    /// </summary>
+    /// <see cref="ISubscribeIncrementalOrderBookOperation"/>
+    public interface ISubscribeIncrementalOrderBookSocket : ISubscribeIncrementalOrderBookOperation, ISharedSubscription
+    {
     }
 }

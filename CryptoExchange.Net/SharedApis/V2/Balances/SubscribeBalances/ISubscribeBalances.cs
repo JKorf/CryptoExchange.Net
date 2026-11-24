@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
 using System.Threading;
@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for subscribing to user balance updates
     /// </summary>
-    public interface ISubscribeBalancesSocket : ISharedSubscription
+    public interface ISubscribeBalancesOperation
     {
         /// <summary>
         /// Balance subscription options
@@ -23,6 +23,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(SubscribeBalancesRequest request, Action<DataEvent<SharedBalance[]>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(
+            SubscribeBalancesRequest request,
+            Action<DataEvent<SharedBalance[]>> handler,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for subscribing to user balance updates
+    /// </summary>
+    /// <see cref="ISubscribeBalancesOperation"/>
+    public interface ISubscribeBalancesSocket : ISubscribeBalancesOperation, ISharedSubscription
+    {
     }
 }

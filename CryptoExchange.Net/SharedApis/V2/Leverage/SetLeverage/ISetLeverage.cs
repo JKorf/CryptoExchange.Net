@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Operation for setting leverage on an exchange.
     /// </summary>
-    public interface ISetLeverage : ISharedApiCapability
+    public interface ISetLeverageOperation
     {
         /// <summary>
         /// How the leverage setting is configured on the exchange
@@ -19,16 +19,30 @@ namespace CryptoExchange.Net.SharedApis
 
         /// <summary>
         /// Leverage set request options.<br />
-        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
-        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and
+        /// <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the
+        /// request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the
+        /// request object.
         /// </summary>
         SetLeverageOptions SetLeverageOptions { get; }
         /// <summary>
-        /// Set the leverage for a symbol, see <see cref="SetLeverageOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Set the leverage for a symbol, see <see cref="SetLeverageOptions"/> for request options and exchange
+        /// specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<IExchangeCallResult<SharedLeverage>> SetLeverageAsync(SetLeverageRequest request, CancellationToken ct = default);
+        Task<IExchangeCallResult<SharedLeverage>> SetLeverageAsync(
+            SetLeverageRequest request,
+            CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Operation for setting leverage on an exchange.
+    /// </summary>
+    /// <see cref="ISetLeverageOperation"/>
+    public interface ISetLeverage : ISetLeverageOperation, ISharedApiCapability
+    {
     }
 
     /// <summary>
@@ -37,6 +51,8 @@ namespace CryptoExchange.Net.SharedApis
     public interface ISetLeverageRest : ISetLeverage, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedLeverage>> SetLeverageAsync(SetLeverageRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedLeverage>> SetLeverageAsync(
+            SetLeverageRequest request,
+            CancellationToken ct = default);
     }
 }
