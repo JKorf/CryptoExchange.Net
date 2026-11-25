@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -278,6 +279,7 @@ namespace CryptoExchange.Net.Sockets.Default
         private readonly object _listenersLock = new object();
 #endif
 
+        private readonly ConditionalWeakTable<Subscription, SemaphoreSlim> _subscriptionOperations = new();
         private RoutingTable _routingTable = new RoutingTable();
 
         private ReadOnlyCollection<IMessageProcessor> _listeners;
@@ -685,6 +687,29 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <returns></returns>
         public async Task CloseAsync(Subscription subscription)
         {
+            var operationLock = GetSubscriptionOperationLock(subscription);
+            if (operationLock == null)
+            {
+                await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+                return;
+            }
+
+            await operationLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
+            }
+            finally
+            {
+                operationLock.Release();
+            }
+        }
+
+        private async Task CloseSubscriptionAsync(Subscription subscription)
+        {
+            if (subscription.Status == SubscriptionStatus.Closed)
+                return;
+
             // If we are resubscribing this subscription at this moment we'll want to wait for a bit until it is finished to avoid concurrency issues
             while (subscription.Status == SubscriptionStatus.Subscribing)
                 await Task.Delay(50).ConfigureAwait(false);
@@ -702,10 +727,10 @@ namespace CryptoExchange.Net.Sockets.Default
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            bool anyDuplicateSubscription = SubscriptionIsCovered(subscription);
+            bool subscriptionStillNeeded = IsCoveredByOtherSubscription(subscription);
             bool shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Status == SubscriptionStatus.Closing || r.Status == SubscriptionStatus.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
 
-            if (!anyDuplicateSubscription)
+            if (!subscriptionStillNeeded)
             {
                 var needUnsub = _listeners.Contains(subscription) && !shouldCloseConnection;
                 if (needUnsub && _socket.IsOpen)
@@ -752,10 +777,14 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="subscription"></param>
         public bool AddSubscription(Subscription subscription)
         {
-            if (Status != SocketStatus.None && Status != SocketStatus.Connected)
-                return false;
+            lock (_listenersLock)
+            {
+                if ((Status != SocketStatus.None && Status != SocketStatus.Connected)
+                    || HasPartialSubscriptionOverlap(subscription))
+                    return false;
 
-            AddMessageProcessor(subscription);
+                AddMessageProcessor(subscription);
+            }
 
             if (subscription.UserSubscription)
                 _logger.AddingNewSubscription(SocketId, subscription.Id, UserSubscriptionCount);
@@ -1069,35 +1098,59 @@ namespace CryptoExchange.Net.Sockets.Default
             return CallResult.Ok();
         }
 
-        /// <summary>
-        /// Whether there is currently a subscription covering all the routes the subscription lists
-        /// </summary>
-        protected bool SubscriptionIsCovered(Subscription subscription)
-            => _listeners.OfType<Subscription>().Any(
-                x => x != subscription
-                && x.Active
-                && subscription.MessageRouter.Routes.All(l => x.MessageRouter.ContainsCheck(l)));
-
-        /// <summary>
-        /// Whether there is a subscription earlier in the list covering all the routes the subscription lists
-        /// </summary>
-        protected bool IsCoveredByEarlierSubscription(Subscription subscription)
+        internal bool HasPartialSubscriptionOverlap(Subscription subscription)
         {
-            if (subscription.MessageRouter.Routes.Length == 0)
-                // Can be subscription which only knows what to listen to after receiving the subscribe response, for example Bitfinex
+            if (subscription.SubscriptionIdentifiers.Length == 0)
                 return false;
 
-            foreach (var other in _listeners.OfType<Subscription>())
-            {
-                if (other == subscription)
-                    return false;
-
-                if (other.Active && subscription.MessageRouter.Routes.All(x => other.MessageRouter.ContainsCheck(x)))
-                    return true;
-            }
-
-            return false;
+            var identifiers = new HashSet<string>(subscription.SubscriptionIdentifiers, StringComparer.Ordinal);
+            return _listeners.OfType<Subscription>().Any(other =>
+                other != subscription && other.Status != SubscriptionStatus.Closed
+                && identifiers.Overlaps(other.SubscriptionIdentifiers)
+                && (subscription.Authenticated != other.Authenticated || !identifiers.SetEquals(other.SubscriptionIdentifiers)));
         }
+
+        internal bool HasMatchingSubscription(Subscription subscription) => MatchingSubscriptions(subscription).Any(other => other.Active);
+
+        private IEnumerable<Subscription> MatchingSubscriptions(Subscription subscription)
+        {
+            if (subscription.SubscriptionIdentifiers.Length == 0)
+                return Enumerable.Empty<Subscription>();
+
+            var identifiers = new HashSet<string>(subscription.SubscriptionIdentifiers, StringComparer.Ordinal);
+            return _listeners.OfType<Subscription>().Where(other =>
+                other != subscription && other.Status != SubscriptionStatus.Closed && subscription.Authenticated == other.Authenticated
+                && identifiers.SetEquals(other.SubscriptionIdentifiers));
+        }
+
+        private SemaphoreSlim? GetSubscriptionOperationLock(Subscription subscription)
+        {
+            if (subscription.SubscriptionIdentifiers.Length == 0)
+                return null;
+
+            lock (_listenersLock)
+            {
+                if (_subscriptionOperations.TryGetValue(subscription, out var operationLock))
+                    return operationLock;
+
+                // Include closing listeners so a new listener waits for their unsubscribe to finish.
+                foreach (var other in MatchingSubscriptions(subscription))
+                {
+                    if (_subscriptionOperations.TryGetValue(other, out operationLock))
+                        break;
+                }
+
+                operationLock ??= new SemaphoreSlim(1, 1);
+                _subscriptionOperations.Add(subscription, operationLock);
+                return operationLock;
+            }
+        }
+
+        /// <summary>
+        /// Whether the same set of wire streams is already subscribed on this connection.
+        /// </summary>
+        protected bool IsCoveredByOtherSubscription(Subscription subscription)
+            => MatchingSubscriptions(subscription).Any(other => other.Status == SubscriptionStatus.Subscribed);
 
         /// <summary>
         /// Try to subscribe a new subscription by sending the subscribe query and wait for the result as needed
@@ -1106,6 +1159,31 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="newSubscription">Whether this is a new subscription, or an existing subscription (resubscribing on reconnected socket)</param>
         /// <param name="subCancelToken">Cancellation token</param>
         protected internal async Task<WebSocketResult> TrySubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
+        {
+            var operationLock = GetSubscriptionOperationLock(subscription);
+            if (operationLock == null)
+                return await SubscribeAsync(subscription, newSubscription, subCancelToken).ConfigureAwait(false);
+
+            await operationLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                return await SubscribeAsync(subscription, newSubscription, subCancelToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                try
+                {
+                    if (subscription.Status == SubscriptionStatus.Subscribing)
+                        subscription.Status = SubscriptionStatus.Pending;
+                }
+                finally
+                {
+                    operationLock.Release();
+                }
+            }
+        }
+
+        private async Task<WebSocketResult> SubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
         {
             subscription.ConnectionInvocations = 0;
 
@@ -1154,7 +1232,7 @@ namespace CryptoExchange.Net.Sockets.Default
 
             // For duplicate subscription don't send another subscribe request but just handle it internally
             // Unsubscribe also doesn't unsubscribe when there is still a duplicate subscription running
-            if (IsCoveredByEarlierSubscription(subscription))
+            if (IsCoveredByOtherSubscription(subscription))
             {
                 subQuery.Complete();
                 return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, subQuery.Id, ConnectionUriString);
@@ -1165,8 +1243,10 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 _logger.FailedToSubscribe(SocketId, subQueryResult.Error?.ToString());
                 // If this was a server process error or timeout we still send an unsubscribe to prevent messages coming in later
+                if (subscription.Status == SubscriptionStatus.Subscribing)
+                    subscription.Status = SubscriptionStatus.Pending;
                 if (newSubscription)
-                    await CloseAsync(subscription).ConfigureAwait(false);
+                    await CloseSubscriptionAsync(subscription).ConfigureAwait(false);
                 return WebSocketResult.Fail(ApiClient.Exchange, subQueryResult.Error!);
             }
 
@@ -1175,6 +1255,9 @@ namespace CryptoExchange.Net.Sockets.Default
 
         internal async Task UnsubscribeAsync(Subscription subscription)
         {
+            if (IsCoveredByOtherSubscription(subscription))
+                return;
+
             var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
             if (unsubscribeRequest == null)
                 return;
@@ -1186,37 +1269,69 @@ namespace CryptoExchange.Net.Sockets.Default
 
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)
         {
+            var operationLock = GetSubscriptionOperationLock(subscription);
+            if (operationLock == null)
+                return await ResubscribeGroupAsync(subscription).ConfigureAwait(false);
+
+            await operationLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                return await ResubscribeGroupAsync(subscription).ConfigureAwait(false);
+            }
+            finally
+            {
+                operationLock.Release();
+            }
+        }
+
+        private async Task<CallResult> ResubscribeGroupAsync(Subscription subscription)
+        {
             if (!_socket.IsOpen)
                 return CallResult.Fail(new WebError("Socket is not connected"));
 
             if (!subscription.Active)
                 return CallResult.Fail(new WebError("Subscription is not active"));
 
-            subscription.Status = SubscriptionStatus.Subscribing;
-            var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
-            if (unsubscribeRequest != null)
+            var group = MatchingSubscriptions(subscription)
+                .Where(other => other.Status == SubscriptionStatus.Subscribed)
+                .Prepend(subscription).ToArray();
+            try
             {
-                await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
-                subscription.HandleUnsubQueryResponse(this, unsubscribeRequest.Response);
-            }
+                foreach (var member in group)
+                    member.Status = SubscriptionStatus.Subscribing;
 
-            var subQuery = subscription.CreateSubscriptionQuery(this);
-            if (subQuery == null)
-            {
-                subscription.Status = SubscriptionStatus.Subscribed;
+                var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
+                if (unsubscribeRequest != null)
+                {
+                    await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
+                    foreach (var member in group)
+                        member.HandleUnsubQueryResponse(this, unsubscribeRequest.Response);
+                }
+
+                var subQuery = subscription.CreateSubscriptionQuery(this);
+                if (subQuery != null)
+                {
+                    var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+                    foreach (var member in group)
+                        member.HandleSubQueryResponse(this, subQuery.Response);
+
+                    if (!result.Success)
+                        return CallResult.Fail(result.Error);
+                }
+
+                foreach (var member in group)
+                    member.Status = SubscriptionStatus.Subscribed;
+
                 return CallResult.Ok();
             }
-
-            var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
-            subscription.HandleSubQueryResponse(this, subQuery.Response);
-            if (!result.Success)
+            finally
             {
-                subscription.Status = SubscriptionStatus.Pending;
-                return CallResult.Fail(result.Error);
+                foreach (var member in group)
+                {
+                    if (member.Status == SubscriptionStatus.Subscribing)
+                        member.Status = SubscriptionStatus.Pending;
+                }
             }
-
-            subscription.Status = SubscriptionStatus.Subscribed;
-            return CallResult.Ok();
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using CryptoExchange.Net.Testing;
 using CryptoExchange.Net.UnitTests.Implementations;
 using NUnit.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -234,6 +235,133 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
 
             var subscription = client.ApiClient1._socketConnections.Single().Value.Subscriptions.Single();
             Assert.That(subscription.Status == SubscriptionStatus.Subscribed);
+        }
+
+        [Test]
+        public async Task PartialOverlap_ShouldUseDifferentSocket()
+        {
+            using var client = new TestSocketClient(options => options.SocketSubscriptionsCombineTarget = 10);
+            TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+
+            var first = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["A", "B"]);
+            var same = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["B", "A"]);
+            var disjoint = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["Z"]);
+
+            TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var overlap = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["B"]);
+
+            Assert.That(first.Success && same.Success && disjoint.Success && overlap.Success, Is.True);
+            Assert.That(same.Data!.SocketId, Is.EqualTo(first.Data!.SocketId));
+            Assert.That(disjoint.Data!.SocketId, Is.EqualTo(first.Data!.SocketId));
+            Assert.That(overlap.Data!.SocketId, Is.Not.EqualTo(first.Data!.SocketId));
+        }
+
+        [Test]
+        public async Task PartialOverlapAtConnectionLimit_ShouldFail()
+        {
+            using var client = new TestSocketClient(options =>
+            {
+                options.SocketSubscriptionsCombineTarget = 10;
+                options.MaxSocketConnections = 1;
+            });
+            TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+
+            var first = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["A", "B"]);
+            var overlap = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["B", "C"]);
+
+            Assert.That(first.Success, Is.True);
+            Assert.That(overlap.Success, Is.False);
+            Assert.That(client.ApiClient1._socketConnections.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task DisjointSubscriptions_ShouldWaitForAcknowledgmentsInParallel()
+        {
+            var timeout = TimeSpan.FromSeconds(5);
+            using var client = new TestSocketClient(options => options.SocketSubscriptionsCombineTarget = 10);
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var firstSent = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondSent = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            socket.OnMessageSend += data =>
+            {
+                var request = JsonSerializer.Deserialize<TestSocketMessage>(data)!;
+                if (request.Id == 1)
+                    firstSent.TrySetResult();
+                else if (request.Id == 3)
+                    secondSent.TrySetResult();
+            };
+
+            var firstTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, true, default, subscriptionIdentifiers: ["A"]);
+            await firstSent.Task.WaitAsync(timeout);
+            var secondTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, true, default, subscriptionIdentifiers: ["B"], subscribeRequestId: 3);
+            await secondSent.Task.WaitAsync(timeout);
+
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 3, Data = "OK" }));
+            var second = await secondTask.WaitAsync(timeout);
+            Assert.That(second.Success, Is.True);
+            Assert.That(firstTask.IsCompleted, Is.False);
+
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "OK" }));
+            var first = await firstTask.WaitAsync(timeout);
+            Assert.That(first.Success, Is.True);
+            Assert.That(first.Data!.SocketId, Is.EqualTo(second.Data!.SocketId));
+        }
+
+        [Test]
+        public async Task IdenticalSubscriptions_ShouldShareWireOperations()
+        {
+            var timeout = TimeSpan.FromSeconds(5);
+            using var client = new TestSocketClient(options => options.SocketSubscriptionsCombineTarget = 10);
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var requests = new ConcurrentQueue<string>();
+            var firstSubscribeSent = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var reconnectSubscribeSent = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var subscribeCount = 0;
+            socket.OnMessageSend += data =>
+            {
+                var request = JsonSerializer.Deserialize<TestSocketMessage>(data)!;
+                requests.Enqueue(request.Data);
+                if (request.Id == 1)
+                {
+                    switch (Interlocked.Increment(ref subscribeCount))
+                    {
+                        case 1: firstSubscribeSent.TrySetResult(); return;
+                        case 2: reconnectSubscribeSent.TrySetResult(); return;
+                    }
+                }
+
+                socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = request.Id, Data = "OK" }));
+            };
+
+            var firstTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, true, default, subscriptionIdentifiers: ["A", "B"]);
+            await firstSubscribeSent.Task.WaitAsync(timeout);
+            var sameTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, true, default, subscriptionIdentifiers: ["B", "A"]);
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "OK" }));
+            var subscriptions = await Task.WhenAll(firstTask, sameTask).WaitAsync(timeout);
+
+            Assert.That(subscriptions.All(x => x.Success), Is.True);
+            Assert.That(requests.ToArray(), Is.EqualTo(new[] { "Sub" }));
+
+            // Keep the connection open when the last listener for the shared streams is closed.
+            var other = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default, subscriptionIdentifiers: ["Z"]);
+            Assert.That(other.Success, Is.True);
+            var restored = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            subscriptions[0].Data!.ConnectionRestored += _ => restored.TrySetResult();
+            await socket.ReconnectAsync().WaitAsync(timeout);
+            await reconnectSubscribeSent.Task.WaitAsync(timeout);
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "OK" }));
+            await restored.Task.WaitAsync(timeout);
+
+            Assert.That(requests.ToArray(), Is.EqualTo(new[] { "Sub", "Sub" }));
+            await subscriptions[0].Data!.ResubscribeAsync().WaitAsync(timeout);
+            Assert.That(subscriptions[1].Data!.SubscriptionStatus, Is.EqualTo(SubscriptionStatus.Subscribed));
+            Assert.That(requests.ToArray(), Is.EqualTo(new[] { "Sub", "Sub", "Unsub", "Sub" }));
+
+            await subscriptions[0].Data!.CloseAsync().WaitAsync(timeout);
+            Assert.That(requests.Count, Is.EqualTo(4));
+            await subscriptions[1].Data!.CloseAsync().WaitAsync(timeout);
+            Assert.That(requests.ToArray(), Is.EqualTo(new[] { "Sub", "Sub", "Unsub", "Sub", "Unsub" }));
+            await other.Data!.CloseAsync().WaitAsync(timeout);
         }
     }
 }

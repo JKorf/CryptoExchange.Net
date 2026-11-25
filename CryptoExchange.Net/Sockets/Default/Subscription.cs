@@ -35,6 +35,13 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public bool UserSubscription { get; set; }
 
+        /// <summary>
+        /// Stable, case-sensitive identifiers for the wire streams in this subscription, including
+        /// any parameters that affect stream identity. Identical sets can share a wire subscription.
+        /// Return an empty array to opt out, for example if routing requires an individual subscribe response.
+        /// </summary>
+        public abstract string[] SubscriptionIdentifiers { get; }
+
         private SubscriptionStatus _status;
         /// <summary>
         /// Current subscription status

@@ -195,6 +195,8 @@ namespace CryptoExchange.Net.Objects.Sockets
                 MessageRouter = MessageRouter.Create();
             }
 
+            public override string[] SubscriptionIdentifiers => [];
+
             protected override Query? GetSubQuery(SocketConnection connection)
             {
                 return null;

@@ -721,7 +721,12 @@ namespace CryptoExchange.Net.Clients
             string? topic = null,
             int individualSubscriptionCount = 1)
         {
-            var socketQuery = _socketConnections.Where(s => ConnectionCanBeUsedFor(s.Value, address, authenticated, processor, topic)).Select(x => x.Value); // Don't ToList this so the query is executed again when called
+            var subscription = processor as Subscription;
+            // Keep the query deferred so each retry sees the current connections and subscriptions.
+            var socketQuery = _socketConnections
+                .Select(entry => entry.Value)
+                .Where(connection => ConnectionCanBeUsedFor(connection, address, authenticated, processor, topic))
+                .Where(connection => subscription == null || !connection.HasPartialSubscriptionOverlap(subscription));
 
             // If all current socket connections are reconnecting or resubscribing wait for that to finish as we can probably use the existing connection
             var delayStart = DateTime.UtcNow;
@@ -770,7 +775,8 @@ namespace CryptoExchange.Net.Clients
                 connection = socketQuery
                     .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
                     .Where(s => IsConnectionEligible(s, individualSubscriptionCount, maxConnectionsReached))
-                    .OrderBy(s => s.UserSubscriptionCount)
+                    .OrderByDescending(s => subscription != null && s.HasMatchingSubscription(subscription))
+                    .ThenBy(s => s.UserSubscriptionCount)
                     .FirstOrDefault();
             }
 
