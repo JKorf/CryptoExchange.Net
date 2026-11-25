@@ -27,6 +27,7 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// </summary>
         public IReadOnlyDictionary<decimal, decimal> Bids { get; } = bids;
 
+        /// <inheritdoc />
         public override string ToString()
         {
             var stringBuilder = new StringBuilder();
