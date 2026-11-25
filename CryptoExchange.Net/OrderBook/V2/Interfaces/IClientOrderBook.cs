@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,13 @@ namespace CryptoExchange.Net.OrderBook.V2.Interfaces
         string Exchange { get; }
 
         /// <summary>
-        /// The status of the order book. Order book is up to date when the status is `Synced`
+        /// The status of the order book
         /// </summary>
-        OrderBookStatus Status { get; set; }
+        BookStatus Status { get; set; }
+        /// <summary>
+        /// The synchronization status of the order book
+        /// </summary>
+        SyncStatus SyncStatus { get; set; }
 
         /// <summary>
         /// Last update identifier
@@ -31,10 +36,16 @@ namespace CryptoExchange.Net.OrderBook.V2.Interfaces
         /// </summary>
         SharedSymbol Symbol { get; }
 
+        UpdateSubscription? UpdateSubscription { get; }
+
         /// <summary>
-        /// Event when the state changes
+        /// Event when the status changes
         /// </summary>
-        event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
+        event Action<BookStatus> OnStatusChange;
+        /// <summary>
+        /// Event when the synchronization status changes
+        /// </summary>
+        event Action<SyncStatus> OnSyncStatusChange;
         /// <summary>
         /// Timestamp of when the last update was applied to the book, local time
         /// </summary>

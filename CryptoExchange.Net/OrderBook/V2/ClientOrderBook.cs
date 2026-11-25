@@ -22,6 +22,21 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.OrderBook.V2
 {
+    public enum BookStatus
+    {
+        Starting,
+        Running,
+        Stopped,
+        Stopping
+    }
+
+    public enum SyncStatus
+    {
+        Idle,
+        Syncing,
+        Synced,
+    }
+
     internal class SnapshotRegistration
     {
         public int Depth { get; set; }
@@ -39,19 +54,26 @@ namespace CryptoExchange.Net.OrderBook.V2
         private readonly object _bookLock = new object();
 #endif
 
-        private OrderBookStatus _status;
+        private BookStatus _status;
+        private SyncStatus _syncStatus;
         private UpdateSubscription? _subscription;
+        public UpdateSubscription? UpdateSubscription => _subscription;
+
         private bool _attachedSubscriptionEvents;
         
         private Task? _processTask;
         private CancellationTokenSource? _cts;
 
         private readonly AsyncResetEvent _queueEvent;
+        private readonly AsyncResetEvent _snapshotAppliedEvent;
+        private readonly AsyncResetEvent _syncedEvent;
+        private readonly AsyncResetEvent _updateBufferedEvent;
+
         private readonly ConcurrentQueue<object> _processQueue;
         private bool _validateChecksum;
         private bool _firstUpdateAfterSnapshotDone;
-
-        private enum SequenceNumberResult
+        private bool _diposed;
+        public enum SequenceNumberResult
         {
             Skip,
             Ok,
@@ -101,22 +123,19 @@ namespace CryptoExchange.Net.OrderBook.V2
         protected bool _strictLevels;
 
         /// <summary>
-        /// If the initial snapshot of the book has been set
-        /// </summary>
-        protected bool _bookSet;
-
-        /// <summary>
         /// The amount of levels for this book
         /// </summary>
         protected int? Levels { get; set; } = null;
 
-        protected bool ProcessingStatus => Status == OrderBookStatus.Synced || Status == OrderBookStatus.Syncing;
+        protected bool AllowProcessing => 
+            (Status == BookStatus.Starting || Status == BookStatus.Running) 
+            && _cts?.IsCancellationRequested == false;
 
         /// <inheritdoc/>
         public string Exchange { get; }
 
         /// <inheritdoc/>
-        public OrderBookStatus Status 
+        public BookStatus Status 
         {
             get => _status;
             set
@@ -126,8 +145,45 @@ namespace CryptoExchange.Net.OrderBook.V2
 
                 var old = _status;
                 _status = value;
-                _logger.OrderBookStatusChanged(_api, _symbol, old, value);
-                OnStatusChange?.Invoke(old, _status);
+                //_logger.OrderBookStatusChanged(_api, _symbol, old, value);
+
+                try
+                {
+                    OnStatusChange?.Invoke(_status);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex, "Exception in OnStatusChange event");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public SyncStatus SyncStatus
+        {
+            get => _syncStatus;
+            set
+            {
+                if (value == _syncStatus)
+                    return;
+
+                var old = _syncStatus;
+                _syncStatus = value;
+                if (_syncStatus == SyncStatus.Synced)
+                    _syncedEvent.Set();
+                else
+                    _syncedEvent.Reset();
+
+                //_logger.OrderBookStatusChanged(_api, _symbol, old, value);
+                try
+                {
+                    OnSyncStatusChange?.Invoke(_syncStatus);
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception in OnSyncStatusChange event");
+                }
             }
         }
 
@@ -138,7 +194,9 @@ namespace CryptoExchange.Net.OrderBook.V2
         public SharedSymbol Symbol { get; }
 
         /// <inheritdoc/>
-        public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
+        public event Action<BookStatus>? OnStatusChange;
+        /// <inheritdoc/>
+        public event Action<SyncStatus>? OnSyncStatusChange;
 
         /// <inheritdoc/>
         public DateTime UpdateTime { get; private set; }
@@ -256,12 +314,16 @@ namespace CryptoExchange.Net.OrderBook.V2
             _processBuffer = new List<OrderBookUpdate>();
             _processQueue = new ConcurrentQueue<object>();
             _queueEvent = new AsyncResetEvent(false, true);
+            _syncedEvent = new AsyncResetEvent(false, false);
+            _updateBufferedEvent = new AsyncResetEvent(false, false);
+            _snapshotAppliedEvent = new AsyncResetEvent(false, false);
 
             Symbol = symbol;
             _symbol = symbol.BaseAsset + "/" + symbol.QuoteAsset;
             _api = symbol.TradingMode.ToString();
 
-            Status = OrderBookStatus.Disconnected;
+            Status = BookStatus.Stopped;
+            SyncStatus = SyncStatus.Idle;
 
             _asks = new SortedList<decimal, decimal>();
             _bids = new SortedList<decimal, decimal>(new DescComparer<decimal>());
@@ -285,44 +347,105 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <inheritdoc />
         public async Task<CallResult> StartAsync(CancellationToken? ct = null)
         {
-            if (Status != OrderBookStatus.Disconnected)
-                throw new InvalidOperationException($"Can't start book unless state is {OrderBookStatus.Disconnected}. Current state: {Status}");
+            if (_diposed)
+                throw new InvalidOperationException($"Book has been disposed");
 
-            _logger.OrderBookStarting(_api, _symbol);   
-            _cts = ct == null ? new CancellationTokenSource() : CancellationTokenSource.CreateLinkedTokenSource(ct.Value);
+            if (Status != BookStatus.Stopped)
+                throw new InvalidOperationException($"Can't start book unless state is {BookStatus.Stopped}. Current state: {Status}");
+
+            _logger.OrderBookStarting(_api, _symbol);
+            Status = BookStatus.Starting;
+
+            var cts = ct == null ? new CancellationTokenSource() : CancellationTokenSource.CreateLinkedTokenSource(ct.Value);
+            _cts = cts;
 
             // Clear any previous messages
             while (_processQueue.TryDequeue(out _)) { }
 
+            _shutDownTask = null;
             _processBuffer.Clear();
-            _bookSet = false;
+            _syncedEvent.Reset();
+            _snapshotAppliedEvent.Reset();
             _firstUpdateAfterSnapshotDone = false;
 
-            Status = OrderBookStatus.Connecting;
             _processTask = ProcessQueue();
 
-            var startResult = await DoStartAsync(_cts.Token).ConfigureAwait(false);
+            var startResult = await DoStartAsync(cts.Token).ConfigureAwait(false);
             if (!startResult.Success)
             {
                 await StopAsync().ConfigureAwait(false);
                 return CallResult.Fail(startResult.Error!);
             }
 
-            if (_cts.IsCancellationRequested)
+            if (cts.IsCancellationRequested)
             {
                 await StopAsync().ConfigureAwait(false);
                 return CallResult.Fail(new CancellationRequestedError());
             }
 
             _subscription = startResult.Data;
-            _subscription.ConnectionLost += HandleConnectionLost;
+            _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
+            //_subscription.ConnectionLost += HandleConnectionLost;
             _subscription.ConnectionClosed += HandleConnectionClosed;
-            _subscription.ConnectionRestored += HandleConnectionRestored;
-            _attachedSubscriptionEvents = true;            
+            //_subscription.ConnectionRestored += HandleConnectionRestored;
+            _attachedSubscriptionEvents = true;
 
-            Status = OrderBookStatus.Synced;
+            await _syncedEvent.WaitAsync(TimeSpan.FromSeconds(10), cts.Token).ConfigureAwait(false);
+            if (SyncStatus != SyncStatus.Synced)
+            {
+                await StopAsync().ConfigureAwait(false);
+                return CallResult.Fail(new InvalidOperationError("Failed to sync order book"));
+            }
+
+            Status = BookStatus.Running;
             return CallResult.Ok();
         }
+
+        private void SubscriptionStatusChanged(SubscriptionStatus subscriptionStatus)
+        {
+            if (subscriptionStatus == SubscriptionStatus.Closing
+                || subscriptionStatus == SubscriptionStatus.Closed)
+            {
+                // Subscription is closing
+                if (Status != BookStatus.Stopping && Status != BookStatus.Stopped)
+                    _ = StopAsync();
+            }
+
+            if (subscriptionStatus == SubscriptionStatus.Pending
+                || subscriptionStatus == SubscriptionStatus.Subscribing)
+            {
+                // Subscription is reconnecting/resubscribing
+                if (SyncStatus != SyncStatus.Idle)
+                    SyncStatus = SyncStatus.Syncing;
+
+                if (subscriptionStatus == SubscriptionStatus.Pending)
+                    Reset();
+            }
+
+            if (subscriptionStatus == SubscriptionStatus.Subscribed)
+                _ = ResyncAsync().ConfigureAwait(false);
+        }
+
+        //private void HandleConnectionLost()
+        //{
+        //    _logger.OrderBookConnectionLost(_api, _symbol);
+        //    if (SyncStatus != SyncStatus.Idle)
+        //        SyncStatus = SyncStatus.Syncing;
+        //    if (Status != BookStatus.Stopped)
+        //    {
+        //        Reset();
+        //    }
+        //}
+
+        private void HandleConnectionClosed()
+        {
+            _logger.OrderBookDisconnected(_api, _symbol);
+        }
+
+        //private async void HandleConnectionRestored(TimeSpan _)
+        //{
+        //    await ResyncAsync().ConfigureAwait(false);
+        //}
 
 
         /// <inheritdoc />
@@ -363,31 +486,24 @@ namespace CryptoExchange.Net.OrderBook.V2
             }
         }
 
-        private void HandleConnectionLost() 
-        {
-            _logger.OrderBookConnectionLost(_api, _symbol);    
-            if (Status != OrderBookStatus.Disposed) {
-                Status = OrderBookStatus.Reconnecting;
-                Reset();
-            }
-        }
-
-        private void HandleConnectionClosed() {
-            _logger.OrderBookDisconnected(_api, _symbol);
-            Status = OrderBookStatus.Disconnected;
-            _ = StopAsync();
-        }
-
-        private async void HandleConnectionRestored(TimeSpan _) {
-            await ResyncAsync().ConfigureAwait(false);
-        }
+        private Task? _shutDownTask;
+        private readonly object _shutDownLock = new object();
 
         /// <inheritdoc/>
         public async Task StopAsync()
         {
             _logger.OrderBookStopping(_api, _symbol);
-            await ShutdownAsync().ConfigureAwait(false);
-            Status = OrderBookStatus.Disconnected;
+            
+            lock (_shutDownLock)
+            {
+                if (_shutDownTask == null)
+                {
+                    _shutDownTask = ShutdownAsync();
+                }
+            }
+
+            await _shutDownTask.ConfigureAwait(false);
+            _shutDownTask = null;
             _logger.OrderBookStopped(_api, _symbol);
         }
 
@@ -397,13 +513,16 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <returns></returns>
         protected async Task ShutdownAsync()
         {
+            await Task.Yield();
+            Status = BookStatus.Stopping;
             if (_subscription != null)
             {
                 if (_attachedSubscriptionEvents)
                 {
-                    _subscription.ConnectionLost -= HandleConnectionLost;
+                    //_subscription.ConnectionLost -= HandleConnectionLost;
                     _subscription.ConnectionClosed -= HandleConnectionClosed;
-                    _subscription.ConnectionRestored -= HandleConnectionRestored;
+                    _subscription.SubscriptionStatusChanged -= SubscriptionStatusChanged;
+                    //_subscription.ConnectionRestored -= HandleConnectionRestored;
                     _attachedSubscriptionEvents = false;
                 }
             }
@@ -411,6 +530,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             if (_cts?.IsCancellationRequested == false)
                 _cts.Cancel();
 
+            SyncStatus = SyncStatus.Idle;
             if (_processTask != null)
                 await _processTask.ConfigureAwait(false);
 
@@ -420,15 +540,24 @@ namespace CryptoExchange.Net.OrderBook.V2
             {
                 await _subscription.CloseAsync().ConfigureAwait(false);
             }
+
+            if (_subscription != null)
+            {
+                while (_subscription.SubscriptionStatus != SubscriptionStatus.Closed)
+                    await Task.Delay(10).ConfigureAwait(false);
+            }
+
             _subscription = null;
             _cts?.Dispose();
             _cts = null;
+
+            Status = BookStatus.Stopped;
         }
 
         /// <inheritdoc/>
         public CallResult<decimal> CalculateAverageFillPrice(decimal baseQuantity, OrderBookEntryType type)
         {
-            if (Status != OrderBookStatus.Synced)
+            if (SyncStatus != SyncStatus.Synced)
                 return CallResult<decimal>.Fail(new InvalidOperationError($"{nameof(CalculateAverageFillPrice)} is not available when book is not in Synced state"));
 
             var totalCost = 0m;
@@ -462,7 +591,7 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <inheritdoc/>
         public CallResult<decimal> CalculateTradableAmount(decimal quoteQuantity, OrderBookEntryType type)
         {
-            if (Status != OrderBookStatus.Synced)
+            if (SyncStatus != SyncStatus.Synced)
                 return CallResult<decimal>.Fail(new InvalidOperationError($"{nameof(CalculateTradableAmount)} is not available when book is not in Synced state"));
 
             var quoteQuantityLeft = quoteQuantity;
@@ -496,6 +625,7 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <returns></returns>
         protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync(CancellationToken ct)
         {
+            SyncStatus = SyncStatus.Syncing;
             if (_incrementalApi != null)
             {
                 var subResult = await _incrementalApi.SubscribeToIncrementalOrderBookUpdatesAsync(
@@ -507,7 +637,6 @@ namespace CryptoExchange.Net.OrderBook.V2
                 if (ct.IsCancellationRequested)
                     return CallResult<UpdateSubscription>.Fail(new CancellationRequestedError());
 
-                Status = OrderBookStatus.Syncing;
 
                 if (_incrementalApi.SubscribeIncrementalOrderBookOptions.UpdateType == SharedOrderBookSubscriptionType.OnlyIncremental)
                 {
@@ -545,8 +674,6 @@ namespace CryptoExchange.Net.OrderBook.V2
                         _snapshotApi.SubscribeOrderBookOptions.SupportedLimits.Max()), HandleUpdate, ct: ct).ConfigureAwait(false);
             if (!snapshotSubResult.Success)
                 return CallResult<UpdateSubscription>.Fail(snapshotSubResult.Error!);
-
-            Status = OrderBookStatus.Syncing;
 
             var result = await WaitForSetOrderBookAsync(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
             if (!result.Success)
@@ -597,7 +724,8 @@ namespace CryptoExchange.Net.OrderBook.V2
             if (data.Data.StartSequenceNumber == null)
             {
                 UpdateOrderBook(
-                    sequenceNumber,
+                    //sequenceNumber,
+                    new Random().Next(),
                     data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
                     data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
                     data.DataTime,
@@ -606,8 +734,10 @@ namespace CryptoExchange.Net.OrderBook.V2
             else
             {
                 UpdateOrderBook(
-                    data.Data.StartSequenceNumber!.Value,
-                    data.Data.SequenceNumber!.Value,
+                    new Random().Next(),
+                    new Random().Next(),
+                    //data.Data.StartSequenceNumber!.Value,
+                    //data.Data.SequenceNumber!.Value,
                     data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
                     data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
                     data.DataTime,
@@ -671,7 +801,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
-            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+            if (!AllowProcessing)
                 throw new InvalidOperationException("Trying to set snapshot while book is not working");
 
             _processQueue.Enqueue(
@@ -701,7 +831,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
-            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+            if (!AllowProcessing)
                 throw new InvalidOperationException("Trying to update order book while book is not working");
 
             _processQueue.Enqueue(
@@ -734,7 +864,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
-            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+            if (!AllowProcessing)
                 throw new InvalidOperationException("Trying to update order book while book is not working");
 
             _processQueue.Enqueue(
@@ -757,7 +887,7 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <param name="sequenceNumber">The sequence number of the message if it's a separate message with separate number</param>
         protected void AddChecksum(int checksum, long? sequenceNumber = null)
         {
-            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+            if (!AllowProcessing)
                 throw new InvalidOperationException("Trying to add checksum while book is not working");
 
             _processQueue.Enqueue(new OrderBookChecksum() { Checksum = checksum, SequenceNumber = sequenceNumber });
@@ -767,26 +897,26 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <summary>
         /// Check and empty the process buffer; see what entries to update the book with
         /// </summary>
-        protected void CheckProcessBuffer()
+        protected SequenceNumberResult CheckProcessBuffer()
         {
+            var result = SequenceNumberResult.Ok;
             if (_processBuffer.Count > 0)
                 _logger.OrderBookProcessingBufferedUpdates(_api, _symbol, _processBuffer.Count);
 
             foreach (var bufferEntry in _processBuffer)
             {
-                if (_cts.IsCancellationRequested || !ProcessingStatus)
+                if (!AllowProcessing)
                     break;
 
-                ProcessUpdate(bufferEntry.StartSequenceNumber, bufferEntry.EndSequenceNumber, bufferEntry.Bids, bufferEntry.Asks, true, out _);
-                if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
+                if (ProcessUpdate(bufferEntry.StartSequenceNumber, bufferEntry.EndSequenceNumber, bufferEntry.Bids, bufferEntry.Asks, true, out _) == SequenceNumberResult.OutOfSync)
                 {
-                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
-                    Resubscribe();
-                    return;
+                    result = SequenceNumberResult.OutOfSync;
+                    break;
                 }
             }
 
             _processBuffer.Clear();
+            return result;
         }
 
         /// <summary>
@@ -840,22 +970,8 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <returns></returns>
         protected async Task<CallResult> WaitForSetOrderBookAsync(TimeSpan timeout, CancellationToken ct)
         {
-            var startWait = DateTime.UtcNow;
-            while (!_bookSet && Status == OrderBookStatus.Syncing)
-            {
-                if(ct.IsCancellationRequested)
-                    return CallResult.Fail(new CancellationRequestedError());
-
-                if (DateTime.UtcNow - startWait > timeout)
-                    return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
-
-                try
-                {
-                    await Task.Delay(50, ct).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                { }
-            }
+            if (!await _snapshotAppliedEvent.WaitAsync(timeout, ct).ConfigureAwait(false))
+                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for snapshot to be applied")));
 
             return CallResult.Ok();
         }
@@ -870,28 +986,12 @@ namespace CryptoExchange.Net.OrderBook.V2
         protected async Task<CallResult> WaitUntilFirstUpdateBufferedAsync(TimeSpan? minWait, TimeSpan maxWait, CancellationToken ct)
         {
             var startWait = DateTime.UtcNow;
-            while (_processBuffer.Count == 0)
-            {
-                if (ct.IsCancellationRequested)
-                    return CallResult.Fail(new CancellationRequestedError());
+            if (!await _updateBufferedEvent.WaitAsync(maxWait, ct).ConfigureAwait(false))
+                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for update to be buffered")));
 
-                if (DateTime.UtcNow - startWait > maxWait)
-                    return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
-
-                try
-                {
-                    await Task.Delay(20, ct).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                { }
-            }
-
-            if (minWait != null)
-            {
-                var dif = DateTime.UtcNow - startWait;
-                if (dif < minWait)
-                    await Task.Delay(minWait.Value - dif).ConfigureAwait(false);
-            }
+            var dif = DateTime.UtcNow - startWait;
+            if (minWait != null && dif < minWait)
+                await Task.Delay(minWait.Value - dif).ConfigureAwait(false);
 
             return CallResult.Ok();
         }
@@ -911,12 +1011,31 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <param name="disposing"></param>
         protected virtual async ValueTask DisposeAsync(bool disposing)
         {
-            Status = OrderBookStatus.Disposing;
-            await ShutdownAsync().ConfigureAwait(false);
+            if (_diposed)
+            {
+                if (_shutDownTask != null)
+                    await _shutDownTask.ConfigureAwait(false);
+
+                return;
+            }
+
+            lock (_shutDownLock)
+            {
+                if (_shutDownTask == null)
+                {
+                    _shutDownTask = ShutdownAsync();
+                }
+            }
+
+            _diposed = true;
+
+            await _shutDownTask.ConfigureAwait(false);
+            _shutDownTask = null;
+
             lock (_changedHandlersLock)
                 _changedHandlers.Clear();
-            Status = OrderBookStatus.Disposed;
             OnStatusChange = null;
+            OnSyncStatusChange = null;
         }
 
         /// <summary>
@@ -977,7 +1096,7 @@ namespace CryptoExchange.Net.OrderBook.V2
 
             LastSequenceNumber = 0;
             _processBuffer.Clear();
-            _bookSet = false;
+
             _firstUpdateAfterSnapshotDone = false;
 
             DoReset();
@@ -985,33 +1104,35 @@ namespace CryptoExchange.Net.OrderBook.V2
 
         private async Task ResyncAsync()
         {
-            Status = OrderBookStatus.Syncing;
             var success = false;
             while (!success)
             {
-                if (Status != OrderBookStatus.Syncing)
+                if (SyncStatus != SyncStatus.Syncing)
                     return;
 
                 var resyncResult = await DoResyncAsync(_cts!.Token).ConfigureAwait(false);
                 success = resyncResult.Success;
             }
 
+            if (SyncStatus != SyncStatus.Syncing)
+                return;
+
             _logger.OrderBookResynced(_api, _symbol);
-            Status = OrderBookStatus.Synced;
+            SyncStatus = SyncStatus.Synced;
         }
 
         private async Task ProcessQueue()
         {
-            while (!_cts.IsCancellationRequested)
+            while (AllowProcessing)
             {
                 try { await _queueEvent.WaitAsync(ct: _cts!.Token).ConfigureAwait(false); } catch (OperationCanceledException) { }
 
-                if (_cts.IsCancellationRequested)
+                if (!AllowProcessing)
                     break;
 
                 while (_processQueue.TryDequeue(out var item))
                 {
-                    if (_cts.IsCancellationRequested)
+                    if (!AllowProcessing)
                         break;
 
                     if (item is OrderBookSnapshot snapshot)
@@ -1029,8 +1150,6 @@ namespace CryptoExchange.Net.OrderBook.V2
             List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
             lock (_bookLock)
             {
-                _bookSet = true;
-
                 _asks.Clear();
                 foreach (var ask in item.Asks)
                     _asks.Add(ask.Key, ask.Value);
@@ -1044,12 +1163,27 @@ namespace CryptoExchange.Net.OrderBook.V2
                 UpdateTime = DateTime.UtcNow;
                 UpdateServerTime = item.ServerDataTime;
                 UpdateLocalTime = item.LocalDataTime;
+                _snapshotAppliedEvent.Set();
 
                 _logger.OrderBookDataSet(_api, _symbol, _bids.Count, _asks.Count, item.SequenceNumber);
-                CheckProcessBuffer();
+                if (CheckProcessBuffer() == SequenceNumberResult.OutOfSync)
+                {
+                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
+                    Resubscribe();
+                    return;
+                }
+
+                if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
+                {
+                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
+                    Resubscribe();
+                    return;
+                }
 
                 if (_changedHandlers.Count > 0)
                     updateHandlers = CaptureChangedNotifications(1);
+
+                SyncStatus = SyncStatus.Synced;
             }
 
             if (updateHandlers?.Count > 0)
@@ -1118,17 +1252,27 @@ namespace CryptoExchange.Net.OrderBook.V2
             List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
             lock (_bookLock)
             {
-                if (!_bookSet)
+                if (!_snapshotAppliedEvent.IsSet())
                 {
                     _processBuffer.Add(item);
+                    _updateBufferedEvent.Set();
 
                     if (_logger.IsEnabled(LogLevel.Trace))
                         _logger.OrderBookUpdateBuffered(_api, _symbol, item.StartSequenceNumber, item.EndSequenceNumber, item.Asks.Count, item.Bids.Count);
                 }
                 else
                 {
-                    CheckProcessBuffer();
-                    ProcessUpdate(item.StartSequenceNumber, item.EndSequenceNumber, item.Bids, item.Asks, false, out var changedFromEntryOn);
+                    if (CheckProcessBuffer() == SequenceNumberResult.OutOfSync)
+                    {
+                        Resubscribe();
+                        return;
+                    }
+
+                    if (ProcessUpdate(item.StartSequenceNumber, item.EndSequenceNumber, item.Bids, item.Asks, false, out var changedFromEntryOn) == SequenceNumberResult.OutOfSync)
+                    {
+                        Resubscribe();
+                        return;
+                    }
 
                     if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
                     {
@@ -1137,9 +1281,10 @@ namespace CryptoExchange.Net.OrderBook.V2
                         return;
                     }
 
+                    SyncStatus = SyncStatus.Synced;
                     UpdateServerTime = item.ServerDataTime;
                     UpdateLocalTime = item.LocalDataTime;
-                    
+
                     if (changedFromEntryOn != -1
                         && _changedHandlers.Count > 0)
                     {
@@ -1183,7 +1328,7 @@ namespace CryptoExchange.Net.OrderBook.V2
                 catch (Exception)
                 {
                     // If the status is not synced it can be expected a checksum is failing
-                    if (Status == OrderBookStatus.Synced)
+                    if (SyncStatus == SyncStatus.Synced)
                         throw;
                 }
 
@@ -1200,13 +1345,13 @@ namespace CryptoExchange.Net.OrderBook.V2
 
         private void Resubscribe()
         {
-            Status = OrderBookStatus.Syncing;
+            SyncStatus = SyncStatus.Syncing;
 
             _ = Task.Run(async () =>
             {
                 if(_subscription == null)
                 {
-                    Status = OrderBookStatus.Disconnected;
+                    //Status = OrderBookStatus.Disconnected;
                     return;
                 }
 
@@ -1217,7 +1362,6 @@ namespace CryptoExchange.Net.OrderBook.V2
                 {
                     // Resubscribing failed, reconnect the socket
                     _logger.OrderBookResyncFailed(_api, _symbol);
-                    Status = OrderBookStatus.Reconnecting;
                     _ = _subscription!.ReconnectAsync();
                 }
                 else
@@ -1227,7 +1371,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             });
         }
 
-        private void ProcessUpdate(
+        private SequenceNumberResult ProcessUpdate(
             long updateSequenceNumberStart,
             long updateSequenceNumberEnd,
             IDictionary<decimal, decimal> bids,
@@ -1244,14 +1388,13 @@ namespace CryptoExchange.Net.OrderBook.V2
                 else
                     _logger.OrderBookUpdateSkipped(_api, _symbol, updateSequenceNumberStart, LastSequenceNumber);
 
-                return;
+                return sequenceResult;
             }
 
             if (sequenceResult == SequenceNumberResult.OutOfSync)
             {
                 _logger.OrderBookOutOfSync(_api, _symbol, LastSequenceNumber + 1, updateSequenceNumberStart);
-                Resubscribe();
-                return;
+                return sequenceResult;
             }
 
             var minUpdatedBidIndex = int.MaxValue;
@@ -1292,6 +1435,8 @@ namespace CryptoExchange.Net.OrderBook.V2
                 else
                     _logger.OrderBookProcessedMessage(_api, _symbol, updateSequenceNumberStart);
             }
+
+            return sequenceResult;
         }
 
         private SequenceNumberResult ValidateBufferSequenceNumber(long startSequenceNumber, long endSequenceNumber)

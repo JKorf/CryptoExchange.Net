@@ -145,5 +145,28 @@ namespace CryptoExchange.Net.Objects
                 }
             }
         }
+
+        /// <summary>
+        /// Reset the wait event to not-signaled
+        /// </summary>
+        public void Reset()
+        {
+            lock (_waitersLock)
+            {
+                _signaled = false;
+            }
+        }
+
+        /// <summary>
+        /// Whether the event is currently signaled
+        /// </summary>
+        /// <returns></returns>
+        public bool IsSet()
+        {
+            lock (_waitersLock)
+            {
+                return _signaled;
+            }
+        }
     }
 }
