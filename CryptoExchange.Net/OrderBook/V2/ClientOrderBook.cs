@@ -9,6 +9,7 @@ using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -35,6 +36,7 @@ namespace CryptoExchange.Net.OrderBook.V2
         Idle,
         Syncing,
         Synced,
+        OutOfSync
     }
 
     internal class SnapshotRegistration
@@ -57,16 +59,14 @@ namespace CryptoExchange.Net.OrderBook.V2
         private BookStatus _status;
         private SyncStatus _syncStatus;
         private UpdateSubscription? _subscription;
-        public UpdateSubscription? UpdateSubscription => _subscription;
 
         private bool _attachedSubscriptionEvents;
         
         private Task? _processTask;
         private CancellationTokenSource? _cts;
 
+        private bool _snapshotApplied;
         private readonly AsyncResetEvent _queueEvent;
-        private readonly AsyncResetEvent _snapshotAppliedEvent;
-        private readonly AsyncResetEvent _syncedEvent;
         private readonly AsyncResetEvent _updateBufferedEvent;
 
         private readonly ConcurrentQueue<object> _processQueue;
@@ -127,8 +127,11 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// </summary>
         protected int? Levels { get; set; } = null;
 
+        /// <summary>
+        /// Whether to process updates
+        /// </summary>
         protected bool AllowProcessing => 
-            (Status == BookStatus.Starting || Status == BookStatus.Running) 
+            (Status == BookStatus.Starting || Status == BookStatus.Running)
             && _cts?.IsCancellationRequested == false;
 
         /// <inheritdoc/>
@@ -167,12 +170,11 @@ namespace CryptoExchange.Net.OrderBook.V2
                 if (value == _syncStatus)
                     return;
 
-                var old = _syncStatus;
-                _syncStatus = value;
-                if (_syncStatus == SyncStatus.Synced)
-                    _syncedEvent.Set();
-                else
-                    _syncedEvent.Reset();
+                lock (_bookLock)
+                {
+                    var old = _syncStatus;
+                    _syncStatus = value;
+                }
 
                 //_logger.OrderBookStatusChanged(_api, _symbol, old, value);
                 try
@@ -281,6 +283,14 @@ namespace CryptoExchange.Net.OrderBook.V2
         private readonly ISubscribeIncrementalOrderBookSocket? _incrementalApi;
         private readonly IGetOrderBookRest? _restSnapshotApi;
 
+
+        private Task? _recoverTask;
+        private Task<CallResult>? _syncTask;
+        private Task? _shutDownTask;
+        private readonly object _shutDownLock = new object();
+        private int _version;
+
+        private CancellationTokenRegistration? _ctRegistration;
         private string _api;
         private string _symbol;
 
@@ -305,18 +315,28 @@ namespace CryptoExchange.Net.OrderBook.V2
             if (snapshotApi == null && incrementalApi == null)
                 throw new ArgumentNullException("No API available");
 
-            _snapshotApi = snapshotApi;
-            _incrementalApi = incrementalApi;
-            _restSnapshotApi = restSnapshotApi;
+            if (incrementalApi != null && incrementalApi.SubscribeIncrementalOrderBookOptions.UpdateType == SharedOrderBookSubscriptionType.OnlyIncremental && restSnapshotApi == null)
+            {
+                // If only incremental updates are available, a REST snapshot API is required to get the initial book snapshot
+                // If that is not provided try use the snapshot socket API if available, otherwise throw an exception
+                if (_snapshotApi == null)
+                    throw new ArgumentNullException("No REST API available for incremental only subscription");
+
+                _snapshotApi = snapshotApi;
+            }
+            else
+            {
+                _snapshotApi = snapshotApi;
+                _incrementalApi = incrementalApi;
+                _restSnapshotApi = restSnapshotApi;
+            }
 
             Exchange = _incrementalApi?.Exchange ?? _snapshotApi!.Exchange;
 
             _processBuffer = new List<OrderBookUpdate>();
             _processQueue = new ConcurrentQueue<object>();
             _queueEvent = new AsyncResetEvent(false, true);
-            _syncedEvent = new AsyncResetEvent(false, false);
             _updateBufferedEvent = new AsyncResetEvent(false, false);
-            _snapshotAppliedEvent = new AsyncResetEvent(false, false);
 
             Symbol = symbol;
             _symbol = symbol.BaseAsset + "/" + symbol.QuoteAsset;
@@ -356,25 +376,40 @@ namespace CryptoExchange.Net.OrderBook.V2
             _logger.OrderBookStarting(_api, _symbol);
             Status = BookStatus.Starting;
 
+            _ctRegistration = ct?.Register(() =>
+            {
+                _ = StopAsync();
+            });
+
             var cts = ct == null ? new CancellationTokenSource() : CancellationTokenSource.CreateLinkedTokenSource(ct.Value);
             _cts = cts;
 
-            // Clear any previous messages
-            while (_processQueue.TryDequeue(out _)) { }
+            Reset();
 
             _shutDownTask = null;
-            _processBuffer.Clear();
-            _syncedEvent.Reset();
-            _snapshotAppliedEvent.Reset();
-            _firstUpdateAfterSnapshotDone = false;
-
+            _syncTask = null;
+            _recoverTask = null;
             _processTask = ProcessQueue();
 
-            var startResult = await DoStartAsync(cts.Token).ConfigureAwait(false);
-            if (!startResult.Success)
+            var subscription = await DoSubscribeAsync(cts.Token).ConfigureAwait(false);
+            if (!subscription.Success)
             {
                 await StopAsync().ConfigureAwait(false);
-                return CallResult.Fail(startResult.Error!);
+                return CallResult.Fail(subscription.Error!);
+            }
+
+            _subscription = subscription.Data;
+            _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
+            //_subscription.ConnectionLost += HandleConnectionLost;
+            _subscription.ConnectionClosed += HandleConnectionClosed;
+            //_subscription.ConnectionRestored += HandleConnectionRestored;
+            _attachedSubscriptionEvents = true;
+
+            var syncResult = await DoSyncAsync(cts.Token).ConfigureAwait(false);
+            if (!syncResult.Success)
+            {
+                await StopAsync().ConfigureAwait(false);
+                return CallResult.Fail(syncResult.Error!);
             }
 
             if (cts.IsCancellationRequested)
@@ -383,111 +418,34 @@ namespace CryptoExchange.Net.OrderBook.V2
                 return CallResult.Fail(new CancellationRequestedError());
             }
 
-            _subscription = startResult.Data;
-            _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
-            //_subscription.ConnectionLost += HandleConnectionLost;
-            _subscription.ConnectionClosed += HandleConnectionClosed;
-            //_subscription.ConnectionRestored += HandleConnectionRestored;
-            _attachedSubscriptionEvents = true;
-
-            await _syncedEvent.WaitAsync(TimeSpan.FromSeconds(10), cts.Token).ConfigureAwait(false);
-            if (SyncStatus != SyncStatus.Synced)
-            {
-                await StopAsync().ConfigureAwait(false);
-                return CallResult.Fail(new InvalidOperationError("Failed to sync order book"));
-            }
-
             Status = BookStatus.Running;
             return CallResult.Ok();
         }
 
         private void SubscriptionStatusChanged(SubscriptionStatus subscriptionStatus)
         {
-            if (subscriptionStatus == SubscriptionStatus.Closing
-                || subscriptionStatus == SubscriptionStatus.Closed)
-            {
-                // Subscription is closing
-                if (Status != BookStatus.Stopping && Status != BookStatus.Stopped)
-                    _ = StopAsync();
-            }
-
             if (subscriptionStatus == SubscriptionStatus.Pending
                 || subscriptionStatus == SubscriptionStatus.Subscribing)
             {
                 // Subscription is reconnecting/resubscribing
-                if (SyncStatus != SyncStatus.Idle)
-                    SyncStatus = SyncStatus.Syncing;
-
-                if (subscriptionStatus == SubscriptionStatus.Pending)
+                lock (_bookLock) 
+                {
+                    if (SyncStatus != SyncStatus.Idle)
+                        SyncStatus = SyncStatus.OutOfSync;
                     Reset();
+                }
             }
 
             if (subscriptionStatus == SubscriptionStatus.Subscribed)
-                _ = ResyncAsync().ConfigureAwait(false);
+            {
+                _ = DoSyncAsync(_cts?.Token ?? default);
+            }    
         }
-
-        //private void HandleConnectionLost()
-        //{
-        //    _logger.OrderBookConnectionLost(_api, _symbol);
-        //    if (SyncStatus != SyncStatus.Idle)
-        //        SyncStatus = SyncStatus.Syncing;
-        //    if (Status != BookStatus.Stopped)
-        //    {
-        //        Reset();
-        //    }
-        //}
 
         private void HandleConnectionClosed()
         {
             _logger.OrderBookDisconnected(_api, _symbol);
         }
-
-        //private async void HandleConnectionRestored(TimeSpan _)
-        //{
-        //    await ResyncAsync().ConfigureAwait(false);
-        //}
-
-
-        /// <inheritdoc />
-        public void RegisterChangedHandler(Action<BookSnapshot> handler)
-            => RegisterChangedHandler(int.MaxValue, handler);
-
-        /// <inheritdoc />
-        public void RegisterChangedHandler(int top, Action<BookSnapshot> handler)
-        {
-            if (top <= 0)
-                throw new ArgumentException("Top must be greater than 0", nameof(top));
-
-            lock (_changedHandlersLock)
-            {
-                if (!_changedHandlers.TryGetValue(top, out var handlerList))
-                    _changedHandlers[top] = handlerList = new List<SnapshotRegistration>();
-
-                handlerList.Add(new SnapshotRegistration { Depth = top, Handler = handler });
-            }
-        }
-
-        /// <inheritdoc />
-        public void UnregisterChangedHandler(Action<BookSnapshot> handler)
-        {
-            lock (_changedHandlersLock)
-            {
-                foreach (var handlerList in _changedHandlers.Values)
-                    handlerList.RemoveAll(h => h.Handler == handler);
-            }
-        }
-
-        /// <inheritdoc />
-        public void UnregisterChangedHandlers()
-        {
-            lock (_changedHandlersLock)
-            {
-                _changedHandlers.Clear();
-            }
-        }
-
-        private Task? _shutDownTask;
-        private readonly object _shutDownLock = new object();
 
         /// <inheritdoc/>
         public async Task StopAsync()
@@ -526,13 +484,12 @@ namespace CryptoExchange.Net.OrderBook.V2
                     _attachedSubscriptionEvents = false;
                 }
             }
-
+            
+            _ctRegistration?.Dispose();
+            _ctRegistration = null;
+    
             if (_cts?.IsCancellationRequested == false)
                 _cts.Cancel();
-
-            SyncStatus = SyncStatus.Idle;
-            if (_processTask != null)
-                await _processTask.ConfigureAwait(false);
 
             if (_subscription != null
                 && _subscription.SubscriptionStatus != SubscriptionStatus.Closing
@@ -540,6 +497,12 @@ namespace CryptoExchange.Net.OrderBook.V2
             {
                 await _subscription.CloseAsync().ConfigureAwait(false);
             }
+
+            SyncStatus = SyncStatus.Idle;
+            if (_processTask != null)
+                await _processTask.ConfigureAwait(false);
+            if (_recoverTask != null)
+                await _recoverTask.ConfigureAwait(false);
 
             if (_subscription != null)
             {
@@ -554,6 +517,756 @@ namespace CryptoExchange.Net.OrderBook.V2
             Status = BookStatus.Stopped;
         }
 
+        protected virtual async Task<WebSocketResult<UpdateSubscription>> DoSubscribeAsync(CancellationToken ct)
+        {
+            if (_incrementalApi != null)
+            {
+                return await _incrementalApi.SubscribeToIncrementalOrderBookUpdatesAsync(
+                    new SubscribeOrderBookRequest(Symbol), HandleUpdate, ct: ct).ConfigureAwait(false);
+            }
+
+            return await _snapshotApi!.SubscribeToOrderBookUpdatesAsync(
+                    new SubscribeOrderBookRequest(
+                        Symbol,
+                        _snapshotApi.SubscribeOrderBookOptions.SupportedLimits.Max()), HandleUpdate, ct: ct).ConfigureAwait(false);
+        }
+
+        protected virtual async Task<CallResult> DoSyncAsync(CancellationToken ct)
+        {
+            if (_subscription == null)
+                throw new InvalidOperationException("Subscription not set");
+
+            if (_syncTask != null && !_syncTask.IsCompleted)
+                await _syncTask.ConfigureAwait(false);
+
+            _syncTask = Task.Run(async() =>
+            {
+                if (SyncStatus == SyncStatus.Synced)
+                    return CallResult.Ok();
+
+                SyncStatus = SyncStatus.Syncing;
+
+                if (_incrementalApi != null)
+                {
+                    if (_incrementalApi.SubscribeIncrementalOrderBookOptions.UpdateType == SharedOrderBookSubscriptionType.OnlyIncremental)
+                    {
+                        // Only incremental, request REST snapshot
+                        // Wait up to 250ms until the first update has been received
+                        await WaitUntilFirstUpdateBufferedAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(250), ct).ConfigureAwait(false);
+
+                        var snapshot = await _restSnapshotApi!.GetOrderBookAsync(new GetOrderBookRequest(Symbol,
+                            _restSnapshotApi.GetOrderBookOptions.MaxLimit ?? _restSnapshotApi.GetOrderBookOptions.SupportedLimits!.Max()), ct: ct).ConfigureAwait(false);
+
+                        if (!snapshot.Success)
+                        {
+                            _logger.Log(LogLevel.Debug, $"{_api} order book {_symbol} failed to retrieve initial order book");
+                            return CallResult.Fail(snapshot.Error!);
+                        }
+
+                        _processQueue.Enqueue(
+                            new OrderBookSnapshot
+                            {
+                                SequenceNumber = snapshot.Data.SequenceNumber ?? DateTime.UtcNow.Ticks,
+                                Asks = snapshot.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
+                                Bids = snapshot.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity)
+                            });
+
+                        _queueEvent.Set();
+                        return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Snapshot + incremental, wait for snapshot to be received
+                        return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    // Snapshot socket API
+                    return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                }
+            });
+
+            return await _syncTask.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Handle a snapshot orderbook update
+        /// </summary>
+        protected virtual void HandleUpdate(DataEvent<SharedOrderBook> data)
+        {
+            var sequenceNumber = data.Data.SequenceNumber ?? data.SequenceNumber ?? data.DataTime?.Ticks ?? data.ReceiveTime.Ticks;
+            _processQueue.Enqueue(
+                    new OrderBookSnapshot
+                    {
+                        LocalDataTime = data.DataTimeLocal,
+                        ServerDataTime = data.DataTime,
+                        SequenceNumber = sequenceNumber,
+                        Asks = data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
+                        Bids = data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity)
+                    });
+            _queueEvent.Set();
+        }
+
+        /// <summary>
+        /// Handle an incremental orderbook update
+        /// </summary>
+        protected virtual void HandleUpdate(DataEvent<SharedIncrementalOrderBook> data)
+        {
+            var sequenceNumber = data.Data.SequenceNumber ?? data.SequenceNumber ?? data.DataTime?.Ticks ?? data.ReceiveTime.Ticks;
+            if (data.UpdateType == SocketUpdateType.Snapshot)
+            {
+                _processQueue.Enqueue(
+                    new OrderBookSnapshot
+                    {
+                        LocalDataTime = data.DataTimeLocal,
+                        ServerDataTime = data.DataTime,
+                        SequenceNumber = sequenceNumber,
+                        Asks = data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
+                        Bids = data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity)
+                    });
+                _queueEvent.Set();
+                return;
+            }
+
+            if (data.Data.StartSequenceNumber == null)
+            {
+                _processQueue.Enqueue(
+                    new OrderBookUpdate
+                    {
+                        LocalDataTime = data.DataTimeLocal,
+                        ServerDataTime = data.DataTime,
+                        StartSequenceNumber = sequenceNumber,
+                        EndSequenceNumber = sequenceNumber,
+                        Asks = data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
+                        Bids = data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity)
+                    });
+                _queueEvent.Set();
+                return;
+            }
+            else
+            {
+                _processQueue.Enqueue(
+                    new OrderBookUpdate
+                    {
+                        LocalDataTime = data.DataTimeLocal,
+                        ServerDataTime = data.DataTime,
+                        StartSequenceNumber = data.Data.StartSequenceNumber!.Value,
+                        EndSequenceNumber = sequenceNumber,
+                        Asks = data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
+                        Bids = data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity)
+                    });
+                _queueEvent.Set();
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Implementation for validating a checksum value with the current order book. If checksum validation fails (returns false)
+        /// the order book will be resynchronized
+        /// </summary>
+        protected virtual bool DoChecksum(int checksum) => true;
+        
+        /// <summary>
+        /// Add a checksum value to the process queue
+        /// </summary>
+        /// <param name="checksum">The checksum value</param>
+        /// <param name="sequenceNumber">The sequence number of the message if it's a separate message with separate number</param>
+        protected void AddChecksum(int checksum, long? sequenceNumber = null)
+        {
+            if (!AllowProcessing)
+                throw new InvalidOperationException("Trying to add checksum while book is not working");
+
+            _processQueue.Enqueue(new OrderBookChecksum() { Checksum = checksum, SequenceNumber = sequenceNumber });
+            _queueEvent.Set();
+        }
+
+        private async Task ProcessQueue()
+        {
+            while (AllowProcessing)
+            {
+                try { await _queueEvent.WaitAsync(ct: _cts!.Token).ConfigureAwait(false); } catch (OperationCanceledException) { }
+
+                if (!AllowProcessing)
+                    break;
+
+                while (_processQueue.TryDequeue(out var item))
+                {
+                    if (item is OrderBookSnapshot snapshot)
+                        ProcessSnapshot(snapshot);
+                    else if (item is OrderBookUpdate update)
+                        ProcessUpdate(update);
+                    else if (item is OrderBookChecksum checksum)
+                        ProcessChecksum(checksum);
+                }
+            }
+        }
+
+        private void ProcessSnapshot(OrderBookSnapshot item)
+        {
+            List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
+            lock (_bookLock)
+            {
+                if (!AllowProcessing)
+                    return;
+
+                if (SyncStatus == SyncStatus.OutOfSync)
+                    return;
+
+                _asks.Clear();
+                foreach (var ask in item.Asks)
+                    _asks.Add(ask.Key, ask.Value);
+                _bids.Clear();
+                foreach (var bid in item.Bids)
+                    _bids.Add(bid.Key, bid.Value);
+
+                if (item.SequenceNumber != null)
+                    LastSequenceNumber = item.SequenceNumber.Value;
+
+                UpdateTime = DateTime.UtcNow;
+                UpdateServerTime = item.ServerDataTime;
+                UpdateLocalTime = item.LocalDataTime;
+                _snapshotApplied = true;
+
+                _logger.OrderBookDataSet(_api, _symbol, _bids.Count, _asks.Count, item.SequenceNumber);
+                if (ApplyBufferedUpdates() == SequenceNumberResult.OutOfSync)
+                {
+                    //_logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
+                    SyncStatus = SyncStatus.OutOfSync;
+                    StartRecovery();
+                    return;
+                }
+
+                if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
+                {
+                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
+                    SyncStatus = SyncStatus.OutOfSync;
+                    StartRecovery();
+                    return;
+                }
+
+                if (_changedHandlers.Count > 0)
+                    updateHandlers = CaptureChangedNotifications(1);
+
+                SyncStatus = SyncStatus.Synced;
+            }
+
+            if (updateHandlers?.Count > 0)
+            {
+                foreach (var handler in updateHandlers)
+                {
+                    foreach (var h in handler.Item1)
+                    {
+                        try
+                        {
+                            h(handler.Item2);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Log(LogLevel.Error, ex, $"Error while executing order book changed handlers: {ex}");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check and empty the process buffer; see what entries to update the book with
+        /// </summary>
+        protected SequenceNumberResult ApplyBufferedUpdates()
+        {
+            if (_processBuffer.Count == 0)
+                return SequenceNumberResult.Ok;
+
+            var result = SequenceNumberResult.Ok;
+            _logger.OrderBookProcessingBufferedUpdates(_api, _symbol, _processBuffer.Count);
+
+            foreach (var bufferEntry in _processBuffer)
+            {
+                if (!AllowProcessing || SyncStatus == SyncStatus.OutOfSync)
+                    break;
+
+                if (ProcessUpdate(bufferEntry.StartSequenceNumber, bufferEntry.EndSequenceNumber, bufferEntry.Bids, bufferEntry.Asks, true, out _) == SequenceNumberResult.OutOfSync)
+                {
+                    result = SequenceNumberResult.OutOfSync;
+                    break;
+                }
+            }
+
+            _processBuffer.Clear();
+            return result;
+        }
+
+
+        int update = 1;
+        private void ProcessUpdate(OrderBookUpdate item)
+        {
+            List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
+            lock (_bookLock)
+            {
+                if (!AllowProcessing)
+                    return;
+
+                if (SyncStatus == SyncStatus.OutOfSync)
+                    return;
+
+                if (!_snapshotApplied)
+                {
+                    _processBuffer.Add(item);
+                    _updateBufferedEvent.Set();
+
+                    if (_logger.IsEnabled(LogLevel.Trace))
+                        _logger.OrderBookUpdateBuffered(_api, _symbol, item.StartSequenceNumber, item.EndSequenceNumber, item.Asks.Count, item.Bids.Count);
+                }
+                else
+                {
+                    if (ProcessUpdate(item.StartSequenceNumber, item.EndSequenceNumber, item.Bids, item.Asks, false, out var changedFromEntryOn) == SequenceNumberResult.OutOfSync)
+                    {
+                        SyncStatus = SyncStatus.OutOfSync;
+                        StartRecovery();
+                        return;
+                    }
+
+                    //update++;
+                    //if (update % 100 == 0)
+                    //{
+                    //    SyncStatus = SyncStatus.OutOfSync;
+                    //    StartRecovery();
+                    //    return;
+                    //}
+
+                    if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
+                    {
+                        _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
+                        SyncStatus = SyncStatus.OutOfSync;
+                        StartRecovery();
+                        return;
+                    }
+
+                    SyncStatus = SyncStatus.Synced;
+                    UpdateServerTime = item.ServerDataTime;
+                    UpdateLocalTime = item.LocalDataTime;
+
+                    if (changedFromEntryOn != -1
+                        && _changedHandlers.Count > 0)
+                    {
+                        updateHandlers = CaptureChangedNotifications(changedFromEntryOn);
+                    }
+                }
+            }
+
+            if (updateHandlers?.Count > 0)
+            {
+                foreach (var handler in updateHandlers)
+                {
+                    foreach (var h in handler.Item1)
+                    {
+                        try
+                        {
+                            h(handler.Item2);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Log(LogLevel.Error, ex, $"Error while executing order book changed handlers: {ex}");
+                        }
+                    }
+                }
+            }
+        }
+
+        private SequenceNumberResult ProcessUpdate(
+            long updateSequenceNumberStart,
+            long updateSequenceNumberEnd,
+            IDictionary<decimal, decimal> bids,
+            IDictionary<decimal, decimal> asks,
+            bool fromBuffer,
+            out int changedFromEntryOn)
+        {
+            changedFromEntryOn = -1;
+            var sequenceResult = fromBuffer ? ValidateBufferSequenceNumber(updateSequenceNumberStart, updateSequenceNumberEnd) : ValidateLiveSequenceNumber(updateSequenceNumberStart);
+            if (sequenceResult == SequenceNumberResult.Skip)
+            {
+                if (updateSequenceNumberStart != updateSequenceNumberEnd)
+                    _logger.OrderBookUpdateSkipped(_api, _symbol, updateSequenceNumberStart, updateSequenceNumberEnd, LastSequenceNumber);
+                else
+                    _logger.OrderBookUpdateSkipped(_api, _symbol, updateSequenceNumberStart, LastSequenceNumber);
+
+                return sequenceResult;
+            }
+
+            if (sequenceResult == SequenceNumberResult.OutOfSync)
+            {
+                _logger.OrderBookOutOfSync(_api, _symbol, LastSequenceNumber + 1, updateSequenceNumberStart);
+                return sequenceResult;
+            }
+
+            var minUpdatedBidIndex = int.MaxValue;
+            var minUpdatedAskIndex = int.MaxValue;
+            foreach (var entry in bids)
+            {
+                UpdateValue(OrderBookEntryType.Bid, entry, out var updatedBidIndex);
+                if (updatedBidIndex != null && updatedBidIndex < minUpdatedBidIndex)
+                    minUpdatedBidIndex = updatedBidIndex.Value;
+            }
+
+            foreach (var entry in asks)
+            {
+                UpdateValue(OrderBookEntryType.Ask, entry, out var updatedAskIndex);
+                if (updatedAskIndex != null && updatedAskIndex < minUpdatedAskIndex)
+                    minUpdatedAskIndex = updatedAskIndex.Value;
+            }
+
+            if (minUpdatedBidIndex != int.MaxValue || minUpdatedAskIndex != int.MaxValue)
+                changedFromEntryOn = Math.Min(minUpdatedBidIndex, minUpdatedAskIndex) + 1; // Index to top
+
+            if (Levels.HasValue && _strictLevels)
+            {
+                while (_bids.Count > Levels.Value)
+                    _bids.RemoveAt(_bids.Count - 1);
+
+                while (_asks.Count > Levels.Value)
+                    _asks.RemoveAt(_asks.Count - 1);
+            }
+
+            _firstUpdateAfterSnapshotDone = true;
+            LastSequenceNumber = updateSequenceNumberEnd;
+
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                if (updateSequenceNumberStart != updateSequenceNumberEnd)
+                    _logger.OrderBookProcessedMessage(_api, _symbol, updateSequenceNumberStart, updateSequenceNumberEnd);
+                else
+                    _logger.OrderBookProcessedMessage(_api, _symbol, updateSequenceNumberStart);
+            }
+
+            return sequenceResult;
+        }
+
+        /// <summary>
+        /// Update order book with an entry
+        /// </summary>
+        /// <param name="type">Type of entry</param>
+        /// <param name="entry">The entry</param>
+        /// <param name="entryIndex">The index of the changed entry</param>
+        protected virtual bool UpdateValue(OrderBookEntryType type, KeyValuePair<decimal, decimal> entry, out int? entryIndex)
+        {
+            UpdateTime = DateTime.UtcNow;
+            entryIndex = null;
+            var listToChange = type == OrderBookEntryType.Ask ? _asks : _bids;
+            if (entry.Value == 0)
+            {
+                entryIndex = listToChange.IndexOfKey(entry.Key);
+                if (entryIndex == -1)
+                {
+                    entryIndex = null;
+                    return true;
+                }
+
+                listToChange.RemoveAt(entryIndex.Value);
+            }
+            else
+            {
+                entryIndex = listToChange.IndexOfKey(entry.Key);
+                if (entryIndex == -1)
+                {
+                    listToChange.Add(entry.Key, entry.Value);
+                    entryIndex = listToChange.IndexOfKey(entry.Key);
+                }
+                else
+                {                    
+#if NET8_0_OR_GREATER
+                    listToChange.SetValueAtIndex(entryIndex.Value, entry.Value);
+#else
+                    listToChange[entry.Key] = entry.Value;
+#endif
+                }
+            }
+
+            return true;
+        }
+
+
+
+        private void ProcessChecksum(OrderBookChecksum ci)
+        {
+            lock (_bookLock)
+            {
+                if (!_validateChecksum)
+                    return;
+
+                bool checksumResult = false;
+                try
+                {
+                    checksumResult = DoChecksum(ci.Checksum);
+                }
+                catch (Exception)
+                {
+                    // If the status is not synced it can be expected a checksum is failing
+                    if (SyncStatus == SyncStatus.Synced)
+                        throw;
+                }
+
+                if (ci.SequenceNumber != null)
+                    LastSequenceNumber = ci.SequenceNumber.Value;
+
+                if (!checksumResult)
+                {
+                    _logger.OrderBookOutOfSyncChecksum(_api, _symbol);
+                    SyncStatus = SyncStatus.OutOfSync;
+                    StartRecovery();
+                }
+            }
+        }
+
+        private void Reset()
+        {
+            _processBuffer.Clear();
+            _queueEvent.Set();
+            // Clear queue
+            while (_processQueue.TryDequeue(out _)) { }
+
+            LastSequenceNumber = 0;
+            _version++;
+
+            _snapshotApplied = false;
+
+            _updateBufferedEvent.Reset();
+
+            _asks.Clear();
+            _bids.Clear();
+
+            _firstUpdateAfterSnapshotDone = false;            
+        }
+
+        private void StartRecovery()
+        {
+            if (_recoverTask != null && !_recoverTask.IsCompleted)
+            {
+                // Already recovering
+                return;
+            }
+
+            _recoverTask = Task.Run(async () => 
+            {
+                if (!AllowProcessing)
+                    return;
+
+                await _subscription!.UnsubscribeAsync().ConfigureAwait(false);
+                var resubResult = await _subscription!.ResubscribeAsync().ConfigureAwait(false);
+                if (!resubResult.Success)
+                {
+                    // Resubscribing failed, reconnect the socket
+                    _logger.OrderBookResyncFailed(_api, _symbol);
+                    await _subscription!.ReconnectAsync().ConfigureAwait(false);
+                }
+            });
+        }
+
+        /// <summary>
+        /// IAsyncDisposable implementation for the order book
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsync(true).ConfigureAwait(false);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose method
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual async ValueTask DisposeAsync(bool disposing)
+        {
+            if (_diposed)
+            {
+                if (_shutDownTask != null)
+                    await _shutDownTask.ConfigureAwait(false);
+
+                return;
+            }
+
+            lock (_shutDownLock)
+            {
+                if (_shutDownTask == null)
+                {
+                    _shutDownTask = ShutdownAsync();
+                }
+            }
+
+            _diposed = true;
+
+            await _shutDownTask.ConfigureAwait(false);
+            _shutDownTask = null;
+
+            lock (_changedHandlersLock)
+                _changedHandlers.Clear();
+            OnStatusChange = null;
+            OnSyncStatusChange = null;
+        }
+
+        /// <summary>
+        /// Wait until the order book has been synced
+        /// </summary>
+        /// <param name="timeout">Max wait time</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        protected async Task<CallResult> WaitForSyncedBook(TimeSpan timeout, CancellationToken ct)
+        {
+            var startTime = DateTime.UtcNow;
+            while (SyncStatus == SyncStatus.Syncing)
+            {
+                if (ct.IsCancellationRequested)
+                    return CallResult.Fail(new CancellationRequestedError());
+
+                if (startTime + timeout < DateTime.UtcNow)
+                    return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for book to sync")));
+
+                try { await Task.Delay(10, ct).ConfigureAwait(false); } catch { }
+            }
+
+            if (SyncStatus == SyncStatus.OutOfSync)
+                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.Unknown, "Order book is out of sync")));
+
+            return CallResult.Ok();        }
+
+        /// <summary>
+        /// Wait until an update has been buffered
+        /// </summary>
+        /// <param name="minWait">Min wait time</param>
+        /// <param name="maxWait">Max wait time</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        protected async Task<CallResult> WaitUntilFirstUpdateBufferedAsync(TimeSpan? minWait, TimeSpan maxWait, CancellationToken ct)
+        {
+            var startWait = DateTime.UtcNow;
+            if (!await _updateBufferedEvent.WaitAsync(maxWait, ct).ConfigureAwait(false))
+                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for update to be buffered")));
+
+            var dif = DateTime.UtcNow - startWait;
+            if (minWait != null && dif < minWait)
+                await Task.Delay(minWait.Value - dif).ConfigureAwait(false);
+
+            return CallResult.Ok();
+        }
+
+        private SequenceNumberResult ValidateBufferSequenceNumber(long startSequenceNumber, long endSequenceNumber)
+        {
+            if (endSequenceNumber <= LastSequenceNumber)
+                // Buffered update is from before the snapshot, ignore
+                return SequenceNumberResult.Skip;
+
+            if (_sequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
+            {
+                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                    // Buffered update is not the next sequence number when it was expected to be
+                    return SequenceNumberResult.OutOfSync;
+            }
+
+            // Buffered sequence number is larger than the last sequence number
+            return SequenceNumberResult.Ok;
+        }
+
+        private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
+        {
+            if (sequenceNumber < LastSequenceNumber
+                && (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet))
+            {
+                // Update is somehow from before the current state
+                return SequenceNumberResult.OutOfSync;
+            }
+
+            if (_sequencesAreConsecutive
+                && LastSequenceNumber != 0
+                && sequenceNumber != LastSequenceNumber + 1)
+            {
+                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                    return SequenceNumberResult.OutOfSync;                
+            }
+
+            return SequenceNumberResult.Ok;
+        }
+
+        private List<(Action<BookSnapshot>[] Handlers, BookSnapshot Snapshot)>? CaptureChangedNotifications(int firstChangedLevel)
+        {
+            List<(int Depth, Action<BookSnapshot>[] Handlers)>? groups = null;
+
+            lock (_changedHandlersLock)
+            {
+                foreach (var group in _changedHandlers)
+                {
+                    if (group.Key < firstChangedLevel || group.Value.Count == 0)
+                        continue;
+
+                    groups ??= new();
+                    groups.Add((group.Key, group.Value.Select(r => r.Handler).ToArray()));
+                }
+            }
+
+            if (groups is null)
+                return null;
+
+            var notifications =
+                new List<(Action<BookSnapshot>[] Handlers, BookSnapshot Snapshot)>(groups.Count);
+
+            foreach (var (depth, handlers) in groups)
+            {
+                var snapshot = new BookSnapshot(LastSequenceNumber, CopyLevels(_asks, depth), CopyLevels(_bids, depth));
+                notifications.Add((handlers, snapshot));
+            }
+
+            return notifications;
+        }
+
+        private static IReadOnlyDictionary<decimal, decimal> CopyLevels(
+            SortedList<decimal, decimal> levels, int depth)
+        {
+            var size = Math.Min(levels.Count, depth);
+            var copy = new Dictionary<decimal, decimal>(size);
+            for (var i = 0; i < size; i++)
+                copy.Add(levels.Keys[i], levels.Values[i]);
+
+            return copy;
+        }
+
+        public void RegisterChangedHandler(Action<BookSnapshot> handler)
+            => RegisterChangedHandler(int.MaxValue, handler);
+
+        /// <inheritdoc />
+        public void RegisterChangedHandler(int top, Action<BookSnapshot> handler)
+        {
+            if (top <= 0)
+                throw new ArgumentException("Top must be greater than 0", nameof(top));
+
+            lock (_changedHandlersLock)
+            {
+                if (!_changedHandlers.TryGetValue(top, out var handlerList))
+                    _changedHandlers[top] = handlerList = new List<SnapshotRegistration>();
+
+                handlerList.Add(new SnapshotRegistration { Depth = top, Handler = handler });
+            }
+        }
+
+        /// <inheritdoc />
+        public void UnregisterChangedHandler(Action<BookSnapshot> handler)
+        {
+            lock (_changedHandlersLock)
+            {
+                foreach (var handlerList in _changedHandlers.Values)
+                    handlerList.RemoveAll(h => h.Handler == handler);
+            }
+        }
+
+        /// <inheritdoc />
+        public void UnregisterChangedHandlers()
+        {
+            lock (_changedHandlersLock)
+            {
+                _changedHandlers.Clear();
+            }
+        }
+
+
         /// <inheritdoc/>
         public CallResult<decimal> CalculateAverageFillPrice(decimal baseQuantity, OrderBookEntryType type)
         {
@@ -566,7 +1279,7 @@ namespace CryptoExchange.Net.OrderBook.V2
             lock (_bookLock)
             {
                 var list = type == OrderBookEntryType.Ask ? _asks : _bids;
-                
+
                 var step = 0;
                 while (amountLeft > 0)
                 {
@@ -618,425 +1331,6 @@ namespace CryptoExchange.Net.OrderBook.V2
             return CallResult<decimal>.Ok(Math.Round(totalBaseQuantity, 8));
         }
 
-        /// <summary>
-        /// Implementation for starting the order book. Should typically have logic for subscribing to the update stream and retrieving
-        /// and setting the initial order book
-        /// </summary>
-        /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync(CancellationToken ct)
-        {
-            SyncStatus = SyncStatus.Syncing;
-            if (_incrementalApi != null)
-            {
-                var subResult = await _incrementalApi.SubscribeToIncrementalOrderBookUpdatesAsync(
-                    new SubscribeOrderBookRequest(Symbol), HandleUpdate, ct: ct).ConfigureAwait(false);
-
-                if (!subResult.Success)
-                    return CallResult<UpdateSubscription>.Fail(subResult.Error!);
-
-                if (ct.IsCancellationRequested)
-                    return CallResult<UpdateSubscription>.Fail(new CancellationRequestedError());
-
-
-                if (_incrementalApi.SubscribeIncrementalOrderBookOptions.UpdateType == SharedOrderBookSubscriptionType.OnlyIncremental)
-                {
-                    // Wait up to 250ms until the first update has been received
-                    await WaitUntilFirstUpdateBufferedAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(250), ct).ConfigureAwait(false);
-
-                    var snapshot = await _restSnapshotApi!.GetOrderBookAsync(new GetOrderBookRequest(Symbol,
-                        _restSnapshotApi.GetOrderBookOptions.MaxLimit ?? _restSnapshotApi.GetOrderBookOptions.SupportedLimits!.Max()), ct: ct).ConfigureAwait(false);
-
-                    if (!snapshot.Success)
-                    {
-                        _logger.Log(LogLevel.Debug, $"{_api} order book {_symbol} failed to retrieve initial order book");
-                        return CallResult<UpdateSubscription>.Fail(snapshot.Error!);
-                    }
-
-                    SetSnapshot(
-                        snapshot.Data.SequenceNumber,
-                        snapshot.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                        snapshot.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity));
-                }
-
-                var waitSnapshotResult = await WaitForSetOrderBookAsync(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
-                if (!waitSnapshotResult.Success)
-                {
-                    // No snapshot received within 10 seconds
-                    return CallResult<UpdateSubscription>.Fail(waitSnapshotResult.Error!);
-                }
-
-                return CallResult<UpdateSubscription>.Ok(subResult.Data);
-            }
-
-            var snapshotSubResult = await _snapshotApi!.SubscribeToOrderBookUpdatesAsync(
-                    new SubscribeOrderBookRequest(
-                        Symbol,
-                        _snapshotApi.SubscribeOrderBookOptions.SupportedLimits.Max()), HandleUpdate, ct: ct).ConfigureAwait(false);
-            if (!snapshotSubResult.Success)
-                return CallResult<UpdateSubscription>.Fail(snapshotSubResult.Error!);
-
-            var result = await WaitForSetOrderBookAsync(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
-            if (!result.Success)
-            {
-                // No snapshot received within 10 seconds
-                return CallResult<UpdateSubscription>.Fail(result.Error!);
-            }
-
-            return CallResult<UpdateSubscription>.Ok(snapshotSubResult.Data);
-        }
-
-        /// <summary>
-        /// Handle a snapshot orderbook update
-        /// </summary>
-        protected virtual void HandleUpdate(DataEvent<SharedOrderBook> data)
-        {
-            if (data.Data.SequenceNumber == null)
-                throw new Exception("Sequence number null");
-
-            SetSnapshot(
-                data.Data.SequenceNumber!.Value,
-                data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
-                data.DataTime,
-                data.DataTimeLocal);
-        }
-
-        /// <summary>
-        /// Handle an incremental orderbook update
-        /// </summary>
-        protected virtual void HandleUpdate(DataEvent<SharedIncrementalOrderBook> data)
-        {
-            if (data.Data.SequenceNumber == null)
-                throw new Exception("Sequence number null");
-
-            var sequenceNumber = data.Data.SequenceNumber ?? data.SequenceNumber ?? data.DataTime?.Ticks ?? data.ReceiveTime.Ticks;
-            if (data.UpdateType == SocketUpdateType.Snapshot)
-            {
-                SetSnapshot(
-                    sequenceNumber,
-                    data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.DataTime,
-                    data.DataTimeLocal);
-                return;
-            }
-
-            if (data.Data.StartSequenceNumber == null)
-            {
-                UpdateOrderBook(
-                    //sequenceNumber,
-                    new Random().Next(),
-                    data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.DataTime,
-                    data.DataTimeLocal);
-            }
-            else
-            {
-                UpdateOrderBook(
-                    new Random().Next(),
-                    new Random().Next(),
-                    //data.Data.StartSequenceNumber!.Value,
-                    //data.Data.SequenceNumber!.Value,
-                    data.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity),
-                    data.DataTime,
-                    data.DataTimeLocal);
-            }
-        }
-
-        /// <summary>
-        /// Reset the order book
-        /// </summary>
-        protected virtual void DoReset() { }
-
-        /// <summary>
-        /// Resync the order book
-        /// </summary>
-        /// <returns></returns>
-        protected virtual async Task<CallResult> DoResyncAsync(CancellationToken ct)
-        {
-            if (_incrementalApi != null)
-            {
-                // Wait up to 250ms until the first update has been received
-                await WaitUntilFirstUpdateBufferedAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(250), ct).ConfigureAwait(false);
-
-                if (_incrementalApi.SubscribeIncrementalOrderBookOptions.UpdateType == SharedOrderBookSubscriptionType.OnlyIncremental)
-                {
-                    var snapshot = await _restSnapshotApi!.GetOrderBookAsync(new GetOrderBookRequest(Symbol,
-                        _restSnapshotApi.GetOrderBookOptions.MaxLimit ?? _restSnapshotApi.GetOrderBookOptions.SupportedLimits!.Max()), ct: ct).ConfigureAwait(false);
-                    if (!snapshot.Success)
-                        return CallResult.Fail(snapshot.Error!);
-
-                    SetSnapshot(
-                        snapshot.Data.SequenceNumber,
-                        snapshot.Data.Bids.ToDictionary(x => x.Price, x => x.Quantity),
-                        snapshot.Data.Asks.ToDictionary(x => x.Price, x => x.Quantity));
-                }
-
-            }
-
-            return await WaitForSetOrderBookAsync(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Implementation for validating a checksum value with the current order book. If checksum validation fails (returns false)
-        /// the order book will be resynchronized
-        /// </summary>
-        protected virtual bool DoChecksum(int checksum) => true;
-
-        /// <summary>
-        /// Set snapshot data for the order book. Typically the snapshot which was requested from the Rest API, or the first snapshot
-        /// received from a socket subscription. Will clear any previous data.
-        /// </summary>
-        /// <param name="orderBookSequenceNumber">The last update sequence number until which the snapshot is in sync</param>
-        /// <param name="askList">List of asks</param>
-        /// <param name="bidList">List of bids</param>
-        /// <param name="serverDataTime">Server data timestamp</param>
-        /// <param name="localDataTime">local data timestamp</param>
-        protected void SetSnapshot(
-            long? orderBookSequenceNumber,
-            IDictionary<decimal, decimal> bidList,
-            IDictionary<decimal, decimal> askList,
-            DateTime? serverDataTime = null,
-            DateTime? localDataTime = null)
-        {
-            if (!AllowProcessing)
-                throw new InvalidOperationException("Trying to set snapshot while book is not working");
-
-            _processQueue.Enqueue(
-                new OrderBookSnapshot
-                {
-                    LocalDataTime = localDataTime,
-                    ServerDataTime = serverDataTime,
-                    SequenceNumber = orderBookSequenceNumber,
-                    Asks = askList,
-                    Bids = bidList
-                });
-            _queueEvent.Set();
-        }
-
-        /// <summary>
-        /// Add an update to the process queue. Updates the book by providing changed bids and asks, along with an update number which should be higher than the previous update numbers
-        /// </summary>
-        /// <param name="sequenceNumber">The sequence number</param>
-        /// <param name="bids">List of updated/new bids</param>
-        /// <param name="asks">List of updated/new asks</param>
-        /// <param name="serverDataTime">Server data timestamp</param>
-        /// <param name="localDataTime">local data timestamp</param>
-        protected void UpdateOrderBook(
-            long sequenceNumber,
-            IDictionary<decimal, decimal> bids,
-            IDictionary<decimal, decimal> asks,
-            DateTime? serverDataTime = null,
-            DateTime? localDataTime = null)
-        {
-            if (!AllowProcessing)
-                throw new InvalidOperationException("Trying to update order book while book is not working");
-
-            _processQueue.Enqueue(
-                new OrderBookUpdate
-                { 
-                    LocalDataTime = localDataTime,
-                    ServerDataTime = serverDataTime,
-                    StartSequenceNumber = sequenceNumber, 
-                    EndSequenceNumber = sequenceNumber,
-                    Asks = asks,
-                    Bids = bids 
-                });
-            _queueEvent.Set();
-        }
-
-        /// <summary>
-        /// Add an update to the process queue. Updates the book by providing changed bids and asks, along with the first and last sequence number in the update
-        /// </summary>
-        /// <param name="firstSequenceNumber">The sequence number of the first update</param>
-        /// <param name="lastSequenceNumber">The sequence number of the last update</param>
-        /// <param name="bids">List of updated/new bids</param>
-        /// <param name="asks">List of updated/new asks</param>
-        /// <param name="serverDataTime">Server data timestamp</param>
-        /// <param name="localDataTime">local data timestamp</param>
-        protected void UpdateOrderBook(
-            long firstSequenceNumber,
-            long lastSequenceNumber,
-            IDictionary<decimal, decimal> bids,
-            IDictionary<decimal, decimal> asks,
-            DateTime? serverDataTime = null,
-            DateTime? localDataTime = null)
-        {
-            if (!AllowProcessing)
-                throw new InvalidOperationException("Trying to update order book while book is not working");
-
-            _processQueue.Enqueue(
-                new OrderBookUpdate
-                {
-                    LocalDataTime = localDataTime,
-                    ServerDataTime = serverDataTime,
-                    StartSequenceNumber = firstSequenceNumber,
-                    EndSequenceNumber = lastSequenceNumber,
-                    Asks = asks,
-                    Bids = bids
-                });
-            _queueEvent.Set();
-        }
-
-        /// <summary>
-        /// Add a checksum value to the process queue
-        /// </summary>
-        /// <param name="checksum">The checksum value</param>
-        /// <param name="sequenceNumber">The sequence number of the message if it's a separate message with separate number</param>
-        protected void AddChecksum(int checksum, long? sequenceNumber = null)
-        {
-            if (!AllowProcessing)
-                throw new InvalidOperationException("Trying to add checksum while book is not working");
-
-            _processQueue.Enqueue(new OrderBookChecksum() { Checksum = checksum, SequenceNumber = sequenceNumber });
-            _queueEvent.Set();
-        }
-
-        /// <summary>
-        /// Check and empty the process buffer; see what entries to update the book with
-        /// </summary>
-        protected SequenceNumberResult CheckProcessBuffer()
-        {
-            var result = SequenceNumberResult.Ok;
-            if (_processBuffer.Count > 0)
-                _logger.OrderBookProcessingBufferedUpdates(_api, _symbol, _processBuffer.Count);
-
-            foreach (var bufferEntry in _processBuffer)
-            {
-                if (!AllowProcessing)
-                    break;
-
-                if (ProcessUpdate(bufferEntry.StartSequenceNumber, bufferEntry.EndSequenceNumber, bufferEntry.Bids, bufferEntry.Asks, true, out _) == SequenceNumberResult.OutOfSync)
-                {
-                    result = SequenceNumberResult.OutOfSync;
-                    break;
-                }
-            }
-
-            _processBuffer.Clear();
-            return result;
-        }
-
-        /// <summary>
-        /// Update order book with an entry
-        /// </summary>
-        /// <param name="type">Type of entry</param>
-        /// <param name="entry">The entry</param>
-        /// <param name="entryIndex">The index of the changed entry</param>
-        protected virtual bool UpdateValue(OrderBookEntryType type, KeyValuePair<decimal, decimal> entry, out int? entryIndex)
-        {
-            UpdateTime = DateTime.UtcNow;
-            entryIndex = null;
-            var listToChange = type == OrderBookEntryType.Ask ? _asks : _bids;
-            if (entry.Value == 0)
-            {
-                entryIndex = listToChange.IndexOfKey(entry.Key);
-                if (entryIndex == -1)
-                {
-                    entryIndex = null;
-                    return true;
-                }
-
-                listToChange.RemoveAt(entryIndex.Value);
-            }
-            else
-            {
-                entryIndex = listToChange.IndexOfKey(entry.Key);
-                if (entryIndex == -1)
-                {
-                    listToChange.Add(entry.Key, entry.Value);
-                    entryIndex = listToChange.IndexOfKey(entry.Key);
-                }
-                else
-                {                    
-#if NET8_0_OR_GREATER
-                    listToChange.SetValueAtIndex(entryIndex.Value, entry.Value);
-#else
-                    listToChange[entry.Key] = entry.Value;
-#endif
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Wait until the order book snapshot has been set
-        /// </summary>
-        /// <param name="timeout">Max wait time</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        protected async Task<CallResult> WaitForSetOrderBookAsync(TimeSpan timeout, CancellationToken ct)
-        {
-            if (!await _snapshotAppliedEvent.WaitAsync(timeout, ct).ConfigureAwait(false))
-                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for snapshot to be applied")));
-
-            return CallResult.Ok();
-        }
-
-        /// <summary>
-        /// Wait until an update has been buffered
-        /// </summary>
-        /// <param name="minWait">Min wait time</param>
-        /// <param name="maxWait">Max wait time</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        protected async Task<CallResult> WaitUntilFirstUpdateBufferedAsync(TimeSpan? minWait, TimeSpan maxWait, CancellationToken ct)
-        {
-            var startWait = DateTime.UtcNow;
-            if (!await _updateBufferedEvent.WaitAsync(maxWait, ct).ConfigureAwait(false))
-                return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for update to be buffered")));
-
-            var dif = DateTime.UtcNow - startWait;
-            if (minWait != null && dif < minWait)
-                await Task.Delay(minWait.Value - dif).ConfigureAwait(false);
-
-            return CallResult.Ok();
-        }
-
-        /// <summary>
-        /// IAsyncDisposable implementation for the order book
-        /// </summary>
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsync(true).ConfigureAwait(false);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Dispose method
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual async ValueTask DisposeAsync(bool disposing)
-        {
-            if (_diposed)
-            {
-                if (_shutDownTask != null)
-                    await _shutDownTask.ConfigureAwait(false);
-
-                return;
-            }
-
-            lock (_shutDownLock)
-            {
-                if (_shutDownTask == null)
-                {
-                    _shutDownTask = ShutdownAsync();
-                }
-            }
-
-            _diposed = true;
-
-            await _shutDownTask.ConfigureAwait(false);
-            _shutDownTask = null;
-
-            lock (_changedHandlersLock)
-                _changedHandlers.Clear();
-            OnStatusChange = null;
-            OnSyncStatusChange = null;
-        }
 
         /// <summary>
         /// String representation of the top 3 entries
@@ -1062,10 +1356,10 @@ namespace CryptoExchange.Net.OrderBook.V2
             stringBuilder.AppendLine($"Data age:              {DataAge?.TotalMilliseconds}ms");
             stringBuilder.AppendLine();
             stringBuilder.AppendLine($"   Ask quantity       Ask price | Bid price       Bid quantity");
-            for(var i = 0; i < numberOfEntries; i++)
+            for (var i = 0; i < numberOfEntries; i++)
             {
-                var ask = book.Asks.Count > i ? book.Asks.ElementAt(i): default(KeyValuePair<decimal, decimal>);
-                var bid = book.Bids.Count > i ? book.Bids.ElementAt(i): default(KeyValuePair<decimal, decimal>);
+                var ask = book.Asks.Count > i ? book.Asks.ElementAt(i) : default(KeyValuePair<decimal, decimal>);
+                var bid = book.Bids.Count > i ? book.Bids.ElementAt(i) : default(KeyValuePair<decimal, decimal>);
                 stringBuilder.AppendLine($"[{ask.Value.ToString(CultureInfo.InvariantCulture),14}] {ask.Key.ToString(CultureInfo.InvariantCulture),14} | {bid.Key.ToString(CultureInfo.InvariantCulture),-14} [{bid.Value.ToString(CultureInfo.InvariantCulture),-14}]");
             }
 
@@ -1088,392 +1382,5 @@ namespace CryptoExchange.Net.OrderBook.V2
             });
         }
 
-        private void Reset()
-        {
-            _queueEvent.Set();
-            // Clear queue
-            while (_processQueue.TryDequeue(out _)) { }
-
-            LastSequenceNumber = 0;
-            _processBuffer.Clear();
-
-            _firstUpdateAfterSnapshotDone = false;
-
-            DoReset();
-        }
-
-        private async Task ResyncAsync()
-        {
-            var success = false;
-            while (!success)
-            {
-                if (SyncStatus != SyncStatus.Syncing)
-                    return;
-
-                var resyncResult = await DoResyncAsync(_cts!.Token).ConfigureAwait(false);
-                success = resyncResult.Success;
-            }
-
-            if (SyncStatus != SyncStatus.Syncing)
-                return;
-
-            _logger.OrderBookResynced(_api, _symbol);
-            SyncStatus = SyncStatus.Synced;
-        }
-
-        private async Task ProcessQueue()
-        {
-            while (AllowProcessing)
-            {
-                try { await _queueEvent.WaitAsync(ct: _cts!.Token).ConfigureAwait(false); } catch (OperationCanceledException) { }
-
-                if (!AllowProcessing)
-                    break;
-
-                while (_processQueue.TryDequeue(out var item))
-                {
-                    if (!AllowProcessing)
-                        break;
-
-                    if (item is OrderBookSnapshot snapshot)
-                        ProcessOrderBookSnapshot(snapshot);
-                    else if (item is OrderBookUpdate update)
-                        ProcessQueueItem(update);
-                    else if (item is OrderBookChecksum checksum)
-                        ProcessChecksum(checksum);
-                }
-            }
-        }
-
-        private void ProcessOrderBookSnapshot(OrderBookSnapshot item)
-        {
-            List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
-            lock (_bookLock)
-            {
-                _asks.Clear();
-                foreach (var ask in item.Asks)
-                    _asks.Add(ask.Key, ask.Value);
-                _bids.Clear();
-                foreach (var bid in item.Bids)
-                    _bids.Add(bid.Key, bid.Value);
-
-                if (item.SequenceNumber != null)
-                    LastSequenceNumber = item.SequenceNumber.Value;
-
-                UpdateTime = DateTime.UtcNow;
-                UpdateServerTime = item.ServerDataTime;
-                UpdateLocalTime = item.LocalDataTime;
-                _snapshotAppliedEvent.Set();
-
-                _logger.OrderBookDataSet(_api, _symbol, _bids.Count, _asks.Count, item.SequenceNumber);
-                if (CheckProcessBuffer() == SequenceNumberResult.OutOfSync)
-                {
-                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
-                    Resubscribe();
-                    return;
-                }
-
-                if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
-                {
-                    _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
-                    Resubscribe();
-                    return;
-                }
-
-                if (_changedHandlers.Count > 0)
-                    updateHandlers = CaptureChangedNotifications(1);
-
-                SyncStatus = SyncStatus.Synced;
-            }
-
-            if (updateHandlers?.Count > 0)
-            {
-                foreach (var handler in updateHandlers)
-                {
-                    foreach (var h in handler.Item1)
-                    {
-                        try
-                        {
-                            h(handler.Item2);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Log(LogLevel.Error, ex, $"Error while executing order book changed handlers: {ex}");
-                        }
-                    }
-                }
-            }
-        }
-
-        private List<(Action<BookSnapshot>[] Handlers, BookSnapshot Snapshot)>? CaptureChangedNotifications(int firstChangedLevel)
-        {
-            List<(int Depth, Action<BookSnapshot>[] Handlers)>? groups = null;
-
-            lock (_changedHandlersLock)
-            {
-                foreach (var group in _changedHandlers)
-                {
-                    if (group.Key < firstChangedLevel || group.Value.Count == 0)
-                        continue;
-
-                    groups ??= new();
-                    groups.Add((group.Key, group.Value.Select(r => r.Handler).ToArray()));
-                }
-            }
-
-            if (groups is null)
-                return null;
-
-            var notifications =
-                new List<(Action<BookSnapshot>[] Handlers, BookSnapshot Snapshot)>(groups.Count);
-
-            foreach (var (depth, handlers) in groups)
-            {
-                var snapshot = new BookSnapshot(LastSequenceNumber, CopyLevels(_asks, depth), CopyLevels(_bids, depth));
-                notifications.Add((handlers, snapshot));
-            }
-
-            return notifications;
-        }
-
-        private static IReadOnlyDictionary<decimal, decimal> CopyLevels(
-            SortedList<decimal, decimal> levels, int depth)
-        {
-            var size = Math.Min(levels.Count, depth);
-            var copy = new Dictionary<decimal, decimal>(size);
-            for (var i = 0; i < size; i++)
-                copy.Add(levels.Keys[i], levels.Values[i]);
-
-            return copy;
-        }
-
-        private void ProcessQueueItem(OrderBookUpdate item)
-        {
-            List<(Action<BookSnapshot>[], BookSnapshot)>? updateHandlers = null;
-            lock (_bookLock)
-            {
-                if (!_snapshotAppliedEvent.IsSet())
-                {
-                    _processBuffer.Add(item);
-                    _updateBufferedEvent.Set();
-
-                    if (_logger.IsEnabled(LogLevel.Trace))
-                        _logger.OrderBookUpdateBuffered(_api, _symbol, item.StartSequenceNumber, item.EndSequenceNumber, item.Asks.Count, item.Bids.Count);
-                }
-                else
-                {
-                    if (CheckProcessBuffer() == SequenceNumberResult.OutOfSync)
-                    {
-                        Resubscribe();
-                        return;
-                    }
-
-                    if (ProcessUpdate(item.StartSequenceNumber, item.EndSequenceNumber, item.Bids, item.Asks, false, out var changedFromEntryOn) == SequenceNumberResult.OutOfSync)
-                    {
-                        Resubscribe();
-                        return;
-                    }
-
-                    if (_asks.Count > 0 && _bids.Count > 0 && _asks.Keys[0] < _bids.Keys[0])
-                    {
-                        _logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
-                        Resubscribe();
-                        return;
-                    }
-
-                    SyncStatus = SyncStatus.Synced;
-                    UpdateServerTime = item.ServerDataTime;
-                    UpdateLocalTime = item.LocalDataTime;
-
-                    if (changedFromEntryOn != -1
-                        && _changedHandlers.Count > 0)
-                    {
-                        updateHandlers = CaptureChangedNotifications(changedFromEntryOn);
-                    }
-                }
-            }
-
-            if (updateHandlers?.Count > 0)
-            {
-                foreach (var handler in updateHandlers)
-                {
-                    foreach (var h in handler.Item1)
-                    {
-                        try
-                        {
-                            h(handler.Item2);
-
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Log(LogLevel.Error, ex, $"Error while executing order book changed handlers: {ex}");
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ProcessChecksum(OrderBookChecksum ci)
-        {
-            lock (_bookLock)
-            {
-                if (!_validateChecksum)
-                    return;
-
-                bool checksumResult = false;
-                try
-                {
-                    checksumResult = DoChecksum(ci.Checksum);
-                }
-                catch (Exception)
-                {
-                    // If the status is not synced it can be expected a checksum is failing
-                    if (SyncStatus == SyncStatus.Synced)
-                        throw;
-                }
-
-                if (ci.SequenceNumber != null)
-                    LastSequenceNumber = ci.SequenceNumber.Value;
-
-                if (!checksumResult)
-                {
-                    _logger.OrderBookOutOfSyncChecksum(_api, _symbol);
-                    Resubscribe();
-                }
-            }
-        }
-
-        private void Resubscribe()
-        {
-            SyncStatus = SyncStatus.Syncing;
-
-            _ = Task.Run(async () =>
-            {
-                if(_subscription == null)
-                {
-                    //Status = OrderBookStatus.Disconnected;
-                    return;
-                }
-
-                await _subscription!.UnsubscribeAsync().ConfigureAwait(false);
-                Reset();
-                var resubResult = await _subscription!.ResubscribeAsync().ConfigureAwait(false);
-                if (!resubResult.Success)
-                {
-                    // Resubscribing failed, reconnect the socket
-                    _logger.OrderBookResyncFailed(_api, _symbol);
-                    _ = _subscription!.ReconnectAsync();
-                }
-                else
-                {
-                    await ResyncAsync().ConfigureAwait(false);
-                }
-            });
-        }
-
-        private SequenceNumberResult ProcessUpdate(
-            long updateSequenceNumberStart,
-            long updateSequenceNumberEnd,
-            IDictionary<decimal, decimal> bids,
-            IDictionary<decimal, decimal> asks,
-            bool fromBuffer,
-            out int changedFromEntryOn)
-        {
-            changedFromEntryOn = -1;
-            var sequenceResult = fromBuffer ? ValidateBufferSequenceNumber(updateSequenceNumberStart, updateSequenceNumberEnd) : ValidateLiveSequenceNumber(updateSequenceNumberStart);
-            if (sequenceResult == SequenceNumberResult.Skip)
-            {
-                if (updateSequenceNumberStart != updateSequenceNumberEnd)
-                    _logger.OrderBookUpdateSkipped(_api, _symbol, updateSequenceNumberStart, updateSequenceNumberEnd, LastSequenceNumber);
-                else
-                    _logger.OrderBookUpdateSkipped(_api, _symbol, updateSequenceNumberStart, LastSequenceNumber);
-
-                return sequenceResult;
-            }
-
-            if (sequenceResult == SequenceNumberResult.OutOfSync)
-            {
-                _logger.OrderBookOutOfSync(_api, _symbol, LastSequenceNumber + 1, updateSequenceNumberStart);
-                return sequenceResult;
-            }
-
-            var minUpdatedBidIndex = int.MaxValue;
-            var minUpdatedAskIndex = int.MaxValue;
-            foreach (var entry in bids)
-            {
-                UpdateValue(OrderBookEntryType.Bid, entry, out var updatedBidIndex);
-                if (updatedBidIndex != null && updatedBidIndex < minUpdatedBidIndex)
-                    minUpdatedBidIndex = updatedBidIndex.Value;
-            }
-
-            foreach (var entry in asks)
-            {
-                UpdateValue(OrderBookEntryType.Ask, entry, out var updatedAskIndex);
-                if (updatedAskIndex != null && updatedAskIndex < minUpdatedAskIndex)
-                    minUpdatedAskIndex = updatedAskIndex.Value;
-            }
-
-            if (minUpdatedBidIndex != int.MaxValue || minUpdatedAskIndex != int.MaxValue)
-                changedFromEntryOn = Math.Min(minUpdatedBidIndex, minUpdatedAskIndex) + 1; // Index to top
-
-            if (Levels.HasValue && _strictLevels)
-            {
-                while (_bids.Count > Levels.Value)                
-                    _bids.RemoveAt(_bids.Count - 1);
-
-                while (_asks.Count > Levels.Value)
-                    _asks.RemoveAt(_asks.Count - 1);
-            }
-             
-            _firstUpdateAfterSnapshotDone = true;
-            LastSequenceNumber = updateSequenceNumberEnd;
-
-            if (_logger.IsEnabled(LogLevel.Trace))
-            {
-                if (updateSequenceNumberStart != updateSequenceNumberEnd)
-                    _logger.OrderBookProcessedMessage(_api, _symbol, updateSequenceNumberStart, updateSequenceNumberEnd);
-                else
-                    _logger.OrderBookProcessedMessage(_api, _symbol, updateSequenceNumberStart);
-            }
-
-            return sequenceResult;
-        }
-
-        private SequenceNumberResult ValidateBufferSequenceNumber(long startSequenceNumber, long endSequenceNumber)
-        {
-            if (endSequenceNumber <= LastSequenceNumber)
-                // Buffered update is from before the snapshot, ignore
-                return SequenceNumberResult.Skip;
-
-            if (_sequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
-            {
-                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
-                    // Buffered update is not the next sequence number when it was expected to be
-                    return SequenceNumberResult.OutOfSync;
-            }
-
-            // Buffered sequence number is larger than the last sequence number
-            return SequenceNumberResult.Ok;
-        }
-
-        private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
-        {
-            if (sequenceNumber < LastSequenceNumber
-                && (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet))
-            {
-                // Update is somehow from before the current state
-                return SequenceNumberResult.OutOfSync;
-            }
-
-            if (_sequencesAreConsecutive
-                && LastSequenceNumber != 0
-                && sequenceNumber != LastSequenceNumber + 1)
-            {
-                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
-                    return SequenceNumberResult.OutOfSync;                
-            }
-
-            return SequenceNumberResult.Ok;
-        }
     }
 }

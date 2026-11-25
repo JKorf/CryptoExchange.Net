@@ -36,8 +36,6 @@ namespace CryptoExchange.Net.OrderBook.V2.Interfaces
         /// </summary>
         SharedSymbol Symbol { get; }
 
-        UpdateSubscription? UpdateSubscription { get; }
-
         /// <summary>
         /// Event when the status changes
         /// </summary>

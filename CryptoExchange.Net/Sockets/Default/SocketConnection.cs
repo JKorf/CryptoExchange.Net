@@ -718,7 +718,6 @@ namespace CryptoExchange.Net.Sockets.Default
 
             if (Status == SocketStatus.Closing)
             {
-                subscription.Status = SubscriptionStatus.Closed;
                 _logger.AlreadyClosing(SocketId);
                 return;
             }
@@ -1175,12 +1174,17 @@ namespace CryptoExchange.Net.Sockets.Default
 
         internal async Task UnsubscribeAsync(Subscription subscription)
         {
+            subscription.Status = SubscriptionStatus.Closing;
             var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
             if (unsubscribeRequest == null)
+            {
+                subscription.Status = SubscriptionStatus.Closed;
                 return;
+            }
 
             await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
             subscription.HandleUnsubQueryResponse(this, unsubscribeRequest.Response);
+            subscription.Status = SubscriptionStatus.Closed;
             _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
         }
 
@@ -1189,15 +1193,20 @@ namespace CryptoExchange.Net.Sockets.Default
             if (!_socket.IsOpen)
                 return CallResult.Fail(new WebError("Socket is not connected"));
 
+            subscription.Status = SubscriptionStatus.Subscribing;
             var subQuery = subscription.CreateSubscriptionQuery(this);
             if (subQuery == null)
+            {
+                subscription.Status = SubscriptionStatus.Subscribed;
                 return CallResult.Ok();
+            }
 
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             subscription.HandleSubQueryResponse(this, subQuery.Response);
             if (!result.Success)
                 return CallResult.Fail(result.Error);
 
+            subscription.Status = SubscriptionStatus.Subscribed;
             return CallResult.Ok();
         }
 
