@@ -93,11 +93,6 @@ namespace CryptoExchange.Net.Clients
         protected List<DedicatedConnectionConfig> DedicatedConnectionConfigs { get; set; } = new List<DedicatedConnectionConfig>();
 
         /// <summary>
-        /// Whether to allow multiple subscriptions with the same topic on the same connection
-        /// </summary>
-        protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
-
-        /// <summary>
         /// Whether to allow usage of a current public WebSocket connection for an authenticated request
         /// </summary>
         protected bool UsePublicConnectionForAuth { get; set; } = false;
@@ -661,26 +656,31 @@ namespace CryptoExchange.Net.Clients
         /// <param name="connection">The connection to check</param>
         /// <param name="address">The address set by the request</param>
         /// <param name="authenticated">Whether the request needs an authenticated connection</param>
-        /// <param name="topic">Topic of the request</param>
-        /// <returns>True if connection can be used</returns>
-        protected virtual bool ConnectionCanBeUsedFor(SocketConnection connection, string address, bool authenticated, string? topic = null)
-        {
-            return connection.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
-                && connection.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
-                && (AllowTopicsOnTheSameConnection || !connection.Topics.Contains(topic));
-        }
-
-        /// <summary>
-        /// Whether the connection can be used for a new subscription or query with the provided parameters
-        /// </summary>
-        /// <param name="connection">The connection to check</param>
-        /// <param name="address">The address set by the request</param>
-        /// <param name="authenticated">Whether the request needs an authenticated connection</param>
         /// <param name="processor">The processor requesting a connection</param>
         /// <param name="topic">Topic of the request</param>
         /// <returns>True if connection can be used</returns>
         protected virtual bool ConnectionCanBeUsedFor(SocketConnection connection, string address, bool authenticated, IMessageProcessor? processor, string? topic = null)
-            => ConnectionCanBeUsedFor(connection, address, authenticated, topic);
+        {
+            return connection.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
+                && connection.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
+                && (processor is not Subscription subscription || connection.Subscriptions.All(x => RoutesAreCompatible(x.SubscriptionIdentifiers, subscription.SubscriptionIdentifiers)));
+        }
+
+        protected virtual bool RoutesAreCompatible(string[] subscriptionRoutes1, string[] subscriptionRoutes2)
+        {
+            foreach(var route1 in subscriptionRoutes1)
+            {
+                foreach(var route2 in subscriptionRoutes2)
+                {
+                    if (!RouteIsCompatible(route1, route2))
+                        return false;
+                }    
+            }
+
+            return true;
+        }
+
+        protected virtual bool RouteIsCompatible(string route1, string route2) => true;
 
         /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.

@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
@@ -56,23 +58,53 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <inheritdoc />
         public override string ToString()
         {
+            string GetFormattedName(Type type)
+            {
+                if(type.IsGenericType)
+                {
+                    string genericArguments = type.GetGenericArguments()
+                                        .Select(x => x.Name)
+                                        .Aggregate((x1, x2) => $"{x1}, {x2}");
+                    return $"{type.Name.Substring(0, type.Name.IndexOf("`"))}"
+                         + $"<{genericArguments}>";
+                }
+                return type.Name;
+            }
+
+            string GetRouteType(MessageRoute route)
+            {
+                var routeTypeName = route.GetType().Name;
+                return routeTypeName.Contains("QueryRoute") ? "Query" : routeTypeName.Contains("EventRoute") ? "Subscription" : "";
+            }
+
             var sb = new StringBuilder();
             foreach (var entry in _typeRoutingCollections)
             {
-                sb.AppendLine($"{entry.Key}, {entry.Value.DeserializationType.Name}");
+                sb.AppendLine($"TypeIdentifier: `{entry.Key}`, DeserializationType: `{GetFormattedName(entry.Value.DeserializationType)}`");
                 foreach(var item in entry.Value.Handlers)
                 {
-                    sb.AppendLine($" - Processor {item.GetType().Name}");
-                    foreach(var route in item.MessageRouter.Routes)
+                    var typeRoutes = item.MessageRouter.Routes.Where(x => x.TypeIdentifier == entry.Key).ToList();
+                    if (typeRoutes.Count == 1)
                     {
-                        if (route.TypeIdentifier == entry.Key)
+                        var route = typeRoutes[0];
+                        sb.Append($" - {GetRouteType(route)}");
+                        if (route.TopicFilter != null)
+                            sb.AppendLine($" with filter `{route.TopicFilter}`");
+                        else
+                            sb.AppendLine(" without filter");
+                    }
+                    else
+                    {
+                        sb.AppendLine(" - ");
+                        foreach (var route in typeRoutes)
                         {
                             if (route.TopicFilter == null)
-                                sb.AppendLine($"   - Route without topic filter");
+                                sb.AppendLine($"   {GetRouteType(route)} Route without topic filter");
                             else
-                                sb.AppendLine($"   - Route with topic filter {route.TopicFilter}");
+                                sb.AppendLine($"   {GetRouteType(route)} Route with topic filter `{route.TopicFilter}`");                            
                         }
                     }
+
                 }
             }
 

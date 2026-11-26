@@ -252,11 +252,11 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Current subscription topics on this connection
         /// </summary>
-        public string[] Topics
+        public HashSet<string> Topics
         {
             get
             {
-                return _listeners.OfType<Subscription>().Select(x => x.Topic).Where(t => t != null).ToArray()!;
+                return new HashSet<string>(_listeners.OfType<Subscription>().Select(x => x.Topic).Where(t => t != null)!)!;
             }
         }
 
@@ -1418,7 +1418,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 {
                     UpdateRoutingTable();
 #if DEBUG
-                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
+                    _logger.LogTrace($"[Sckt {SocketId}] Processor added, new routing table:\r\n" + _routingTable.ToString());
 #endif
                 }
             }
@@ -1436,7 +1436,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
+                _logger.LogTrace($"[Sckt {SocketId}] Processor removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }
@@ -1460,7 +1460,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
+                _logger.LogTrace($"[Sckt {SocketId}] Processors removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }

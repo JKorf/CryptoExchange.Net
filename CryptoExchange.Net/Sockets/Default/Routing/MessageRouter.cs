@@ -18,6 +18,11 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public MessageRoute[] Routes { get; }
 
         /// <summary>
+        /// The subscription identifiers for the owning subscription
+        /// </summary>
+        public string[] SubscriptionIdentifiers { get; private set; } = [];
+
+        /// <summary>
         /// ctor
         /// </summary>
         private MessageRouter(params MessageRoute[] routes)
@@ -34,6 +39,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public void BuildQueryRouter()
         {
             _routingTable = new QueryRouter(Routes);
+            SubscriptionIdentifiers = GetSubscriptionIdentifiers();
         }
 
         /// <summary>
@@ -42,6 +48,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public void BuildSubscriptionRouter()
         {
             _routingTable = new SubscriptionRouter(Routes);
+            SubscriptionIdentifiers = GetSubscriptionIdentifiers();
         }
 
         /// <summary>
@@ -62,6 +69,20 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public bool CanHandle(string typeIdentifier, string? topicFilter)
         {
             return GetRoutes(typeIdentifier)?.CanHandle(topicFilter) == true;
+        }
+
+        private string[] GetSubscriptionIdentifiers()
+        {
+            var routes = _routingTable!.GetRoutes();
+            var identifiers = new List<string>();
+            foreach(var route in routes)
+            {
+                var typeIdentifier = route.Key;
+                foreach(var routeIdentifier in route.Value.GetRouteIdentifiers())
+                    identifiers.Add(routeIdentifier);
+            }
+
+            return identifiers.ToArray();
         }
 
         /// <summary>

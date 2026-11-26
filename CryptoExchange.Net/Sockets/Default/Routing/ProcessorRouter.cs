@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
@@ -7,6 +8,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
 {
     internal abstract class ProcessorRouter
     {
+        public abstract Dictionary<string, RouteCollection> GetRoutes();
         public abstract RouteCollection? GetRoutes(string identifier);
     }
 
@@ -32,5 +34,6 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public abstract Dictionary<string, T> BuildFromRoutes(IEnumerable<MessageRoute> routes);
 
         public override RouteCollection? GetRoutes(string identifier) => _routeMap.TryGetValue(identifier, out var routes) ? routes : null;
+        public override Dictionary<string, RouteCollection> GetRoutes() => _routeMap.ToDictionary(x => x.Key, x => (RouteCollection)x.Value);
     }    
 }
