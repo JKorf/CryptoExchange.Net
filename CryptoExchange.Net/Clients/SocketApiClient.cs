@@ -928,7 +928,8 @@ namespace CryptoExchange.Net.Clients
                 RateLimitAdmissionCallbackRequest = () => AdmissionOverride.Value,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
-                ReceiveBufferSize = ClientOptions.ReceiveBufferSize
+                ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
+                RequirePermessageDeflate = false
             };
 
         /// <summary>
