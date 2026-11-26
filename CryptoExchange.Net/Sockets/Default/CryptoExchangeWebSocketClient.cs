@@ -184,11 +184,14 @@ namespace CryptoExchange.Net.Sockets.Default
                 else
                     socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
 
-#if NET8_0_OR_GREATER
                 if (Parameters.RequirePermessageDeflate)
+                {
+#if NET8_0_OR_GREATER
                     socket.Options.DangerousDeflateOptions = new WebSocketDeflateOptions();
+#else
+                    throw new NotSupportedException("Per-message deflate is not supported on .netstandard");
 #endif
-
+                }
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
 #if NET6_0_OR_GREATER
