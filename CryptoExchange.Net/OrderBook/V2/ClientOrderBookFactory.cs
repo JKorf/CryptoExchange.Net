@@ -30,7 +30,6 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// </summary>
         protected IClientOrderBook Create(SharedSymbol symbol, BookConfig config, ExchangeParameters? exchangeParameters = null)
         {
-#warning TODO options
             return new ClientOrderBook(
                 _logger,
                 symbol,
