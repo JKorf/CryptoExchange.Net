@@ -36,9 +36,9 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         protected override TestAuthenticationProvider CreateAuthenticationProvider(TestCredentials credentials) =>
             new TestAuthenticationProvider(credentials);
 
-        public async Task<WebSocketResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, bool subQuery, CancellationToken ct, int individualSubscriptionCount = 1)
+        public async Task<WebSocketResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, bool subQuery, CancellationToken ct, int individualSubscriptionCount = 1, string[]? subscriptionIdentifiers = null, int subscribeRequestId = 1)
         {
-            var subscription = new TestSubscription<T>(_logger, handler, subQuery, false)
+            var subscription = new TestSubscription<T>(_logger, handler, subQuery, false, subscriptionIdentifiers, subscribeRequestId)
             {
                 IndividualSubscriptionCount = individualSubscriptionCount
             };

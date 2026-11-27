@@ -87,6 +87,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public int? ReceiveBufferSize { get; set; } = null;
 
         /// <summary>
+        /// Whether per-message deflate compression should be enabled on the websocket connection
+        /// </summary>
+        public bool RequirePermessageDeflate { get; set; } = false;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="uri">Uri</param>

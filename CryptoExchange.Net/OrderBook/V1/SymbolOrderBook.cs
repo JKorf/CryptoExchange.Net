@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
@@ -15,6 +6,16 @@ using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.OrderBook
 {
@@ -31,6 +32,7 @@ namespace CryptoExchange.Net.OrderBook
 
         private OrderBookStatus _status;
         private UpdateSubscription? _subscription;
+        private bool _attachedSubscriptionEvents;
         
         private bool _stopProcessing;
         private Task? _processTask;
@@ -157,10 +159,10 @@ namespace CryptoExchange.Net.OrderBook
         public TimeSpan? DataAge => DateTime.UtcNow - UpdateLocalTime;
 
         /// <inheritdoc/>
-        public int AskCount { get; private set; }
+        public int AskCount => _asks.Count;
 
         /// <inheritdoc/>
-        public int BidCount { get; private set; }
+        public int BidCount => _bids.Count;
 
         /// <inheritdoc/>
         public ISymbolOrderBookEntry[] Asks
@@ -168,7 +170,11 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return _asks.Select(a => a.Value).ToArray();
+                {
+                    var result = new ISymbolOrderBookEntry[_asks.Count];
+                    _asks.Values.CopyTo(result, 0);
+                    return result;
+                }
             }
         }
 
@@ -178,7 +184,11 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return _bids.Select(a => a.Value).ToArray();
+                {
+                    var result = new ISymbolOrderBookEntry[_bids.Count];
+                    _bids.Values.CopyTo(result, 0);
+                    return result;
+                }
             }
         }
 
@@ -198,7 +208,7 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return _bids.FirstOrDefault().Value ?? _emptySymbolOrderBookEntry;
+                    return _bids.Count == 0 ? _emptySymbolOrderBookEntry : _bids.Values[0];
             }
         }
 
@@ -208,15 +218,21 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return _asks.FirstOrDefault().Value ?? _emptySymbolOrderBookEntry;
+                    return _asks.Count == 0 ? _emptySymbolOrderBookEntry : _asks.Values[0];
             }
         }
 
         /// <inheritdoc/>
-        public (ISymbolOrderBookEntry Bid, ISymbolOrderBookEntry Ask) BestOffers {
-            get {
+        public (ISymbolOrderBookEntry Bid, ISymbolOrderBookEntry Ask) BestOffers 
+        {
+            get 
+            {
                 lock (_bookLock)
-                    return (BestBid,BestAsk);
+                {
+                    var bid = _bids.Count == 0 ? _emptySymbolOrderBookEntry : _bids.Values[0];
+                    var ask = _asks.Count == 0 ? _emptySymbolOrderBookEntry : _asks.Values[0];
+                    return (bid, ask);
+                }
             }
         }
 
@@ -261,7 +277,7 @@ namespace CryptoExchange.Net.OrderBook
             _validateChecksum = options.ChecksumValidationEnabled;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public async Task<CallResult> StartAsync(CancellationToken? ct = null)
         {
             if (Status != OrderBookStatus.Disconnected)
@@ -305,6 +321,7 @@ namespace CryptoExchange.Net.OrderBook
             _subscription.ConnectionLost += HandleConnectionLost;
             _subscription.ConnectionClosed += HandleConnectionClosed;
             _subscription.ConnectionRestored += HandleConnectionRestored;
+            _attachedSubscriptionEvents = true;            
 
             Status = OrderBookStatus.Synced;
             return CallResult.Ok();
@@ -338,9 +355,13 @@ namespace CryptoExchange.Net.OrderBook
             if (_subscription != null)
             {
                 await _subscription.CloseAsync().ConfigureAwait(false);
-                _subscription.ConnectionLost -= HandleConnectionLost;
-                _subscription.ConnectionClosed -= HandleConnectionClosed;
-                _subscription.ConnectionRestored -= HandleConnectionRestored;
+                if (_attachedSubscriptionEvents)
+                {
+                    _subscription.ConnectionLost -= HandleConnectionLost;
+                    _subscription.ConnectionClosed -= HandleConnectionClosed;
+                    _subscription.ConnectionRestored -= HandleConnectionRestored;
+                    _attachedSubscriptionEvents = false;
+                }
             }
 
             _queueEvent.Set();
@@ -370,9 +391,9 @@ namespace CryptoExchange.Net.OrderBook
                     if (step == list.Count)
                         return CallResult<decimal>.Fail(new InvalidOperationError("Quantity is larger than order in the order book"));
 
-                    var element = list.ElementAt(step);
-                    var stepAmount = Math.Min(element.Value.Quantity, amountLeft);
-                    totalCost += stepAmount * element.Value.Price;
+                    var element = list.Values[step];
+                    var stepAmount = Math.Min(element.Quantity, amountLeft);
+                    totalCost += stepAmount * element.Price;
                     totalAmount += stepAmount;
                     amountLeft -= stepAmount;
                     step++;
@@ -400,10 +421,10 @@ namespace CryptoExchange.Net.OrderBook
                     if (step == list.Count)
                         return CallResult<decimal>.Fail(new InvalidOperationError("Quantity is larger than order in the order book"));
 
-                    var element = list.ElementAt(step);
-                    var stepAmount = Math.Min(element.Value.Quantity * element.Value.Price, quoteQuantityLeft);
+                    var element = list.Values[step];
+                    var stepAmount = Math.Min(element.Quantity * element.Price, quoteQuantityLeft);
                     quoteQuantityLeft -= stepAmount;
-                    totalBaseQuantity += stepAmount / element.Value.Price;
+                    totalBaseQuantity += stepAmount / element.Price;
                     step++;
                 }
             }
@@ -603,26 +624,34 @@ namespace CryptoExchange.Net.OrderBook
         protected virtual bool UpdateValue(OrderBookEntryType type, ISymbolOrderBookEntry entry)
         {
             UpdateTime = DateTime.UtcNow;
+            int? entryIndex = null;
             var listToChange = type == OrderBookEntryType.Ask ? _asks : _bids;
             if (entry.Quantity == 0)
             {
-                if (!listToChange.Remove(entry.Price))
+                entryIndex = listToChange.IndexOfKey(entry.Price);
+                if (entryIndex == -1)
+                {
+                    entryIndex = null;
                     return true;
+                }
 
-                if (type == OrderBookEntryType.Ask) AskCount--;
-                else BidCount--;
+                listToChange.RemoveAt(entryIndex.Value);
             }
             else
             {
-                if (!listToChange.ContainsKey(entry.Price))
+                entryIndex = listToChange.IndexOfKey(entry.Price);
+                if (entryIndex == -1)
                 {
                     listToChange.Add(entry.Price, entry);
-                    if (type == OrderBookEntryType.Ask) AskCount++;
-                    else BidCount++;
+                    entryIndex = listToChange.IndexOfKey(entry.Price);
                 }
                 else
-                {
+                {                    
+#if NET8_0_OR_GREATER
+                    listToChange.SetValueAtIndex(entryIndex.Value, entry);
+#else
                     listToChange[entry.Price] = entry;
+#endif
                 }
             }
 
@@ -719,10 +748,25 @@ namespace CryptoExchange.Net.OrderBook
             _processBuffer.Clear();
             _asks.Clear();
             _bids.Clear();
-            AskCount = 0;
-            BidCount = 0;
+
+            if (_subscription != null)
+            {
+                if (_attachedSubscriptionEvents)
+                {
+                    _subscription.ConnectionLost -= HandleConnectionLost;
+                    _subscription.ConnectionClosed -= HandleConnectionClosed;
+                    _subscription.ConnectionRestored -= HandleConnectionRestored;
+                    _attachedSubscriptionEvents = false;
+                }
+
+                _ = _subscription.CloseAsync();
+            }
 
             Status = OrderBookStatus.Disposed;
+
+            OnOrderBookUpdate = null;
+            OnBestOffersChanged = null;
+            OnStatusChange = null;
         }
 
         /// <summary>
@@ -858,9 +902,6 @@ namespace CryptoExchange.Net.OrderBook
                 if (item.SequenceNumber != null)
                     LastSequenceNumber = item.SequenceNumber.Value;
 
-                AskCount = _asks.Count;
-                BidCount = _bids.Count;
-
                 UpdateTime = DateTime.UtcNow;
                 UpdateServerTime = item.ServerDataTime;
                 UpdateLocalTime = item.LocalDataTime;
@@ -900,9 +941,9 @@ namespace CryptoExchange.Net.OrderBook
                     if (_asks.Count == 0 || _bids.Count == 0)
                         return;
 
-                    if (_asks.First().Key < _bids.First().Key)
+                    if (_asks.Keys[0] < _bids.Keys[0])
                     {
-                        _logger.OrderBookOutOfSyncDetected(Api, Symbol, _asks.First().Key, _bids.First().Key);
+                        _logger.OrderBookOutOfSyncDetected(Api, Symbol, _asks.Keys[0], _bids.Keys[0]);
                         _stopProcessing = true;
                         Resubscribe();
                         return;
@@ -910,7 +951,7 @@ namespace CryptoExchange.Net.OrderBook
 
                     UpdateServerTime = item.ServerDataTime;
                     UpdateLocalTime = item.LocalDataTime;
-
+                    
                     OnOrderBookUpdate?.Invoke((item.Bids.ToArray(), item.Asks.ToArray()));
                     CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
@@ -1012,17 +1053,11 @@ namespace CryptoExchange.Net.OrderBook
 
             if (Levels.HasValue && _strictLevels)
             {
-                while (_bids.Count > Levels.Value)
-                {
-                    BidCount--;
-                    _bids.Remove(_bids.Last().Key);
-                }
+                while (_bids.Count > Levels.Value)                
+                    _bids.RemoveAt(_bids.Count - 1);
 
                 while (_asks.Count > Levels.Value)
-                {
-                    AskCount--;
-                    _asks.Remove(this._asks.Last().Key);
-                }
+                    _asks.RemoveAt(_asks.Count - 1);
             }
 
             _firstUpdateAfterSnapshotDone = true;

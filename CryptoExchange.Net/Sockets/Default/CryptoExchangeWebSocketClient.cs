@@ -183,6 +183,15 @@ namespace CryptoExchange.Net.Sockets.Default
                     socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
                 else
                     socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
+
+                if (Parameters.RequirePermessageDeflate)
+                {
+#if NET8_0_OR_GREATER
+                    socket.Options.DangerousDeflateOptions = new WebSocketDeflateOptions();
+#else
+                    throw new NotSupportedException("Per-message deflate is not supported on .netstandard");
+#endif
+                }
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
 #if NET6_0_OR_GREATER

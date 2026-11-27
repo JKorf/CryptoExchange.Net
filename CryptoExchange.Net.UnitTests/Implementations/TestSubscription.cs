@@ -13,13 +13,17 @@ namespace CryptoExchange.Net.UnitTests.Implementations
 {
     internal class TestSubscription<T> : Subscription
     {
+        public override string[] SubscriptionIdentifiers { get; }
         private readonly Action<DataEvent<T>> _handler;
         private bool _subQuery;
+        private readonly int _subscribeRequestId;
 
-        public TestSubscription(ILogger logger, Action<DataEvent<T>> handler, bool subQuery, bool authenticated) : base(logger, authenticated, true)
+        public TestSubscription(ILogger logger, Action<DataEvent<T>> handler, bool subQuery, bool authenticated, string[]? subscriptionIdentifiers = null, int subscribeRequestId = 1) : base(logger, authenticated, true)
         {
+            SubscriptionIdentifiers = subscriptionIdentifiers ?? [];
             _handler = handler;
             _subQuery = subQuery;
+            _subscribeRequestId = subscribeRequestId;
 
             MessageRouter = MessageRouter.CreateForEvent<T>("test", HandleUpdate);
         }
@@ -29,7 +33,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
             if (!_subQuery)
                 return null;
 
-            return new TestQuery(new TestSocketMessage { Id = 1, Data = "Sub" }, false);
+            return new TestQuery(new TestSocketMessage { Id = _subscribeRequestId, Data = "Sub" }, false);
         }
 
         protected override Query? GetUnsubQuery(SocketConnection connection)

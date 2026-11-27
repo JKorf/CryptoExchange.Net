@@ -93,11 +93,6 @@ namespace CryptoExchange.Net.Clients
         protected List<DedicatedConnectionConfig> DedicatedConnectionConfigs { get; set; } = new List<DedicatedConnectionConfig>();
 
         /// <summary>
-        /// Whether to allow multiple subscriptions with the same topic on the same connection
-        /// </summary>
-        protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
-
-        /// <summary>
         /// Whether to allow usage of a current public WebSocket connection for an authenticated request
         /// </summary>
         protected bool UsePublicConnectionForAuth { get; set; } = false;
@@ -661,26 +656,37 @@ namespace CryptoExchange.Net.Clients
         /// <param name="connection">The connection to check</param>
         /// <param name="address">The address set by the request</param>
         /// <param name="authenticated">Whether the request needs an authenticated connection</param>
-        /// <param name="topic">Topic of the request</param>
-        /// <returns>True if connection can be used</returns>
-        protected virtual bool ConnectionCanBeUsedFor(SocketConnection connection, string address, bool authenticated, string? topic = null)
-        {
-            return connection.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
-                && connection.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
-                && (AllowTopicsOnTheSameConnection || !connection.Topics.Contains(topic));
-        }
-
-        /// <summary>
-        /// Whether the connection can be used for a new subscription or query with the provided parameters
-        /// </summary>
-        /// <param name="connection">The connection to check</param>
-        /// <param name="address">The address set by the request</param>
-        /// <param name="authenticated">Whether the request needs an authenticated connection</param>
         /// <param name="processor">The processor requesting a connection</param>
         /// <param name="topic">Topic of the request</param>
         /// <returns>True if connection can be used</returns>
         protected virtual bool ConnectionCanBeUsedFor(SocketConnection connection, string address, bool authenticated, IMessageProcessor? processor, string? topic = null)
-            => ConnectionCanBeUsedFor(connection, address, authenticated, topic);
+        {
+            return connection.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
+                && connection.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
+                && (processor is not Subscription subscription || connection.Subscriptions.All(x => SubscriptionsAreCompatible(x, subscription)));
+        }
+
+        /// <summary>
+        /// Checks whether two subscription are compatible with eachother when on the same connection
+        /// </summary>
+        protected virtual bool SubscriptionsAreCompatible(Subscription existingSubscription, Subscription newSubscriptions)
+        {
+            foreach(var route1 in existingSubscription.SubscriptionIdentifiers)
+            {
+                foreach(var route2 in newSubscriptions.SubscriptionIdentifiers)
+                {
+                    if (!RouteIsCompatible(route1, route2))
+                        return false;
+                }    
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether routes are compatible with eachother when on the same connection
+        /// </summary>
+        protected virtual bool RouteIsCompatible(string route1, string route2) => true;
 
         /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
@@ -721,7 +727,12 @@ namespace CryptoExchange.Net.Clients
             string? topic = null,
             int individualSubscriptionCount = 1)
         {
-            var socketQuery = _socketConnections.Where(s => ConnectionCanBeUsedFor(s.Value, address, authenticated, processor, topic)).Select(x => x.Value); // Don't ToList this so the query is executed again when called
+            var subscription = processor as Subscription;
+            // Keep the query deferred so each retry sees the current connections and subscriptions.
+            var socketQuery = _socketConnections
+                .Select(entry => entry.Value)
+                .Where(connection => ConnectionCanBeUsedFor(connection, address, authenticated, processor, topic))
+                .Where(connection => subscription == null || !connection.HasPartialSubscriptionOverlap(subscription));
 
             // If all current socket connections are reconnecting or resubscribing wait for that to finish as we can probably use the existing connection
             var delayStart = DateTime.UtcNow;
@@ -770,7 +781,8 @@ namespace CryptoExchange.Net.Clients
                 connection = socketQuery
                     .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
                     .Where(s => IsConnectionEligible(s, individualSubscriptionCount, maxConnectionsReached))
-                    .OrderBy(s => s.UserSubscriptionCount)
+                    .OrderByDescending(s => subscription != null && s.HasMatchingSubscription(subscription))
+                    .ThenBy(s => s.UserSubscriptionCount)
                     .FirstOrDefault();
             }
 
@@ -922,7 +934,8 @@ namespace CryptoExchange.Net.Clients
                 RateLimitAdmissionCallbackRequest = () => AdmissionOverride.Value,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
-                ReceiveBufferSize = ClientOptions.ReceiveBufferSize
+                ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
+                RequirePermessageDeflate = false
             };
 
         /// <summary>

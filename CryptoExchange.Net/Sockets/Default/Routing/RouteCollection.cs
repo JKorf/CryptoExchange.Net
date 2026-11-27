@@ -60,6 +60,20 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             return matchingTopicRoutes;
         }
 
+        public string[] GetRouteIdentifiers()
+        {
+            var result = new List<string>();
+            foreach (var item in _routesWithoutTopicFilter)
+                result.Add(item.TypeIdentifier);
+            foreach (var routes in _routesWithTopicFilter)
+            {
+                foreach(var route in routes.Value)
+                    result.Add(route.TypeIdentifier + routes.Key);
+            }
+
+            return result.ToArray();
+        }
+
         public bool CanHandle(string? topicFilter)
         {
             if (_routesWithoutTopicFilter.Count > 0)

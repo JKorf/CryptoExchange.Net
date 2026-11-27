@@ -116,6 +116,8 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
                 MessageRouter = MessageRouter.CreateForEvent<string>("type", topics, (_, _, _, _) => CallResult.Ok());
             }
 
+            public override string[] SubscriptionIdentifiers => [];
+
             protected override Query? GetSubQuery(SocketConnection connection)
             {
                 return new TestQuery(new TestSocketMessage { Id = 1, Data = "Sub" }, false)

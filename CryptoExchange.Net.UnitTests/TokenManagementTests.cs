@@ -335,6 +335,8 @@ namespace CryptoExchange.Net.UnitTests
 
         private sealed class TestSubscription : Subscription
         {
+            public override string[] SubscriptionIdentifiers => [];
+
             public TestSubscription() : base(NullLogger.Instance, true)
             {
             }
