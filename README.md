@@ -116,6 +116,18 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 13.4.0 - 27 Nov 2026
+    * Updated subscription overlap detection, fixing some issues
+      * Subscriptions which are covered by an earlier subscription use the same data
+      * Partially overlapping subscriptions will use different connections
+    * Added RoutesAreCompatible and RouteIsCompatible to SocketApiClient
+    * Added permessage deflate support for WebSocket connections
+    * Added Reset and IsSet methods to AsyncResetEvent
+    * Some small performance improvements for SymbolOrderBook
+    * Added new ClientOrderBook implementation using Shared APIs
+    * Added new ClientOrderBookFactory for creating ClientOrderBook instances
+    * Removed AllowTopicsOnTheSameConnection SocketApiClient setting
+
 * Version 13.3.2 - 23 Nov 2026
     * Updated Shared integration test logic
     * Fixed xml documentation for different runtimes
