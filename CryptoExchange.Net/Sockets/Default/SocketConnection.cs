@@ -1211,24 +1211,31 @@ namespace CryptoExchange.Net.Sockets.Default
                 return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, 0, ConnectionUriString);
             }
 
-            var subCompleteHandler = (bool success) =>
+            var subscriptionCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            subQuery.OnComplete = success =>
             {
-                subscription.Status = success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
-                subscription.HandleSubQueryResponse(this, subQuery.Response);
-                if (newSubscription && success)
+                try
                 {
-                    subscription.TokenExpired += HandleTokenExpired;
-                    if (subCancelToken != default)
+                    subscription.Status = success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
+                    subscription.HandleSubQueryResponse(this, subQuery.Response);
+                    if (newSubscription && success)
                     {
-                        subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
+                        subscription.TokenExpired += HandleTokenExpired;
+                        if (subCancelToken != default)
                         {
-                            _logger.CancellationTokenSetClosingSubscription(SocketId, subscription.Id);
-                            await CloseAsync(subscription).ConfigureAwait(false);
-                        }, false);
+                            subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
+                            {
+                                _logger.CancellationTokenSetClosingSubscription(SocketId, subscription.Id);
+                                await CloseAsync(subscription).ConfigureAwait(false);
+                            }, false);
+                        }
                     }
                 }
+                finally
+                {
+                    subscriptionCompleted.TrySetResult(true);
+                }
             };
-            subQuery.OnComplete = subCompleteHandler;
 
             // For duplicate subscription don't send another subscribe request but just handle it internally
             // Unsubscribe also doesn't unsubscribe when there is still a duplicate subscription running
@@ -1239,6 +1246,10 @@ namespace CryptoExchange.Net.Sockets.Default
             }
 
             var subQueryResult = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+            // The query can report completion before its callback applies the result to the subscription.
+            if (subQuery.Completed)
+                await subscriptionCompleted.Task.ConfigureAwait(false);
+
             if (!subQueryResult.Success)
             {
                 _logger.FailedToSubscribe(SocketId, subQueryResult.Error?.ToString());

@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Testing;
 using CryptoExchange.Net.UnitTests.Implementations;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using System;
 using System.Collections.Concurrent;
@@ -305,6 +306,48 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var first = await firstTask.WaitAsync(timeout);
             Assert.That(first.Success, Is.True);
             Assert.That(first.Data!.SocketId, Is.EqualTo(second.Data!.SocketId));
+        }
+
+        [Test]
+        public async Task Subscribe_ShouldWaitForCompletionCallback()
+        {
+            var timeout = TimeSpan.FromSeconds(5);
+            using var client = new TestSocketClient();
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var existing = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(_ => { }, false, default);
+            Assert.That(existing.Success, Is.True);
+
+            var connection = socket.Connection!;
+            var subscription = new TestSubscription<TestObject>(NullLogger.Instance, _ => { }, true, false, ["A"]);
+            Assert.That(connection.AddSubscription(subscription), Is.True);
+
+            using var callbackStarted = new ManualResetEventSlim();
+            using var releaseCallback = new ManualResetEventSlim();
+            subscription.StatusChanged += status =>
+            {
+                if (status != SubscriptionStatus.Subscribed)
+                    return;
+
+                callbackStarted.Set();
+                releaseCallback.Wait(timeout);
+            };
+
+            Task? acknowledgment = null;
+            socket.OnMessageSend += _ =>
+            {
+                acknowledgment = Task.Run(() => socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "OK" })));
+                // Make the query report completion before SendAsync returns, while its callback is still running.
+                Assert.That(callbackStarted.Wait(timeout), Is.True);
+            };
+
+            var subscribeTask = connection.TrySubscribeAsync(subscription, true, default);
+            var completedBeforeCallback = subscribeTask.IsCompleted;
+            releaseCallback.Set();
+            await acknowledgment!.WaitAsync(timeout);
+            var result = await subscribeTask.WaitAsync(timeout);
+
+            Assert.That(completedBeforeCallback, Is.False);
+            Assert.That(result.Success, Is.True);
         }
 
         [Test]
