@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.OrderBook.V2
     /// <summary>
     /// Client order book factory
     /// </summary>
-    public class ClientOrderBookFactory : IClientOrderBookFactory
+    public abstract class ClientOrderBookFactory
     {
         private readonly ILoggerFactory _logger;
         private readonly ISharedApiClientBase _api;
@@ -28,16 +28,17 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// <summary>
         /// Create a new order book
         /// </summary>
-        public IClientOrderBook Create(SharedSymbol symbol)
+        protected IClientOrderBook Create(SharedSymbol symbol, BookConfig config, ExchangeParameters? exchangeParameters = null)
         {
 #warning TODO options
             return new ClientOrderBook(
                 _logger,
                 symbol,
+                config,
                 _api.GetCapability<ISubscribeOrderBookSocket>(symbol.TradingMode)?.Capability,
                 _api.GetCapability<ISubscribeIncrementalOrderBookSocket>(symbol.TradingMode)?.Capability,
-                _api.GetCapability<IGetOrderBookRest>(symbol.TradingMode)?.Capability
-                );
+                _api.GetCapability<IGetOrderBookRest>(symbol.TradingMode)?.Capability,
+                exchangeParameters);
         }
     }
 }

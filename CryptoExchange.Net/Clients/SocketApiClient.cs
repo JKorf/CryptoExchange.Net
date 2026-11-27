@@ -663,14 +663,17 @@ namespace CryptoExchange.Net.Clients
         {
             return connection.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
                 && connection.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
-                && (processor is not Subscription subscription || connection.Subscriptions.All(x => RoutesAreCompatible(x.SubscriptionIdentifiers, subscription.SubscriptionIdentifiers)));
+                && (processor is not Subscription subscription || connection.Subscriptions.All(x => SubscriptionsAreCompatible(x, subscription)));
         }
 
-        protected virtual bool RoutesAreCompatible(string[] subscriptionRoutes1, string[] subscriptionRoutes2)
+        /// <summary>
+        /// Checks whether two subscription are compatible with eachother when on the same connection
+        /// </summary>
+        protected virtual bool SubscriptionsAreCompatible(Subscription existingSubscription, Subscription newSubscriptions)
         {
-            foreach(var route1 in subscriptionRoutes1)
+            foreach(var route1 in existingSubscription.SubscriptionIdentifiers)
             {
-                foreach(var route2 in subscriptionRoutes2)
+                foreach(var route2 in newSubscriptions.SubscriptionIdentifiers)
                 {
                     if (!RouteIsCompatible(route1, route2))
                         return false;
@@ -680,6 +683,9 @@ namespace CryptoExchange.Net.Clients
             return true;
         }
 
+        /// <summary>
+        /// Checks whether routes are compatible with eachother when on the same connection
+        /// </summary>
         protected virtual bool RouteIsCompatible(string route1, string route2) => true;
 
         /// <summary>

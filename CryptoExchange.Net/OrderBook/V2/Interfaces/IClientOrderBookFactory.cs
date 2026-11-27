@@ -10,6 +10,6 @@ namespace CryptoExchange.Net.OrderBook.V2.Interfaces
         /// <summary>
         /// Create a new order book
         /// </summary>
-        IClientOrderBook Create(SharedSymbol symbol);
+        IClientOrderBook Create(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null);
     }
 }

@@ -35,6 +35,9 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public bool UserSubscription { get; set; }
 
+        /// <summary>
+        /// Identifiers for this subscription
+        /// </summary>
         public virtual string[] SubscriptionIdentifiers => MessageRouter.SubscriptionIdentifiers;
 
         private SubscriptionStatus _status;

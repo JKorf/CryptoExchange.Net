@@ -51,10 +51,22 @@ namespace CryptoExchange.Net.OrderBook.V2
         private bool _validateChecksum;
         private bool _firstUpdateAfterSnapshotDone;
         private bool _diposed;
+        /// <summary>
+        /// Sequence number result
+        /// </summary>
         public enum SequenceNumberResult
         {
+            /// <summary>
+            /// The update was skipped
+            /// </summary>
             Skip,
+            /// <summary>
+            /// Update applied
+            /// </summary>
             Ok,
+            /// <summary>
+            /// Update out of sync
+            /// </summary>
             OutOfSync
         }
 
@@ -82,28 +94,6 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// The log
         /// </summary>
         protected ILogger _logger;
-
-        /// <summary>
-        /// Whether update numbers are consecutive. If set to true and an update comes in which isn't the previous sequences number + 1
-        /// the book will resynchronize as it is deemed out of sync
-        /// </summary>
-        protected bool _sequencesAreConsecutive;
-
-        /// <summary>
-        /// Whether the first update message after a snapshot may have overlapping sequence numbers instead of the snapshot sequence number + 1
-        /// </summary>
-        protected bool _skipSequenceCheckFirstUpdateAfterSnapshotSet;
-
-        /// <summary>
-        /// Whether levels should be strictly enforced. For example, when an order book has 25 levels and a new update comes in which pushes
-        /// the current level 25 ask out of the top 25, should the level 26 entry be removed from the book or does the server handle this
-        /// </summary>
-        protected bool _strictLevels;
-
-        /// <summary>
-        /// The amount of levels for this book
-        /// </summary>
-        protected int? Levels { get; set; } = null;
 
         /// <summary>
         /// Whether to process updates
@@ -261,13 +251,13 @@ namespace CryptoExchange.Net.OrderBook.V2
         private readonly ISubscribeIncrementalOrderBookSocket? _incrementalApi;
         private readonly IGetOrderBookRest? _restSnapshotApi;
 
-
+        private BookConfig _config;
         private Task? _recoverTask;
         private Task<CallResult>? _syncTask;
         private Task? _shutDownTask;
         private readonly object _shutDownLock = new object();
         private int _version;
-
+        private ExchangeParameters? _exchangeParameters;
         private CancellationTokenRegistration? _ctRegistration;
         private string _api;
         private string _symbol;
@@ -277,15 +267,19 @@ namespace CryptoExchange.Net.OrderBook.V2
         /// </summary>
         /// <param name="logger">Logger to use</param>
         /// <param name="symbol">The symbol the order book is for</param>
+        /// <param name="config">The book configuration</param>
         /// <param name="snapshotApi">The socket snapshot API</param>
         /// <param name="incrementalApi">The socket incremental API</param>
         /// <param name="restSnapshotApi">The REST snapshot API</param>
+        /// <param name="exchangeParameters">Additional exchange parameters</param>
         public ClientOrderBook(
             ILoggerFactory? logger,
             SharedSymbol symbol,
+            BookConfig config,
             ISubscribeOrderBookSocket? snapshotApi = null, 
             ISubscribeIncrementalOrderBookSocket? incrementalApi = null,
-            IGetOrderBookRest? restSnapshotApi = null)
+            IGetOrderBookRest? restSnapshotApi = null,
+            ExchangeParameters? exchangeParameters = null)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -311,6 +305,9 @@ namespace CryptoExchange.Net.OrderBook.V2
 
             Exchange = _incrementalApi?.Exchange ?? _snapshotApi!.Exchange;
 
+            _config = config;
+
+            _exchangeParameters = exchangeParameters;
             _processBuffer = new List<OrderBookUpdate>();
             _processQueue = new ConcurrentQueue<object>();
             _queueEvent = new AsyncResetEvent(false, true);
@@ -378,9 +375,7 @@ namespace CryptoExchange.Net.OrderBook.V2
 
             _subscription = subscription.Data;
             _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
-            //_subscription.ConnectionLost += HandleConnectionLost;
             _subscription.ConnectionClosed += HandleConnectionClosed;
-            //_subscription.ConnectionRestored += HandleConnectionRestored;
             _attachedSubscriptionEvents = true;
 
             var syncResult = await DoSyncAsync(cts.Token).ConfigureAwait(false);
@@ -455,10 +450,8 @@ namespace CryptoExchange.Net.OrderBook.V2
             {
                 if (_attachedSubscriptionEvents)
                 {
-                    //_subscription.ConnectionLost -= HandleConnectionLost;
                     _subscription.ConnectionClosed -= HandleConnectionClosed;
                     _subscription.SubscriptionStatusChanged -= SubscriptionStatusChanged;
-                    //_subscription.ConnectionRestored -= HandleConnectionRestored;
                     _attachedSubscriptionEvents = false;
                 }
             }
@@ -505,13 +498,16 @@ namespace CryptoExchange.Net.OrderBook.V2
             if (_incrementalApi != null)
             {
                 return await _incrementalApi.SubscribeToIncrementalOrderBookUpdatesAsync(
-                    new SubscribeOrderBookRequest(Symbol), HandleUpdate, ct: ct).ConfigureAwait(false);
+                    new SubscribeOrderBookRequest(Symbol, exchangeParameters: _exchangeParameters), HandleUpdate, ct: ct).ConfigureAwait(false);
             }
 
             return await _snapshotApi!.SubscribeToOrderBookUpdatesAsync(
                     new SubscribeOrderBookRequest(
                         Symbol,
-                        _snapshotApi.SubscribeOrderBookOptions.SupportedLimits.Max()), HandleUpdate, ct: ct).ConfigureAwait(false);
+                        _config.Levels,
+                        exchangeParameters: _exchangeParameters),
+                    HandleUpdate,
+                    ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -538,10 +534,14 @@ namespace CryptoExchange.Net.OrderBook.V2
                     {
                         // Only incremental, request REST snapshot
                         // Wait up to 250ms until the first update has been received
-                        await WaitUntilFirstUpdateBufferedAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(250), ct).ConfigureAwait(false);
+                        await WaitUntilFirstUpdateBufferedAsync(_config.MinFirstBufferedUpdateWait, _config.MaxFirstBufferedUpdateWait, ct).ConfigureAwait(false);
 
-                        var snapshot = await _restSnapshotApi!.GetOrderBookAsync(new GetOrderBookRequest(Symbol,
-                            _restSnapshotApi.GetOrderBookOptions.MaxLimit ?? _restSnapshotApi.GetOrderBookOptions.SupportedLimits!.Max()), ct: ct).ConfigureAwait(false);
+                        var snapshot = await _restSnapshotApi!.GetOrderBookAsync(
+                            new GetOrderBookRequest(
+                                Symbol,
+                                _config.Levels,
+                                exchangeParameters: _exchangeParameters), 
+                            ct: ct).ConfigureAwait(false);
 
                         if (!snapshot.Success)
                         {
@@ -558,18 +558,18 @@ namespace CryptoExchange.Net.OrderBook.V2
                             });
 
                         _queueEvent.Set();
-                        return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                        return await WaitForSyncedBook(_config.SyncTimeout, ct).ConfigureAwait(false);
                     }
                     else
                     {
                         // Snapshot + incremental, wait for snapshot to be received
-                        return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                        return await WaitForSyncedBook(_config.SyncTimeout, ct).ConfigureAwait(false);
                     }
                 }
                 else
                 {
                     // Snapshot socket API
-                    return await WaitForSyncedBook(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+                    return await WaitForSyncedBook(_config.SyncTimeout, ct).ConfigureAwait(false);
                 }
             });
 
@@ -746,7 +746,6 @@ namespace CryptoExchange.Net.OrderBook.V2
             {
                 if (appliedBufferResult == SequenceNumberResult.OutOfSync)
                 {
-                    //_logger.OrderBookOutOfSyncDetected(_api, _symbol, _asks.Keys[0], _bids.Keys[0]);
                     SyncStatus = SyncStatus.OutOfSync;
                     StartRecovery();
                     return null;
@@ -882,12 +881,12 @@ namespace CryptoExchange.Net.OrderBook.V2
             if (minUpdatedBidIndex != int.MaxValue || minUpdatedAskIndex != int.MaxValue)
                 changedFromEntryOn = Math.Min(minUpdatedBidIndex, minUpdatedAskIndex) + 1; // Index to top
 
-            if (Levels.HasValue && _strictLevels)
+            if (_config.Levels.HasValue && _config.StrictLevels)
             {
-                while (_bids.Count > Levels.Value)
+                while (_bids.Count > _config.Levels.Value)
                     _bids.RemoveAt(_bids.Count - 1);
 
-                while (_asks.Count > Levels.Value)
+                while (_asks.Count > _config.Levels.Value)
                     _asks.RemoveAt(_asks.Count - 1);
             }
 
@@ -1112,9 +1111,9 @@ namespace CryptoExchange.Net.OrderBook.V2
                 // Buffered update is from before the snapshot, ignore
                 return SequenceNumberResult.Skip;
 
-            if (_sequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
+            if (_config.SequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
             {
-                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                if (_firstUpdateAfterSnapshotDone || !_config.SkipSequenceCheckFirstUpdateAfterSnapshotSet)
                     // Buffered update is not the next sequence number when it was expected to be
                     return SequenceNumberResult.OutOfSync;
             }
@@ -1126,17 +1125,17 @@ namespace CryptoExchange.Net.OrderBook.V2
         private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
         {
             if (sequenceNumber < LastSequenceNumber
-                && (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet))
+                && (_firstUpdateAfterSnapshotDone || !_config.SkipSequenceCheckFirstUpdateAfterSnapshotSet))
             {
                 // Update is somehow from before the current state
                 return SequenceNumberResult.OutOfSync;
             }
 
-            if (_sequencesAreConsecutive
+            if (_config.SequencesAreConsecutive
                 && LastSequenceNumber != 0
                 && sequenceNumber != LastSequenceNumber + 1)
             {
-                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                if (_firstUpdateAfterSnapshotDone || !_config.SkipSequenceCheckFirstUpdateAfterSnapshotSet)
                     return SequenceNumberResult.OutOfSync;                
             }
 
